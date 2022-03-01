@@ -1,6 +1,6 @@
 ipyfilechooser==0.6.0
 ipykernel==5.4.3
-ipython==7.16.1
+ipython==7.16.3
 ipython-genutils==0.2.0
 ipywidgets==7.6.3
 json5==0.9.6
