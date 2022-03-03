@@ -10,6 +10,7 @@ from ipyfilechooser import FileChooser
 
 import functools
 
+immport_data = {'tab_data':{}}
 
 def button_change(button=None, style=None, text=None, tooltip=None, icon=None, display=None, disabled=None):
     """Change button properties
@@ -45,7 +46,6 @@ def reset_dd_form_row():
 
 def reset_dd_load_button():
     button_change(button=button_data_dictionary_load, text='Load', style='',tooltip='Load Data Dictionary',display='')
-
 
 def reset_sf_dir_load_button():
     button_change(button=button_study_file_directory_load, text='Confirm Selection', style='',tooltip='',display='')
@@ -125,8 +125,6 @@ def on_data_dictionary_select(change):
         show_hide_element(element=button_data_dictionary_load,display='none')
     test_function_notify(f"On data dictionary select:{change}")
 
-
-
 def on_study_file_select(value):
     global box_study_file_table
     global file_list_df
@@ -151,10 +149,6 @@ def on_study_file_select(value):
         box_study_file_table.children = ([study_file_table_widget])
         test_function_notify(box_study_file_table.children)
 
-    # else:
-        # show_hide_element(element=button_data_dictionary_load,display='none')
-    # test_function_notify(change)
-
 def process_study_file_directory():
     test_function_notify(fc_study_file_directory.value)
 
@@ -163,6 +157,8 @@ def generate_tab_study_files():
     global text_study_files_notify_dd_selection, fc_study_file_directory, box_study_file_table,button_study_file_directory_load
     
     fc_study_file_directory = FileChooser('./',)
+    fc_study_file_directory.layout=widgets.Layout(width='700px')
+
     fc_study_file_directory.show_only_dirs = True
     button_study_file_directory_load = widgets.Button()
     reset_sf_dir_load_button()
@@ -189,6 +185,7 @@ def generate_tab_data_dictionary():
     global fc_data_dictionary, button_data_dictionary_load, button_confirm_form_column, dropdown_table_form_column, dd_row, dd_form_row, box
 
     fc_data_dictionary = FileChooser('./')
+    fc_data_dictionary.layout=widgets.Layout(width='700px')
     fc_data_dictionary.filter_pattern = ['*.txt', '*.csv', '*.tsv']
 
     button_data_dictionary_load = widgets.Button()
@@ -244,13 +241,22 @@ def generate_study_file_table():
         study_file_list = [fn for fn in os.listdir(fc_study_file_directory.value)
                 if any(fn.endswith(ext) for ext in included_extensions)]
 
-        # test_function_notify("c")
-
+        test_function_notify("c")
+        # try:    
         study_file_list.sort()
         file_list_df = pd.DataFrame(columns=['Filename','Table Code','Assessment Name','Template','Default Visit'])
         file_list_df["Table Code"] = pd.Categorical([], ordered=True, categories=get_data_dictionary_tables())
         file_list_df["Template"] = pd.Categorical([], ordered=True, categories=get_immport_template_names())
+        test_function_notify("d")
+        planned_visit_list = get_planned_visits(nameonly=True, returnType="list")
+        file_list_df["Default Visit"]=pd.Categorical([],ordered=True, categories=planned_visit_list)
+        test_function_notify("e")
         file_list_df["Filename"]=study_file_list
+        test_function_notify("f")
+        # except Exception as e:
+            # with output2:
+                # print("Error" + str(e))
+
 
 def update_dataframe_from_table(value,row=None, column=None, column_name=None, dataframe=None):
     if dataframe is None:
@@ -268,10 +274,15 @@ def create_table_widget(dtype=None, value='', readonly=False, dataframe=None, co
             disabled=readonly)
         # template_data_row..append(my_cell_widget)
     elif dtype == "category":
+        option_list = dataframe[columnName].cat.categories.tolist()
+        if "--Select--" not in option_list:
+            option_list.insert(0,"--Select--")
         if value=='':
             value = '--Select--'
+
+
         return widgets.Dropdown(
-            options=dataframe[columnName].cat.categories,
+            options=option_list,
             value=value,
             description='',
             disabled=False,
@@ -309,7 +320,6 @@ def generate_df_table(dataframe=None):
             grid_body[ind, idx].description_tooltip=f"{{'row':{ind},'col':{idx}','title':'{column_title}'}}"
 
             grid_body[ind,idx].observe(functools.partial(update_dataframe_from_table, dataframe=dataframe, column_name=column_title,column=idx,row=ind), names='value')
-            # grid_body[row,column].observe(functools.partial(update_dataframe_from_table, dataframe=dataframe, column_name=title,column=idx,row=ind), names='value')
 
 
     box_head = widgets.VBox([grid_header], layout=widgets.Layout(height='50px'))
@@ -322,9 +332,9 @@ def generate_df_table(dataframe=None):
 
 def generate_gui():
     global output2
-    tab_contents = ['Data Dictionary', 'Study Files',"Debug"]
+    tab_contents = ['Study','Data Dictionary', 'Study Files',"Debug"]
     output2 = widgets.Output(layout=widgets.Layout(max_height="425px", overflow_y="auto"))
-    children = [generate_tab_data_dictionary(),generate_tab_study_files(),output2]
+    children = [generate_tab_study_info(),generate_tab_data_dictionary(),generate_tab_study_files(),output2]
     tab = widgets.Tab(layout=widgets.Layout(min_height="500px"))
     tab.children = children
     for idx, title in enumerate(tab_contents):
@@ -333,10 +343,143 @@ def generate_gui():
     return tab
 
 
+def toggle_study_immport(value,show_if_true=[],hide_if_true=[]):
+    if value["new"]:
+        elements_to_show = show_if_true
+        elements_to_hide = hide_if_true
+    else:
+        elements_to_show = hide_if_true
+        elements_to_hide = show_if_true
+
+    for element in elements_to_show:
+        show_hide_element(element=element, display='')
+
+    for element in elements_to_hide:
+        show_hide_element(element=element, display='none')
+
+def on_select_study_tab_file(value, fc_field=None):
+    global immport_data
+    if value.description == "Change":
+        immport_data["tab_data"]["planned_visits"] = cf.readFileFromZip(fc_immport_study_tab_file.selected_path,fc_immport_study_tab_file.selected_filename,"planned_visit.txt")
+        study_info = cf.readFileFromZip(fc_immport_study_tab_file.selected_path,fc_immport_study_tab_file.selected_filename,"study.txt")
+        # immport_data["planned_visits"] = cf.readFileFromZip(fc_immport_study_tab_file.selected_path,fc_immport_study_tab_file.selected_filename,"planned_visit.txt").drop(['STUDY_ACCESSION', 'WORKSPACE_ID'], axis=1)
+        immport_data["tab_data"]["study"] = study_info
+        immport_data["study_id"]=study_info["STUDY_ACCESSION"][0]
+        immport_data["workspace_id"]=study_info["WORKSPACE_ID"][0]
+        test_function_notify("display visits")
+
+        visit_names = get_planned_visits(nameonly=True, returnType="list")
+        test_function_notify("visit_names")
+        test_function_notify(", ".join(visit_names))
+        # display_visits(", ".join(visit_names))
+        set_visit_dropdown(visit_names)
+
+        test_function_notify("display visits - Done")
+
+def display_visits(visit_data):
+    w_study_visit_text.value = visit_data
+
+def create_visit_dropdown(data=None, add_select=False):
+    options = data;
+    if add_select:
+        if(type(options[0]) == str):
+            options.insert(0,"--Select--")
+        else:
+            options.insert(0,("--Select--",""))
 
 
+def set_visit_dropdown(visit_data):
+    w_study_visit_dropdown.options = visit_data
+
+def generate_tab_study_info():
+    global study_data, fc_immport_study_tab_file, w_study_visit_text, w_study_visit_dropdown
+
+    w_study_visit_text = widgets.HTML(
+        layout=widgets.Layout(width='700px'),
+        description='<b>Visit List:</b>',
+    )
+
+    # w_study_visit_dropdown = widgets.Dropdown(
+    #     options=[''],
+    #     value='',
+    #     description='<b>Visit List:</b>'
+    # )
+
+    w_study_visit_dropdown = create_visit_dropdown(data=[''], description = "<b> Visit List:</b>")
+
+    w_study_visit_dropdown.layout=widgets.Layout(width='700px')
+
+    w_study_immport_boolean = widgets.ToggleButtons(
+        options=[('Yes',1),('No',0)],
+        description='Current ImmPort Study:',
+        description_tooltip='Is this study a current ImmPort study?',
+        style=dict(description_width='initial')
+    )
+
+    w_immport_study_id = widgets.IntText(
+        description='Immport Study ID:',
+        style=dict(description_width='initial'),
+        disabled=True
+    )
+
+    w_immport_workspace_id = widgets.IntText(
+        description='Immport Workspace ID:',
+        style=dict(description_width='initial'),
+        disabled=True
+    )
+
+    fc_immport_study_tab_file = FileChooser(
+        './',
+        title='<b>Select the ImmPort Study Tab zip file:</b>'
+    )
+    
+    fc_immport_study_tab_file.layout=widgets.Layout(width='700px')
+    fc_immport_study_tab_file.filter_pattern = ['*.zip']
+    w_immport_study_tab_file_status = widgets.HTML()
+    fc_immport_study_tab_file._select.on_click(functools.partial(on_select_study_tab_file, fc_field=fc_immport_study_tab_file))
+
+    box_immport_study_yes = widgets.VBox([fc_immport_study_tab_file,w_immport_study_tab_file_status])
+    box_immport_study_no = widgets.VBox([])
+    box_immport_study = widgets.VBox([w_study_immport_boolean,box_immport_study_yes,box_immport_study_no,w_study_visit_dropdown])
+
+    w_study_immport_boolean.observe(functools.partial(toggle_study_immport,show_if_true=[box_immport_study_yes], hide_if_true=[]), names='value')
+
+    return box_immport_study
+
+def get_planned_visits(nameonly=False, returnType=None):
+    test_function_notify("In get planned visits")
+    if nameonly:
+        test_function_notify("\tName Only")   
+        names = immport_data['tab_data']["planned_visits"]["NAME"]
+        if returnType == 'list':
+            return names.tolist()
+        return names
+    return immport_data['tab_data']["planned_visits"][["PLANNED_VISIT_ACCESSION","NAME"]]
 
 
+def create_visit_dropdown(data=None, add_select=False,description=None):
+    options = data;
+    if add_select:
+        if(type(options[0]) == str):
+            options.insert(0,"--Select--")
+        else:
+            options.insert(0,("--Select--",""))
+    
+    if(type(options[0]) == str):
+        value = options[0]
+    else:
+        value = options[0][1]
+
+    v_dropdown = widgets.Dropdown(
+        options=options,
+        value=value
+    )
+
+    if description is not None:
+        v_dropdown.description=description
+        v_dropdown.style=style=dict(description_width='initial')
+
+    return v_dropdown
 
 
 
