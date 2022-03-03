@@ -48,6 +48,10 @@ def processStudyFile(table_list,directory,dictionary,planned_visits,study_files,
     return [assessment_panel_template,assessment_components_template]
 
 def readFileFromZip(dir,zip,file):
+    if zip.endswith('.zip'):
+        zip = zip.replace('.zip','')
+    if not dir.endswith('/'):
+        dir += "/"
     with ZipFile(f"{dir}{zip}.zip") as myzip:
         with myzip.open(f"{zip}/Tab/{file}") as myfile:
             myfile_contents = pd.read_csv(io.BytesIO(myfile.read()), encoding='utf8', sep="\t")
