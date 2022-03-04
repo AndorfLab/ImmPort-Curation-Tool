@@ -1,0 +1,36 @@
+{
+  "$schema":"http://json-schema.org/draft-04/schema",
+  "title":" template schema",
+  "description":"",
+  "type":"object",
+  "properties":{
+    "pubmedId":{
+    "type":"string","maxLength":16
+    },
+    "doi":{
+    "type":"string","maxLength":100
+    },
+    "title":{
+    "type":"string","maxLength":4000
+    },
+    "journal":{
+    "type":"string","maxLength":250
+    },
+    "year":{
+    "type":"string","maxLength":4
+    },
+    "month":{
+    "type":"string","maxLength":12
+    },
+    "issue":{
+    "type":"string","maxLength":20
+    },
+    "pages":{
+    "type":"string","maxLength":20
+    },
+    "authors":{
+    "type":"string","maxLength":4000
+    }
+    },
+  "required":["pubmedId"]
+}

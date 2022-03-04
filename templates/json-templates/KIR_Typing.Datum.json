@@ -1,0 +1,24 @@
+{
+  "$schema":"http://json-schema.org/draft-04/schema",
+  "title":"KIR_Typing.json template schema",
+  "description":"The KIR experiment sample template defines and annotates the assay results for a sample by linking sample, experiment, and results together.",
+  "type":"object",
+  "properties":{
+    "expsampleId":{
+    "type":"string"
+    },
+    "kirHaplotype":{
+    "type":"string","maxLength":250
+    },
+    "allele1":{
+    "type":"string","maxLength":250
+    },
+    "allele2":{
+    "type":"string","maxLength":250
+    },
+    "comments":{
+    "type":"string","maxLength":500
+    }
+    },
+  "required":["expsampleId","kirHaplotype"]
+}
