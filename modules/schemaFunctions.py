@@ -71,7 +71,7 @@ def check_data_type(value, key_properties, key):
         for idx, item in enumerate(value):
             (field_type, same_type) = is_same_type(item, field_type)
             if not same_type:
-                raise TypeError(f"{value[idx]} with type {type(value[idx])} given for {key} at index {idx} - expected {field_type}")
+                raise TypeError(f"{item} with type {type(item)} given for {key} at index {idx} - expected {field_type}")
     else:
         (field_type, same_type) = is_same_type(value, field_type)
         if not same_type :
@@ -89,8 +89,8 @@ def check_data_type(value, key_properties, key):
     return value
 
 def check_data_length(value, maxLength, truncate=False, key=None):
-    if len(value)>=maxLength:
-        return True
+    if len(value)<=maxLength:
+        return value
     if truncate:
         return value[0:maxLength]
 
@@ -98,7 +98,8 @@ def check_data_length(value, maxLength, truncate=False, key=None):
 
     
 class ImmPort_Data: 
-   
+    schemaVersion = "3.34"
+
     def print_obj(self):
         print_data = {}
         for attr in self.__dict__:
@@ -109,9 +110,16 @@ class ImmPort_Data:
 
 
     def validate(self):
-        return validate_data(self.get_data(), schema_name = self.get_validator())
+        self.obj_to_data()
+        return validate_data(self.get_obj(), schema_name = self.get_validator())
     
     def get_data(self):
+        return self.data
+
+    def get_obj(self):
+        return self.get_data()
+
+    def obj_to_data(self):
         return self.data
 
     def set_data(self, key, value):
@@ -141,7 +149,6 @@ class ImmPort_Data:
 class Assessment(ImmPort_Data):
     filename="assessments.json"
     name="assessments"
-    schemaVersion = "3.34"
     templateType='combined-result'
     validator = "assessments"
 
@@ -150,9 +157,13 @@ class Assessment(ImmPort_Data):
 
     def __init__(self):
         self.data=[]
+        self.records=[]
 
     def add_record(self, record):
-        self.data.append(record.__dict__)
+        #Should this store the actual class or the contents?
+        # self.data.append(record.__dict__)
+        self.records.append(record)
+        # self.data.append(record)
 
     def get_obj(self):
         obj = {
@@ -164,9 +175,23 @@ class Assessment(ImmPort_Data):
         obj["data"] = self.get_data()
         return obj
     
-    def validate(self):
-        return validate_data(self.get_obj(), schema_name = self.get_validator())
+    # def validate(self):
+    #     return validate_data(self.get_obj(), schema_name = self.get_validator())
 
+    def obj_to_data(self):
+        self.data=[]
+        for record in self.records:
+            this_record_data = {"metaData":record.metaData.get_data(), "resultData":[]}
+            # print(record)
+            # print(record.__dict__)
+            # print(record.metaData.get_data())
+            for datum in record.resultData:
+                # print(datum.get_data())
+                this_record_data["resultData"].append(datum.get_data())
+            self.data.append(this_record_data)
+        
+
+    # TODO: Look about moving to ImmPort_Data Class
     def export_to_json(self, filename=None):
         if not self.validate():
             raise ValueError("Assessment data is not valid")
@@ -174,7 +199,10 @@ class Assessment(ImmPort_Data):
             print(json.dumps(self.get_obj(), indent=4), file=fh)
         return
 
+    # TODO: Look about moving to ImmPort_Data Class
     def export_to_txt(self, filename=None):
+        if not self.validate():
+            raise ValueError("Assessment data is not valid")
         separator = "\t"
         with open(filename, 'w') as fh:
 
@@ -226,8 +254,6 @@ class Assessment(ImmPort_Data):
         ]
 
 
-
-
 class Assessment_Datum(ImmPort_Data):
 
     def __init__(self, assessment_panel=None):
@@ -236,10 +262,12 @@ class Assessment_Datum(ImmPort_Data):
         self.resultData = []
     
     def set_metadata(self, metadata_obj):
-        self.metaData = metadata_obj.get_data()
+        self.metaData = metadata_obj
+        # self.metaData = metadata_obj.get_data()
 
     def add_result_data(self, result_data_obj):
-        self.resultData.append(result_data_obj.get_data())
+        self.resultData.append(result_data_obj)
+        # self.resultData.append(result_data_obj.get_data())
 
     def print_obj(self):
         return self.__dict__
@@ -329,6 +357,27 @@ class Assessment_MetaData(ImmPort_Data):
         self.set_data("subjectId", "Subject%s" % Assessment_MetaData.iterable_counter)
 
 class Assessment_ResultData(ImmPort_Data):
+    """Class to hold data to go into the Results section of the Assessment template.
+       Each instance is equiavlent to a single response to a question. Most likely,
+       a single line in a result file.
+
+    Parent Class:
+        ImmPort_Data
+    
+    Attributes:
+        plannedVisitId: str
+        nameReported: str
+        studyDay: number
+    
+    Variables:
+        iterable_counter: int (Init: 0)- used to generate an incremental counter
+        truncate_long_fields: Bool (Init: True) - used to truncate strings based on schema
+        validator: str (Init: assessments.ResultData) - used to lookup jsonschema for validation
+        
+        data_fields: dict - used to validate types and string length
+
+    Methods:
+    """
     iterable_counter = 0
     truncate_long_fields = True
     validator = "assessments.ResultData"
