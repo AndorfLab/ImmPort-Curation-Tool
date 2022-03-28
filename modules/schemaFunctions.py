@@ -2,9 +2,9 @@ import os
 from attr import field
 import jsonschema
 import json
+from modules import immport_gui as ig
 
 schema_search_path="ImmPort_Curation_Tool/templates/json-templates"
-
 
 def get_schema_store(schema_search_path):
     schema_store = {}
@@ -96,7 +96,7 @@ def check_data_length(value, maxLength, truncate=False, key=None):
 
     raise ValueError("Value exceeds max length of {maxLength} for field {key}: {maxLength[0:25]}...")
 
-    
+
 class ImmPort_Data: 
     schemaVersion = "3.34"
 
@@ -189,7 +189,7 @@ class Assessment(ImmPort_Data):
                 # print(datum.get_data())
                 this_record_data["resultData"].append(datum.get_data())
             self.data.append(this_record_data)
-        
+
 
     # TODO: Look about moving to ImmPort_Data Class
     def export_to_json(self, filename=None):
@@ -562,15 +562,37 @@ class Assessment_ResultData(ImmPort_Data):
             }
         }
 
-    def __init__(self, plannedVisitId=None, nameReported=None, studyDay=None):
+    enumFields = dict(filter(lambda x: "enum" in x[1], data_fields.items()))
+
+    def __init__(self, plannedVisitId=None, nameReported=None, studyDay=None, **kwargs):
         Assessment_ResultData.iterable_counter +=1
         
         self.data={}
         self.set_data("userDefinedId", "RD%s" % Assessment_ResultData.iterable_counter)
         self.set_data("plannedVisitId", plannedVisitId)
         self.set_data("nameReported", nameReported)
-        self.set_data("studyDay", studyDay if studyDay is not None else 99999) 
+        self.set_data("studyDay", studyDay if studyDay is not None else 99999)
 
+        del kwargs["userDefinedId"]
+        
+        for key, value in kwargs.items():
+            # print(key, value)
+            # TODO: need a way to identify/report ALL instances, and then allow user to specify mapping in GUI
+            if key in self.enumFields and value not in self.enumFields[key]:
+                # ig.main_logger.warning(f"Value '{value}' for field '{key}' is not valid.")
+                ig.unique_logging_buffer_load(
+                    level="warn",
+                    message=f"Value '{value}' for field '{key}' is not valid - {nameReported}"
+                )
+
+                if key == 'resultUnitReported' and value == "%":
+                    # ig.main_logger.info(f"\tSubstituting 'percentage' for '{value}' for field '{key}'.")
+                    ig.unique_logging_buffer_load(
+                        level="info",
+                        message=f"\tSubstituting 'percentage' for '{value}' for field '{key}' - {nameReported}"
+                    )
+                    value = 'percentage'
+            self.set_data_value(key, value)
 
 
 schema_store = get_schema_store(schema_search_path)
