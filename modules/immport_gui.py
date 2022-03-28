@@ -4,6 +4,7 @@ import os
 from modules import processRedCapFiles as rc
 from modules import curationFunctions as cf
 from modules import analysisFunctions as af
+from modules import schemaFunctions as sf
 
 import ipywidgets as widgets
 from ipyfilechooser import FileChooser
@@ -218,34 +219,32 @@ def on_data_dictionary_select(change):
         reset_dd_load_button()
     else:
         show_hide_element(element=button_data_dictionary_load,display='none')
-    test_function_notify(f"On data dictionary select:{change}")
+    # test_function_notify(f"On data dictionary select:{change}")
+    unique_logging_buffer_load(level="debug",message=f"On data dictionary select:{change}")
+    unique_logging_buffer_flush()
 
 def on_study_file_select(value):
     global box_study_file_table
     global file_list_df
-    test_function_notify(f"on_study_file_select{value}")
-    # test_function_notify("Study File Directory:")
-    # if value["description"] == "Change":
+    # test_function_notify(f"on_study_file_select{value}")
+    unique_logging_buffer_load(level="debug",message=f"on_study_file_select{value}")
+
+
     if value.description == "Change":
         box_study_file_table.children = ([widgets.HTML(r'Generating Study File Table...')])
-
-        # test_function_notify(value)
-        # test_function_notify(f"Study File Directory:{fc_study_file_directory.selected}")
-
-        # test_function_notify("Generate Study File Table")
         generate_study_file_table()
-        # test_function_notify("Reset DD load Button")
         reset_sf_dir_load_button()
-        test_function_notify("Generate DF table")
+        # test_function_notify("Generate DF table")
+        unique_logging_buffer_load(level="debug",message=f"Generate DF table")
         study_file_table_widget = generate_df_table(dataframe=file_list_df)
-        test_function_notify(box_study_file_table)
-        test_function_notify(box_study_file_table.children)
-        test_function_notify("Generate DF table2")
         box_study_file_table.children = ([study_file_table_widget])
-        test_function_notify(box_study_file_table.children)
+    unique_logging_buffer_flush()
+
 
 def process_study_file_directory():
-    test_function_notify(fc_study_file_directory.value)
+    # test_function_notify(fc_study_file_directory.value)
+    unique_logging_buffer_load(level="debug",message=fc_study_file_directory)
+    unique_logging_buffer_flush()
 
 
 def generate_tab_study_files():
@@ -268,7 +267,6 @@ def generate_tab_study_files():
     box_study_file_table =widgets.HBox()
     box = widgets.VBox([dataFiles_row,text_study_files_notify_dd_selection,box_study_file_table])
     box.layout = widgets.Layout(width='925px')
-    # fc_study_file_directory._select.on_click(test_function_notify)
     fc_study_file_directory._select.on_click(on_study_file_select)
 
     return box
@@ -330,27 +328,19 @@ def generate_study_file_table():
     file_list_df=""
 
     included_extensions = ['txt','csv', 'tsv']
-    # test_function_notify("a")
     if os.path.isdir(fc_study_file_directory.value):
-        # test_function_notify("b")
         study_file_list = [fn for fn in os.listdir(fc_study_file_directory.value)
                 if any(fn.endswith(ext) for ext in included_extensions)]
 
-        test_function_notify("c")
         # try:    
         study_file_list.sort()
         file_list_df = pd.DataFrame(columns=['Filename','Table Code','Assessment Name','Template','Default Visit'])
         file_list_df["Table Code"] = pd.Categorical([], ordered=True, categories=get_data_dictionary_tables())
         file_list_df["Template"] = pd.Categorical([], ordered=True, categories=get_immport_template_names())
-        test_function_notify("d")
         planned_visit_list = get_planned_visits(nameonly=True, returnType="list")
         file_list_df["Default Visit"]=pd.Categorical([],ordered=True, categories=planned_visit_list)
-        test_function_notify("e")
         file_list_df["Filename"]=study_file_list
-        test_function_notify("f")
-        # except Exception as e:
-            # with output2:
-                # print("Error" + str(e))
+
 
 
 def update_dataframe_from_table(value,row=None, column=None, column_name=None, dataframe=None):
@@ -461,15 +451,20 @@ def on_select_study_tab_file(value, fc_field=None):
         immport_data["tab_data"]["study"] = study_info
         immport_data["study_id"]=study_info["STUDY_ACCESSION"][0]
         immport_data["workspace_id"]=study_info["WORKSPACE_ID"][0]
-        test_function_notify("display visits")
-
+        
+        # test_function_notify("display visits")
+        unique_logging_buffer_load(level="debug",message="display visits")
         visit_names = get_planned_visits(nameonly=True, returnType="list")
-        test_function_notify("visit_names")
-        test_function_notify(", ".join(visit_names))
+        # test_function_notify("visit_names")
+        unique_logging_buffer_load(level="debug",message=f"visit names: {', '.join(visit_names)}")
+        # test_function_notify(", ".join(visit_names))
         # display_visits(", ".join(visit_names))
         set_visit_dropdown(visit_names)
 
-        test_function_notify("display visits - Done")
+        # test_function_notify("display visits - Done")
+        unique_logging_buffer_load(level="debug",message=f"display visits - Done")
+        unique_logging_buffer_flush()
+
 
 def display_visits(visit_data):
     w_study_visit_text.value = visit_data
@@ -481,7 +476,7 @@ def create_visit_dropdown(data=None, add_select=False):
             options.insert(0,"--Select--")
         else:
             options.insert(0,("--Select--",""))
-
+            
 
 def set_visit_dropdown(visit_data):
     w_study_visit_dropdown.options = visit_data
@@ -542,9 +537,10 @@ def generate_tab_study_info():
     return box_immport_study
 
 def get_planned_visits(nameonly=False, returnType=None):
-    test_function_notify("In get planned visits")
+    
     if nameonly:
-        test_function_notify("\tName Only")   
+        # test_function_notify("\tName Only")
+        unique_logging_buffer_load(level="debug", message="\tName Only", flush=True)
         names = immport_data['tab_data']["planned_visits"]["NAME"]
         if returnType == 'list':
             return names.tolist()
