@@ -446,6 +446,7 @@ def on_select_study_tab_file(value, fc_field=None):
     global immport_data
     if value.description == "Change":
         immport_data["tab_data"]["planned_visits"] = cf.readFileFromZip(fc_immport_study_tab_file.selected_path,fc_immport_study_tab_file.selected_filename,"planned_visit.txt")
+        immport_data["tab_data"]["study_files"] = cf.readFileFromZip(fc_immport_study_tab_file.selected_path,fc_immport_study_tab_file.selected_filename,"study_file.txt")
         study_info = cf.readFileFromZip(fc_immport_study_tab_file.selected_path,fc_immport_study_tab_file.selected_filename,"study.txt")
         # immport_data["planned_visits"] = cf.readFileFromZip(fc_immport_study_tab_file.selected_path,fc_immport_study_tab_file.selected_filename,"planned_visit.txt").drop(['STUDY_ACCESSION', 'WORKSPACE_ID'], axis=1)
         immport_data["tab_data"]["study"] = study_info
@@ -476,7 +477,7 @@ def create_visit_dropdown(data=None, add_select=False):
             options.insert(0,"--Select--")
         else:
             options.insert(0,("--Select--",""))
-            
+
 
 def set_visit_dropdown(visit_data):
     w_study_visit_dropdown.options = visit_data
