@@ -3,6 +3,7 @@ import io
 import os
 import subprocess
 import re
+import traceback
 import logging
 import sys
 import csv
@@ -10,6 +11,7 @@ import json
 import numpy as np
 from io import StringIO
 from zipfile import ZipFile
+from modules import immport_gui as ig
 
 
 pd.options.display.max_columns = 400
@@ -82,13 +84,13 @@ def addVisitAccessionFromName(planned_visits, table, visit_col,dictionary,file_t
     dict_visits=dict(zip(planned_visits["NAME"],planned_visits["PLANNED_VISIT_ACCESSION"]))
     
     if(table_column is None):
-        logging.warn("No visit column in table, using default: {}")
+        ig.unique_logging_buffer_load(level="debug",message=f"No visit column in table, using default: {default_visit}", flush=True)
         if(default_visit is not None):
             table["PLANNED_VISIT_ID"]=dict_visits.get(default_visit,"")
             table_visit = pd.DataFrame(data={'plannedVisit':['']})
             return table_visit
         else:
-            logging.error("No default visit has been defined")
+            ig.unique_logging_buffer_load(level="error",message=f"No default visit has been defined for {file_table}", flush=True)
             raise ValueError(f"No default visit has been defiled for {file_table}")
 
     table_visits = table.groupby([table_column], as_index=False).agg('nunique')
@@ -111,10 +113,13 @@ def addVisitAccessionFromName(planned_visits, table, visit_col,dictionary,file_t
                 table_visits.loc[index,"plannedVisit"]=dict_visits[key]
             elif(~row[table_column][0:1].isnumeric() & row[table_column][1:].isnumeric() & ("Visit "+row[table_column][1:] in key)):
                 table_visits.loc[index,"plannedVisit"]=dict_visits[key]
-            # else:
-                # logging.warn(f"Cannot find planned visit for {key}")
-
+            else:
+                logging.warn(f"Cannot find planned visit for {key}")
+                ig.unique_logging_buffer_load(level="warn", message=f"Cannot find planned visit for {key}")
+    
         dict_visits2=dict(zip(table_visits[table_column],table_visits["plannedVisit"]))
+    ig.unique_logging_buffer_flush()
+
     if len(dictionary["tables"][file_table]["fields"][visit_col]["map_to_visit"])>0:
         visit_map_dict = json.loads(dictionary["tables"][file_table]["fields"][visit_col]["map_to_visit"])
         #create dictionary of visit_mappings to planned visit IDs
@@ -124,11 +129,10 @@ def addVisitAccessionFromName(planned_visits, table, visit_col,dictionary,file_t
     missingVisits = dict(filter(lambda visit: visit[1] == "", dict_visits2.items()))
 
     if(len(missingVisits)>0):
-        logging.error("Missing Visits")
-        logging.error(missingVisits)
-        missingVisits_all[file_table]=list(missingVisits.keys())
+        ig.unique_logging_buffer_load(level="error",message=f"Missing Visits\n{'|'.join(list(missingVisits.keys()))}")
+        # missingVisits_all[file_table]=list(missingVisits.keys())
 
-        logging.info(missingVisits_all)
+        # logging.info(missingVisits_all)
 
     table["PLANNED_VISIT_ID"]=table[table_column].apply(lambda v: dict_visits2[v])
 
@@ -224,16 +228,13 @@ def datafileToComponents(datafile,dictionary,table_name_array,assessment_compone
                 component_id = f"{panel_id}_{question_id}"
 
                 try:
-
                     df_slim["component_group_id"]=component_id
                     df_slim["Name Reported"]=col_name
                     df_slim["Result Value Reported"]=datafile[col_name]
                     df_slim["ASSESSMENT_PANEL_ACCESSION"]=panel_id
                     df_slim["WORKSPACE_ID"]=workspace_id
-                    
-                except:
-                    logging.error("col_name")
-                    logging.error(col_name)
+                except Exception as e:
+                    ig.unique_logging_buffer_load(level="error",message=f"Error with column {col_name} in {table_name}- {str(e)}\n{traceback.format_exc()}", flush=True)
                     raise
 
                 df_slim.loc[(df_slim["Result Value Reported"] == "<NA>"), "Result Value Reported"] = np.NaN
@@ -241,9 +242,8 @@ def datafileToComponents(datafile,dictionary,table_name_array,assessment_compone
                 if dictionary["tables"][table_name]["fields"][col]["unit"] != "":
                     if dictionary["tables"][table_name]["fields"][col]["unit"].upper() == "[SPLIT]":
                         #Need to split Result Unit Reported into result and unit
-                        logging.info(f"Split column {col} into result and unit")
+                        ig.unique_logging_buffer_load(level='debug', message=f"Split column {col} into result and unit for {table_name}", flush=True)
                     else:
-
                         # Need to see if the value is "[Split]"
                         df_slim.loc[~df_slim["Result Value Reported"].isna(), "Result Unit Reported"] = dictionary["tables"][table_name]["fields"][col]["unit"]
 
@@ -255,8 +255,6 @@ def datafileToComponents(datafile,dictionary,table_name_array,assessment_compone
                     
                     lookup_col = dictionary["tables"][table_name]["fields"][col]["age_onset"]
                     lookup_col_name = dictionary["tables"][table_name]["fields"][lookup_col]["description"]
-                    # logging.info(f"Lookup Column: {lookup_col}, {lookup_col_name}")
-                    logging.debug(f"Age Onset Lookup col: {lookup_col}, {lookup_col_name} for {col}")
 
                     df_slim["Age At Onset Reported"]= datafile[lookup_col_name]
                     df_slim.loc[~df_slim["Age At Onset Reported"].isna(), "Age At Onset Unit Reported"] = dictionary["tables"][table_name]["fields"][col]["age_onset_unit"]
@@ -269,8 +267,6 @@ def datafileToComponents(datafile,dictionary,table_name_array,assessment_compone
                     if lookup_col == "[Self]":
                         lookup_col = col
                     lookup_col_name = dictionary["tables"][table_name]["fields"][lookup_col]["description"]
-                    logging.debug(f"Study Day Lookup col: {lookup_col}, {lookup_col_name} for {col}")
-                    # logging.info(f"Lookup Column: {lookup_col}, {lookup_col_name}")
 
                     df_slim["Study Day"]= datafile[lookup_col_name]
                 #Need to take df_slim and remove rows that have no actual data. 
@@ -278,7 +274,7 @@ def datafileToComponents(datafile,dictionary,table_name_array,assessment_compone
                 assessment_components_template=assessment_components_template.append(df_slim[~df_slim["Result Value Reported"].isnull()], ignore_index=True)
                 # assessment_components_template=assessment_components_template.append(df_slim, ignore_index=True)
             else:
-                logging.warn("Table Field not found in file: %s", col_name)
+                ig.unique_logging_buffer_flush(level='critical', message="Table Field not found in file: {col_name} in {table_name}", flush=True)
         
     return assessment_components_template
 
