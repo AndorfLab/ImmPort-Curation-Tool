@@ -113,9 +113,9 @@ def addVisitAccessionFromName(planned_visits, table, visit_col,dictionary,file_t
                 table_visits.loc[index,"plannedVisit"]=dict_visits[key]
             elif(~row[table_column][0:1].isnumeric() & row[table_column][1:].isnumeric() & ("Visit "+row[table_column][1:] in key)):
                 table_visits.loc[index,"plannedVisit"]=dict_visits[key]
-            else:
-                logging.warn(f"Cannot find planned visit for {key}")
-                ig.unique_logging_buffer_load(level="warn", message=f"Cannot find planned visit for {key}")
+            # else:
+            #     logging.warn(f"Cannot find planned visit for {key}")
+            #     ig.unique_logging_buffer_load(level="warn", message=f"Cannot find planned visit for {key}")
     
         dict_visits2=dict(zip(table_visits[table_column],table_visits["plannedVisit"]))
     ig.unique_logging_buffer_flush()
