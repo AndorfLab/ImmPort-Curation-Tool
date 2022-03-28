@@ -98,7 +98,10 @@ def check_data_length(value, maxLength, truncate=False, key=None):
 
     raise ValueError("Value exceeds max length of {maxLength} for field {key}: {maxLength[0:25]}...")
 
-
+def load_data_fields(validator):
+    with open(os.path.abspath(os.path.join(schema_search_path,validator+".json"))) as fh_json_file:
+        json_data = json.load(fh_json_file)
+        return json_data['properties']
 class ImmPort_Data: 
     schemaVersion = "3.34"
 
@@ -350,6 +353,7 @@ class Assessment_Datum(ImmPort_Data):
 class Assessment_Panel(ImmPort_Data):
     iterable_counter = 0
     truncate_long_fields = True
+
     data_fields={
         "assessmentPanelId": {
             "type": "string",
@@ -389,39 +393,9 @@ class Assessment_MetaData(ImmPort_Data):
     iterable_counter = 0
     truncate_long_fields = True
     validator = "assessments.MetaData"
+    data_fields = load_data_fields(validator)
 
-    data_fields={
-        "subjectId": {
-            "type": "string",
-            "maxLength": 100
-        },
-        "assessmentPanelId": {
-            "type": "string",
-            "maxLength": 100
-        },
-        "studyId": {
-            "type": "string"
-        },
-        "nameReported": {
-            "type": "string",
-            "maxLength": 125
-        },
-        "assessmentType": {
-            "type": "string",
-            "maxLength": 125
-        },
-        "status": {
-            "type": "string",
-            "maxLength": 40
-        },
-        "crfFileNames": {
-            "type": "array",
-            "items": {
-                "type": "string",
-                "maxLength": 240
-            }
-        }
-    }
+
     
     def __init__(self, assessment_panel=None):
         Assessment_MetaData.iterable_counter +=1
@@ -457,185 +431,9 @@ class Assessment_ResultData(ImmPort_Data):
     truncate_long_fields = True
     validator = "assessments.ResultData"
 
-    data_fields={
-            "userDefinedId": {
-                "type": "string",
-                "maxLength": 200
-            },
-            "plannedVisitId": {
-                "type": "string"
-            },
-            "nameReported": {
-                "type": "string",
-                "maxLength": 150
-            },
-            "studyDay": {
-                "type": "number"
-            },
-            "ageAtOnsetReported": {
-                "type": "number"
-            },
-            "ageAtOnsetUnitReported": {
-                "type": "string",
-                "enum": [
-                    "d.p.c.",
-                    "Days",
-                    "Hours",
-                    "Minutes",
-                    "Months",
-                    "Not Specified",
-                    "Seconds",
-                    "Weeks",
-                    "Years"
-                ]
-            },
-            "isClinicallySignificant": {
-                "type": "string",
-                "maxLength": 1
-            },
-            "locationOfFindingReported": {
-                "type": "string",
-                "maxLength": 256
-            },
-            "organOrBodySystemReported": {
-                "type": "string",
-                "maxLength": 100
-            },
-            "resultValueReported": {
-                "type": "string"
-            },
-            "resultUnitReported": {
-                "type": "string",
-                "enum": [
-                    "AFU",
-                    "AI",
-                    "Antibody titer",
-                    "AU/ml",
-                    "BCLC Stage",
-                    "Beats per Minute",
-                    "Body Mass Index Finding",
-                    "Boolean",
-                    "Breaths per Minute",
-                    "C",
-                    "Capsule Dosing Unit",
-                    "categorical",
-                    "cells",
-                    "cells/ml",
-                    "cells/ul",
-                    "cm",
-                    "Count",
-                    "Cq",
-                    "Ct",
-                    "Day",
-                    "Delta Ct",
-                    "Delta Delta Ct",
-                    "DK units/ml",
-                    "Donor Information",
-                    "Dose",
-                    "F",
-                    "FPKM",
-                    "g/dl",
-                    "g/l",
-                    "Gender",
-                    "gm",
-                    "Grade",
-                    "HAU",
-                    "Hour",
-                    "in",
-                    "IU",
-                    "iu/l",
-                    "IU/ml",
-                    "K",
-                    "Kallikrein Inactivator Unit per Milliliter",
-                    "kg",
-                    "kg/m2",
-                    "l",
-                    "L/sec",
-                    "M",
-                    "MFI at 90th percentile",
-                    "mg",
-                    "mg/dl",
-                    "mg/l",
-                    "mg/ml",
-                    "miu/ml",
-                    "ml",
-                    "mL/min",
-                    "mL/min/(173/100).m2",
-                    "mL/min/mmHg",
-                    "mM",
-                    "mmHg",
-                    "MOI",
-                    "Month",
-                    "Multidimensional Fatigue Inventory",
-                    "ng",
-                    "ng/dl",
-                    "ng/ml",
-                    "ng/nl",
-                    "ng/ul",
-                    "nl",
-                    "nM",
-                    "Not Specified",
-                    "NPX",
-                    "Number of Episodes",
-                    "optical density",
-                    "percentage",
-                    "PFU",
-                    "PFUe",
-                    "pg",
-                    "pg/mg creatinine",
-                    "pg/ml",
-                    "pg/nl",
-                    "pg/ul",
-                    "pl",
-                    "pM",
-                    "Point",
-                    "Pound",
-                    "RPKM",
-                    "Scale",
-                    "Schirmer Test Wetting",
-                    "Score",
-                    "stim/unstim fold change",
-                    "TCID50",
-                    "titer",
-                    "TPM",
-                    "ug",
-                    "ug/dl",
-                    "ug/kg",
-                    "ug/l",
-                    "ug/ml",
-                    "ug/ul",
-                    "ugEq/g",
-                    "uiu/ml",
-                    "ul",
-                    "uM",
-                    "umol/l",
-                    "units/ml",
-                    "Week",
-                    "Year",
-                    "Yes, No, or Unknown Response"
-                ]
-            },
-            "resultValueCategory": {
-                "type": "string",
-                "maxLength": 40
-            },
-            "subjectPositionReported": {
-                "type": "string",
-                "maxLength": 40
-            },
-            "timeOfDay": {
-                "type": "string",
-                "maxLength": 40
-            },
-            "verbatimQuestion": {
-                "type": "string",
-                "maxLength": 250
-            },
-            "whoIsAssessed": {
-                "type": "string",
-                "maxLength": 40
-            }
-        }
+    data_fields = load_data_fields(validator)
+
+
 
     enumFields = dict(filter(lambda x: "enum" in x[1], data_fields.items()))
 
