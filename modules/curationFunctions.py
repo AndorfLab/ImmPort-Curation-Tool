@@ -1,5 +1,6 @@
 import pandas as pd
 import io
+import os
 import subprocess
 import re
 import logging
@@ -204,11 +205,13 @@ def readStudyFile(filepath, table, dictionary, sep="\t"):
 def getAssessmentPanelByID(panel_ID,assessment_panel_df):
     return assessment_panel_df[assessment_panel_df["Assessment Panel ID"]==panel_ID]
 
-def readTemplate(template):
+def readTemplate(template, template_path="templates/txt-templates/"):
     if(template == 'assessments'):
-        assessment_template_header = pd.read_csv("templates/txt-templates/assessments.txt",nrows=2)
+        template_file_path = os.path.abspath(os.path.join(template_path,"assessments.txt"))
+
+        assessment_template_header = pd.read_csv(template_file_path,nrows=2)
         # logging.info(assessment_template_header)
-        assessments = pd.read_csv("templates/txt-templates/assessments.txt", sep='\t', skiprows=2,nrows=0)
+        assessments = pd.read_csv(template_file_path, sep='\t', skiprows=2,nrows=0)
         split_on_col = assessments.columns.get_loc("Result Separator Column")
         assessment_panel_template = assessments.iloc[: , :split_on_col-1]
         assessment_components_template = assessments.iloc[: , split_on_col+1:].copy()
