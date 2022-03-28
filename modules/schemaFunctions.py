@@ -2,9 +2,11 @@ import os
 from attr import field
 import jsonschema
 import json
+from modules import curationFunctions as cf
 from modules import immport_gui as ig
 
 schema_search_path="ImmPort_Curation_Tool/templates/json-templates"
+txt_template_path = "ImmPort_Curation_Tool/templates/txt-templates"
 
 def get_schema_store(schema_search_path):
     schema_store = {}
@@ -182,14 +184,63 @@ class Assessment(ImmPort_Data):
         self.data=[]
         for record in self.records:
             this_record_data = {"metaData":record.metaData.get_data(), "resultData":[]}
-            # print(record)
-            # print(record.__dict__)
-            # print(record.metaData.get_data())
             for datum in record.resultData:
-                # print(datum.get_data())
                 this_record_data["resultData"].append(datum.get_data())
             self.data.append(this_record_data)
+        
+        
+    def process_study_file(self, study_file_info=None, study_file_directory=None, data_dictionary=None, planned_visits=None, study_id=None, workspace_id=None):
+        filename = study_file_info.get("Filename")
+        table_code = study_file_info.get("Table Code")
+        assessment_name = study_file_info.get("Assessment Name")
+        template = study_file_info.get("Template")
+        if template == "Assessment":
+            template = "assessments"
+        default_visit = study_file_info.get("Default Visit")
 
+        study_file_path = os.path.abspath(os.path.join(study_file_directory,filename))
+        table_data = {
+            "tables":[table_code], 
+            "assessment_type":assessment_name,
+            "template":template,
+            "visit":default_visit
+        }
+        study_file_panel = Assessment_Panel(
+            nameReported=ig.getStudyFileReportedName(filename),
+            assessmentType=assessment_name,
+            crfFileNames=[filename],
+            studyId=study_id
+        )
+
+        datafile = cf.readAndModifyStudyFile(study_file_path, table_data, data_dictionary, planned_visits)
+        
+        #Read Templates
+        [assessment_panel_template,assessment_components_template,assessment_template_header] = cf.readTemplate(template, template_path=txt_template_path)  # self.text_template_path??
+        assessment_components_template["ASSESSMENT_PANEL_ACCESSION"]=''
+        assessment_components_template=cf.datafileToComponents(datafile,data_dictionary,[table_code],assessment_components_template,workspace_id)
+        
+        self.load_df(assessment_components_template,study_file_panel)
+
+        # Iterate through template DF and create Assessment_Datum
+        return [study_file_panel, assessment_components_template]
+
+    def load_df(self, dataframe, panel):
+        assessment_data = {}
+        new_assessment = Assessment()
+        for index, row in dataframe.iterrows():
+            field_data = self.convert_result_columns_to_fields(row.to_dict())
+            userID = field_data.get('userDefinedId')
+            if userID not in assessment_data:
+                assessment_data[userID] = Assessment_Datum(panel)
+            
+            result_data_obj = Assessment_ResultData(**field_data)
+            assessment_data[userID].add_result_data(result_data_obj)
+
+
+        for record in assessment_data.values():
+            new_assessment.add_record(record)
+
+        new_assessment.export_to_json(filename='test_output.json')
 
     # TODO: Look about moving to ImmPort_Data Class
     def export_to_json(self, filename=None):
@@ -252,6 +303,30 @@ class Assessment(ImmPort_Data):
             result_data.get("verbatimQuestion",''),
             result_data.get("whoIsAssessed",'')
         ]
+
+    def convert_result_columns_to_fields(self, column_dict):
+        mapping_dict = {
+            'User Defined ID': 'userDefinedId',
+            'Planned Visit ID': 'plannedVisitId',
+            'Name Reported': 'nameReported',
+            'Study Day': "studyDay",
+            'Age At Onset Reported': "ageAtOnsetReported",
+            'Age At Onset Unit Reported': "ageAtOnsetUnitReported",
+            'Is Clinically Significant': "isClinicallySignificant",
+            'Location Of Finding Reported': "locationOfFindingReported",
+            'Organ Or Body System Reported': "organOrBodySystemReported",
+            'Result Value Reported': 'resultValueReported',
+            'Result Unit Reported': "resultUnitReported",
+            'Result Value Category': "resultValueCategory",
+            'Subject Position Reported': "subjectPositionReported",
+            'Time Of Day': "timeOfDay",
+            'Verbatim Question': 'verbatimQuestion',
+            'Who Is Assessed': 'whoIsAssessed'
+        }
+
+        field_dict = dict(map(lambda x: (x[1], column_dict.get(x[0],"")), mapping_dict.items()))
+        filtered_dict = dict(filter(lambda elem: ((type(elem[1]) != float and elem[1] not in ['','userDefinedId']) or str(elem[1]) not in ['nan', '', 'userDefinedId']), field_dict.items()))
+        return filtered_dict
 
 
 class Assessment_Datum(ImmPort_Data):
