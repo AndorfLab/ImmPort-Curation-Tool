@@ -9,8 +9,103 @@ import ipywidgets as widgets
 from ipyfilechooser import FileChooser
 
 import functools
+import logging
+logging_buffer_data = {}
 
+output2 = widgets.Output(layout=widgets.Layout(max_height="425px", overflow_y="auto"))
+
+class CustomFormatter(logging.Formatter):
+    """Logging colored formatter, adapted from https://stackoverflow.com/a/56944256/3638629"""
+
+    grey =      '\x1b[38;5;248m'
+    blue =      '\x1b[38;5;39m'
+    yellow =    '\x1b[48;5;226m'
+    # red =     '\x1b[38;5;196m'
+    red =       '\x1b[38;5;196;3m'
+    bold_red =  '\x1b[48;5;196;1m'
+    reset =     '\x1b[0m'
+    
+
+    def __init__(self, fmt):
+        super().__init__()
+        self.fmt = fmt
+        self.FORMATS = {
+            logging.DEBUG: self.grey + self.fmt + self.reset,
+            logging.INFO: self.blue + self.fmt + self.reset,
+            logging.WARNING: self.yellow + self.fmt + self.reset,
+            logging.ERROR: self.red + self.fmt + self.reset,
+            logging.CRITICAL: self.bold_red + self.fmt + self.reset
+        }
+
+    def format(self, record):
+        log_fmt = self.FORMATS.get(record.levelno)
+        formatter = logging.Formatter(log_fmt)
+        return formatter.format(record)
+
+class log_viewer(logging.Handler):
+    """ Class to redistribute python logging data """
+    fmt = '%(name)s | %(levelname)8s | %(message)s'
+
+    # have a class member to store the existing logger
+    logger_instance = logging.getLogger("__name__")
+
+    def __init__(self, *args, **kwargs):
+         # Initialize the Handler
+         logging.Handler.__init__(self, *args)
+
+         # optional take format
+         # setFormatter function is derived from logging.Handler
+         for key, value in kwargs.items():
+             if "{}".format(key) == "format":
+                 self.setFormatter(value)
+
+         # make the logger send data to this class
+         self.logger_instance.addHandler(self)
+         self.setFormatter(CustomFormatter(self.fmt))
+
+    def emit(self, record):
+        """ Overload of logging.Handler method """
+        record = self.format(record)
+        with output2:
+            print(record)
+
+
+# logging.basicConfig(stream=output2, level=logging.INFO)
+
+main_logger = logging.getLogger(__name__)
+main_logger.setLevel(logging.DEBUG)
+main_logger.addHandler(log_viewer())
 immport_data = {'tab_data':{}}
+
+def unique_logging_buffer_load(message=None, level=None, flush=False):
+    global logging_buffer_data
+    if level not in logging_buffer_data:
+        logging_buffer_data[level]={message:1}
+    else:
+        if message not in logging_buffer_data[level]:
+            logging_buffer_data[level][message]=1
+        else:
+            logging_buffer_data[level][message]=logging_buffer_data[level][message]+1
+    if flush:
+        unique_logging_buffer_flush()
+
+def unique_logging_buffer_flush():
+    global logging_buffer_data
+
+    log={
+        "info":main_logger.info,
+        "warning":main_logger.warning,
+        "warn":main_logger.warning,
+        "debug":main_logger.debug,
+        "error":main_logger.error,
+        "critical":main_logger.critical,
+    }
+
+    for level in logging_buffer_data.keys():
+        for message, count in logging_buffer_data[level].items():
+            log[level](f"({count}) - {message}")
+
+    logging_buffer_data={}
 
 def button_change(button=None, style=None, text=None, tooltip=None, icon=None, display=None, disabled=None):
     """Change button properties
