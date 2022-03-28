@@ -199,10 +199,6 @@ def loadDataDictionary(value):
             break
     show_hide_element(element=dd_form_row, display='')
 
-    with output2:
-        print(data_dictionary_path)
-        print(dictionary)
-        print(value)
     return dictionary
 
 def loadDDColumnNames(value): 
@@ -433,6 +429,9 @@ def on_select_study_tab_file(value, fc_field=None):
         unique_logging_buffer_load(level="debug",message=f"display visits - Done")
         unique_logging_buffer_flush()
 
+def getStudyFileReportedName(studyfileName):
+    global immport_data
+    return immport_data["tab_data"]["study_files"][immport_data["tab_data"]["study_files"]["FILE_NAME"] == studyfileName]["DESCRIPTION"].values[0]
 
 def display_visits(visit_data):
     w_study_visit_text.value = visit_data
