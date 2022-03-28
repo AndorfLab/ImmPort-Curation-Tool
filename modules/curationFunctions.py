@@ -38,7 +38,6 @@ def processStudyFile(table_list,directory,dictionary,planned_visits,study_files,
         filename = table_metadata.loc[table_metadata.table_name.isin(table_set["tables"])]["table_file"].values[0]
         filepath = directory+"StudyFiles/"+filename
 
-        # datafile = readAndModifyStudyFile(filepath,table_set["tables"],dictionary,planned_visits)
         datafile = readAndModifyStudyFile(filepath,table_set,dictionary,planned_visits)
         [assessment_panel_template,panel_id] = getAssessmentPanelID([filename],study_files,assessment_panel_template,study_id,table_set["assessment_type"])
         panel=getAssessmentPanelByID(panel_id,assessment_panel_template)
@@ -98,31 +97,8 @@ def addVisitAccessionFromName(planned_visits, table, visit_col,dictionary,file_t
     table_visits["plannedVisit"] = ""
     #table_visits has values from visit column and empty "plannedVisit" column
 
-    # if len(dictionary["tables"][file_table]["fields"][visit_col]["map_to_visit"])>0:
-    #     visit_map_dict = json.loads(dictionary["tables"][file_table]["fields"][visit_col]["map_to_visit"])
-    #     #create dictionary of visit_mappings to planned visit IDs
-    #     dict_visits2 = dict(map(lambda x: (x[0],dict_visits[x[1]]), visit_map_dict.items()))
-    # else:
-    #     for index, row in table_visits.iterrows():
-    #         for key in dict_visits.keys():
-    #             # logging.info(key)
-    #             if(key.startswith(row[table_column])):
-    #                 table_visits.loc[index,"plannedVisit"]=dict_visits[key]
-    #             elif(row[table_column].isnumeric() & ("Visit "+row[table_column] in key)):
-    #                 table_visits.loc[index,"plannedVisit"]=dict_visits[key]
-    #             elif(row[table_column].isnumeric() & ("Visit 0"+row[table_column] in key)):
-    #                 table_visits.loc[index,"plannedVisit"]=dict_visits[key]
-    #             elif(row[table_column][0:-1].isnumeric() & ("Visit "+row[table_column][0:-1] in key)):
-    #                 table_visits.loc[index,"plannedVisit"]=dict_visits[key]
-    #             elif(row[table_column][0:-2].isnumeric() & ("Visit "+row[table_column][0:-2] in key)):
-    #                 table_visits.loc[index,"plannedVisit"]=dict_visits[key]
-    #             elif(~row[table_column][0:1].isnumeric() & row[table_column][1:].isnumeric() & ("Visit "+row[table_column][1:] in key)):
-    #                 table_visits.loc[index,"plannedVisit"]=dict_visits[key]
-    #             # else:
-    #                 # logging.warn(f"Cannot find planned visit for {key}")
     for index, row in table_visits.iterrows():
         for key in dict_visits.keys():
-            # logging.info(key)
             if(key.startswith(row[table_column])):
                 table_visits.loc[index,"plannedVisit"]=dict_visits[key]
             elif(row[table_column].isnumeric() & ("Visit "+row[table_column] in key)):
@@ -147,19 +123,14 @@ def addVisitAccessionFromName(planned_visits, table, visit_col,dictionary,file_t
   
     missingVisits = dict(filter(lambda visit: visit[1] == "", dict_visits2.items()))
 
-    # logging.info("dict_visits2")
-    # logging.info(dict_visits2)
     if(len(missingVisits)>0):
         logging.error("Missing Visits")
         logging.error(missingVisits)
-
         missingVisits_all[file_table]=list(missingVisits.keys())
 
         logging.info(missingVisits_all)
 
-
     table["PLANNED_VISIT_ID"]=table[table_column].apply(lambda v: dict_visits2[v])
-    # return dict_visits
 
     return table_visits
 
@@ -210,7 +181,6 @@ def readTemplate(template, template_path="templates/txt-templates/"):
         template_file_path = os.path.abspath(os.path.join(template_path,"assessments.txt"))
 
         assessment_template_header = pd.read_csv(template_file_path,nrows=2)
-        # logging.info(assessment_template_header)
         assessments = pd.read_csv(template_file_path, sep='\t', skiprows=2,nrows=0)
         split_on_col = assessments.columns.get_loc("Result Separator Column")
         assessment_panel_template = assessments.iloc[: , :split_on_col-1]
@@ -339,10 +309,6 @@ def datafileToComponents_old(datafile,dictionary,table_name,panel_id,assessment_
         df_slim["Result Unit Reported"] = dictionary["tables"][table_name]["fields"][col]["unit"]
         df_slim["Verbatim Question"] = dictionary["tables"][table_name]["fields"][col]["unit"]
 
-        
-        # if(col in col_units):
-            # df_slim["Result Unit Reported"] = col_units[col]
-
         assessment_components_template=assessment_components_template.append(df_slim, ignore_index=True)
     
     return assessment_components_template
@@ -350,8 +316,6 @@ def datafileToComponents_old(datafile,dictionary,table_name,panel_id,assessment_
 def getColumnMapping(dictionary,table_name,mapping):
     if(mapping in dictionary["tables"][table_name]["mappings"]):
         return dictionary["tables"][table_name]["mappings"][mapping]
-        mapping_col = dictionary["tables"][table_name]["mappings"][mapping]
-        return dictionary["tables"][table_name]["fields"][mapping_col]["description"]
 
 def getColumnName(dictionary, table_name, column_id):
     if column_id in dictionary["tables"][table_name]["fields"]:
@@ -399,7 +363,6 @@ def readAndModifyStudyFile(filepath,file_tables,dictionary,planned_visits):
 def getAssessmentPanelID(crf_Files,study_files,assessment_panel_df,study_id,assessment_type):
     filename_string = ",".join(crf_Files)
     name_reported = getStudyFileDescription(crf_Files[0],study_files)
-    # print(f"Name Reported:{name_reported}")
     if(assessment_panel_df.empty):
         panelCount=0
         dataframe_rows=0
@@ -409,9 +372,6 @@ def getAssessmentPanelID(crf_Files,study_files,assessment_panel_df,study_id,asse
             panelCount = 0
         dataframe_rows = len(assessment_panel_df)
     
-    # print("Row count")
-    # print(dataframe_rows)
-
     if(panelCount == 0):
         #We need to create a new panel
         print(f"Create new panel for files: {filename_string}")

@@ -21,7 +21,6 @@ class CustomFormatter(logging.Formatter):
     grey =      '\x1b[38;5;248m'
     blue =      '\x1b[38;5;39m'
     yellow =    '\x1b[48;5;226m'
-    # red =     '\x1b[38;5;196m'
     red =       '\x1b[38;5;196;3m'
     bold_red =  '\x1b[48;5;196;1m'
     reset =     '\x1b[0m'
@@ -200,7 +199,6 @@ def loadDataDictionary(value):
             break
     show_hide_element(element=dd_form_row, display='')
 
-    # dd_form_row.layout.display=''
     with output2:
         print(data_dictionary_path)
         print(dictionary)
@@ -219,14 +217,12 @@ def on_data_dictionary_select(change):
         reset_dd_load_button()
     else:
         show_hide_element(element=button_data_dictionary_load,display='none')
-    # test_function_notify(f"On data dictionary select:{change}")
     unique_logging_buffer_load(level="debug",message=f"On data dictionary select:{change}")
     unique_logging_buffer_flush()
 
 def on_study_file_select(value):
     global box_study_file_table
     global file_list_df
-    # test_function_notify(f"on_study_file_select{value}")
     unique_logging_buffer_load(level="debug",message=f"on_study_file_select{value}")
 
 
@@ -234,7 +230,6 @@ def on_study_file_select(value):
         box_study_file_table.children = ([widgets.HTML(r'Generating Study File Table...')])
         generate_study_file_table()
         reset_sf_dir_load_button()
-        # test_function_notify("Generate DF table")
         unique_logging_buffer_load(level="debug",message=f"Generate DF table")
         study_file_table_widget = generate_df_table(dataframe=file_list_df)
         box_study_file_table.children = ([study_file_table_widget])
@@ -242,7 +237,6 @@ def on_study_file_select(value):
 
 
 def process_study_file_directory():
-    # test_function_notify(fc_study_file_directory.value)
     unique_logging_buffer_load(level="debug",message=fc_study_file_directory)
     unique_logging_buffer_flush()
 
@@ -256,23 +250,17 @@ def generate_tab_study_files():
     fc_study_file_directory.show_only_dirs = True
     button_study_file_directory_load = widgets.Button()
     reset_sf_dir_load_button()
-    # show_hide_element(element=button_study_file_directory_load, display='none')
     button_study_file_directory_load.on_click(process_study_file_directory)
 
     dataFiles_row = widgets.HBox([widgets.HTML(value = f"<b>Study File Directory:</b>"), fc_study_file_directory])
-    # dataFiles_row = widgets.HBox([widgets.HTML(value = f"<b>Study File Directory:</b>"), fc_study_file_directory,button_study_file_directory_load])
 
     text_study_files_notify_dd_selection = widgets.HTML(value = f"Load Dictionary File to continue...")
-    # box_study_file_table =widgets.HBox([widgets.HTML(value='Placeholder')])
     box_study_file_table =widgets.HBox()
     box = widgets.VBox([dataFiles_row,text_study_files_notify_dd_selection,box_study_file_table])
     box.layout = widgets.Layout(width='925px')
     fc_study_file_directory._select.on_click(on_study_file_select)
 
     return box
-
-# box = generate_tab_study_files()
-# display(box)
 
 def generate_tab_data_dictionary():
     global fc_data_dictionary, button_data_dictionary_load, button_confirm_form_column, dropdown_table_form_column, dd_row, dd_form_row, box
@@ -310,9 +298,6 @@ def generate_tab_data_dictionary():
     fc_data_dictionary._filename.observe(on_data_dictionary_select, 'value')
     return box
 
-# box = generate_tab_data_dictionary()
-# display(box)
-
 def get_immport_template_names():
     return ['--Select--',"Assessment"]
 
@@ -332,7 +317,6 @@ def generate_study_file_table():
         study_file_list = [fn for fn in os.listdir(fc_study_file_directory.value)
                 if any(fn.endswith(ext) for ext in included_extensions)]
 
-        # try:    
         study_file_list.sort()
         file_list_df = pd.DataFrame(columns=['Filename','Table Code','Assessment Name','Template','Default Visit'])
         file_list_df["Table Code"] = pd.Categorical([], ordered=True, categories=get_data_dictionary_tables())
@@ -347,8 +331,6 @@ def update_dataframe_from_table(value,row=None, column=None, column_name=None, d
     if dataframe is None:
         return
     dataframe.at[row,column_name]=value['new']
-    # with output2:
-        # print(str(column), str(row), column_name, value['new'])
 
 def create_table_widget(dtype=None, value='', readonly=False, dataframe=None, columnName=None):
     if readonly:
@@ -357,14 +339,12 @@ def create_table_widget(dtype=None, value='', readonly=False, dataframe=None, co
         return widgets.Text(value=value,
             placeholder='',
             disabled=readonly)
-        # template_data_row..append(my_cell_widget)
     elif dtype == "category":
         option_list = dataframe[columnName].cat.categories.tolist()
         if "--Select--" not in option_list:
             option_list.insert(0,"--Select--")
         if value=='':
             value = '--Select--'
-
 
         return widgets.Dropdown(
             options=option_list,
@@ -385,7 +365,6 @@ def generate_df_table(dataframe=None):
     grid_body = widgets.GridspecLayout(shape[0], shape[1])
 
     for idx, title in enumerate(header_names):
-        # grid_header[0,idx] = widgets.Label(title)
         grid_header[0,idx] = widgets.HTML(f"<b>{title}</b>")
 
         grid_header[0,idx].layout = widgets.Layout(width=column_widths[idx])
@@ -395,8 +374,6 @@ def generate_df_table(dataframe=None):
     dataframe_for_table.fillna('', inplace=True)
 
     for ind in dataframe.index:
-    # for ind in range(5):
-        # this_row = template_data_row.copy()
         for idx, column_title in enumerate(header_names):
             readonly = (True if column_title == "Filename" else False)
             grid_body[ind, idx] = create_table_widget(dtype=dataframe[column_title].dtype, value=dataframe_for_table[column_title][ind], readonly= readonly, dataframe=dataframe,columnName=column_title)
@@ -410,10 +387,7 @@ def generate_df_table(dataframe=None):
     box_head = widgets.VBox([grid_header], layout=widgets.Layout(height='50px'))
     box_body = widgets.VBox([grid_body], layout=widgets.Layout(height='350px', overflow_y='auto'))
     box = widgets.VBox([box_head,box_body], layout=widgets.Layout(height='460px'))
-    # display(box)
     return box
-    #Create Template Row
-
 
 def generate_gui():
     global output2
@@ -423,7 +397,6 @@ def generate_gui():
     tab = widgets.Tab(layout=widgets.Layout(min_height="500px"))
     tab.children = children
     for idx, title in enumerate(tab_contents):
-        # print(idx,title)
         tab.set_title(idx, title)
     return tab
 
@@ -448,21 +421,15 @@ def on_select_study_tab_file(value, fc_field=None):
         immport_data["tab_data"]["planned_visits"] = cf.readFileFromZip(fc_immport_study_tab_file.selected_path,fc_immport_study_tab_file.selected_filename,"planned_visit.txt")
         immport_data["tab_data"]["study_files"] = cf.readFileFromZip(fc_immport_study_tab_file.selected_path,fc_immport_study_tab_file.selected_filename,"study_file.txt")
         study_info = cf.readFileFromZip(fc_immport_study_tab_file.selected_path,fc_immport_study_tab_file.selected_filename,"study.txt")
-        # immport_data["planned_visits"] = cf.readFileFromZip(fc_immport_study_tab_file.selected_path,fc_immport_study_tab_file.selected_filename,"planned_visit.txt").drop(['STUDY_ACCESSION', 'WORKSPACE_ID'], axis=1)
         immport_data["tab_data"]["study"] = study_info
         immport_data["study_id"]=study_info["STUDY_ACCESSION"][0]
         immport_data["workspace_id"]=study_info["WORKSPACE_ID"][0]
         
-        # test_function_notify("display visits")
         unique_logging_buffer_load(level="debug",message="display visits")
         visit_names = get_planned_visits(nameonly=True, returnType="list")
-        # test_function_notify("visit_names")
         unique_logging_buffer_load(level="debug",message=f"visit names: {', '.join(visit_names)}")
-        # test_function_notify(", ".join(visit_names))
-        # display_visits(", ".join(visit_names))
         set_visit_dropdown(visit_names)
 
-        # test_function_notify("display visits - Done")
         unique_logging_buffer_load(level="debug",message=f"display visits - Done")
         unique_logging_buffer_flush()
 
@@ -489,12 +456,6 @@ def generate_tab_study_info():
         layout=widgets.Layout(width='700px'),
         description='<b>Visit List:</b>',
     )
-
-    # w_study_visit_dropdown = widgets.Dropdown(
-    #     options=[''],
-    #     value='',
-    #     description='<b>Visit List:</b>'
-    # )
 
     w_study_visit_dropdown = create_visit_dropdown(data=[''], description = "<b> Visit List:</b>")
 
@@ -540,7 +501,6 @@ def generate_tab_study_info():
 def get_planned_visits(nameonly=False, returnType=None):
     
     if nameonly:
-        # test_function_notify("\tName Only")
         unique_logging_buffer_load(level="debug", message="\tName Only", flush=True)
         names = immport_data['tab_data']["planned_visits"]["NAME"]
         if returnType == 'list':

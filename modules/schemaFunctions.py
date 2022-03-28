@@ -136,11 +136,9 @@ class ImmPort_Data:
 
     def set_data_value(self, key, value):
         key_properties = self.get_data_key_properties(key)
-        # print(key, value)
         if "type" not in key_properties:
             raise AttributeError("{key} has no 'type' property in the schema")
         value = check_data_type(value, key_properties, key)
-        # print(f"Value after check: {value}")
         if "maxLength" in key_properties:
             check_data_length(value, key_properties["maxLength"], truncate=type(self).truncate_long_fields, key=key)
         
@@ -168,7 +166,6 @@ class Assessment(ImmPort_Data):
         #Should this store the actual class or the contents?
         # self.data.append(record.__dict__)
         self.records.append(record)
-        # self.data.append(record)
 
     def get_obj(self):
         obj = {
@@ -180,9 +177,6 @@ class Assessment(ImmPort_Data):
         obj["data"] = self.get_data()
         return obj
     
-    # def validate(self):
-    #     return validate_data(self.get_obj(), schema_name = self.get_validator())
-
     def obj_to_data(self):
         self.data=[]
         for record in self.records:
@@ -449,17 +443,14 @@ class Assessment_ResultData(ImmPort_Data):
         del kwargs["userDefinedId"]
         
         for key, value in kwargs.items():
-            # print(key, value)
             # TODO: need a way to identify/report ALL instances, and then allow user to specify mapping in GUI
             if key in self.enumFields and value not in self.enumFields[key]:
-                # ig.main_logger.warning(f"Value '{value}' for field '{key}' is not valid.")
                 ig.unique_logging_buffer_load(
                     level="warn",
                     message=f"Value '{value}' for field '{key}' is not valid - {nameReported}"
                 )
 
                 if key == 'resultUnitReported' and value == "%":
-                    # ig.main_logger.info(f"\tSubstituting 'percentage' for '{value}' for field '{key}'.")
                     ig.unique_logging_buffer_load(
                         level="info",
                         message=f"\tSubstituting 'percentage' for '{value}' for field '{key}' - {nameReported}"
