@@ -43,7 +43,7 @@ def processStudyFile(table_list,directory,dictionary,planned_visits,study_files,
         [assessment_panel_template,panel_id] = getAssessmentPanelID([filename],study_files,assessment_panel_template,study_id,table_set["assessment_type"])
         panel=getAssessmentPanelByID(panel_id,assessment_panel_template)
         
-        assessment_components_template=datafileToComponents(datafile,dictionary,table_set["tables"],panel_id,assessment_components_template,workspace_id)
+        assessment_components_template=datafileToComponents(datafile,dictionary,table_set["tables"],assessment_components_template,panel_id,workspace_id)
 
 
     return [assessment_panel_template,assessment_components_template]
@@ -228,7 +228,7 @@ def createColumnMappingDict(dictionary,table_name):
         mappings[col_description]=mapping
     return mappings
 
-def datafileToComponents(datafile,dictionary,table_name_array,panel_id,assessment_components_template,workspace_id=9999,col_units={}):
+def datafileToComponents(datafile,dictionary,table_name_array,assessment_components_template,panel_id=-1,workspace_id=9999,col_units={}):
     #Remove any records of this table already loaded into the components table.
     assessment_components_template.drop(assessment_components_template[assessment_components_template["ASSESSMENT_PANEL_ACCESSION"] == panel_id].index, inplace=True)
     for table_name in table_name_array:
