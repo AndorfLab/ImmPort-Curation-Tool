@@ -359,6 +359,20 @@ def getColumnName(dictionary, table_name, column_id):
 
 
 def readAndModifyStudyFile(filepath,file_tables,dictionary,planned_visits):
+    """1. Read Study File into DF
+    2. Add Visit Accession
+    3. If no User Defined ID, but Accession, rename Accession to User Defined ID column
+
+
+    Args:
+        filepath (string): path to study file
+        file_tables (object): object holding element of 'tables_to_load' from config
+        dictionary (object): data dictionary
+        planned_visits (_type_): planned visit data dictionary
+
+    Returns:
+        DataFrame: modified dataframe from study file.
+    """
     full_datafile = pd.DataFrame()
 
     for file_table in file_tables["tables"]:
