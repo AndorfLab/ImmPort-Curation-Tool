@@ -242,7 +242,14 @@ def datafileToComponents(datafile,dictionary,table_name_array,assessment_compone
                 if dictionary["tables"][table_name]["fields"][col]["unit"] != "":
                     if dictionary["tables"][table_name]["fields"][col]["unit"].upper() == "[SPLIT]":
                         #Need to split Result Unit Reported into result and unit
-                        ig.unique_logging_buffer_load(level='debug', message=f"Split column {col} into result and unit for {table_name}", flush=True)
+                        df_slim.loc[
+                            ~df_slim["Result Value Reported"].isna() &
+                            df_slim["Result Value Reported"].str.contains(" ")
+                            , ["Result Value Reported","Result Unit Reported"]
+                        ] = df_slim.loc[
+                            ~df_slim["Result Value Reported"].isna() &
+                            df_slim["Result Value Reported"].str.contains(" ")
+                            , "Result Value Reported"].str.split(" ", n=1, expand=True)
                     else:
                         # Need to see if the value is "[Split]"
                         df_slim.loc[~df_slim["Result Value Reported"].isna(), "Result Unit Reported"] = dictionary["tables"][table_name]["fields"][col]["unit"]
