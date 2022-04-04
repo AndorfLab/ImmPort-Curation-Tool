@@ -281,7 +281,7 @@ def datafileToComponents(datafile,dictionary,table_name_array,assessment_compone
                 assessment_components_template=assessment_components_template.append(df_slim[~df_slim["Result Value Reported"].isnull()], ignore_index=True)
                 # assessment_components_template=assessment_components_template.append(df_slim, ignore_index=True)
             else:
-                ig.unique_logging_buffer_flush(level='critical', message="Table Field not found in file: {col_name} in {table_name}", flush=True)
+                ig.unique_logging_buffer_load(level='critical', message="Table Field not found in file: {col_name} in {table_name}", flush=True)
         
     return assessment_components_template
 
