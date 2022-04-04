@@ -78,6 +78,7 @@ main_logger.addHandler(log_viewer())
 immport_data = {'tab_data':{}}
 
 def unique_logging_buffer_load(message=None, level=None, flush=False):
+
     global logging_buffer_data
     if level not in logging_buffer_data:
         logging_buffer_data[level]={message:1}
@@ -93,10 +94,10 @@ def unique_logging_buffer_flush():
     global logging_buffer_data
 
     log={
+        "debug":main_logger.debug,
         "info":main_logger.info,
         "warning":main_logger.warning,
         "warn":main_logger.warning,
-        "debug":main_logger.debug,
         "error":main_logger.error,
         "critical":main_logger.critical,
     }
