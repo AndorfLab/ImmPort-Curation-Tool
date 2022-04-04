@@ -436,7 +436,16 @@ class Assessment_ResultData(ImmPort_Data):
 
     data_fields = load_data_fields(validator)
 
-
+    result_unit_reported_synonyms = {
+        "g":"gm",
+        "%":"percentage",
+        "mcg":"ug",
+        "hr":"Hour",
+        "cms":"cm",
+        "kgs":"kg",
+        "months":"Month",
+        "years":"Year"
+    }
 
     enumFields = dict(filter(lambda x: "enum" in x[1], data_fields.items()))
 
@@ -459,13 +468,14 @@ class Assessment_ResultData(ImmPort_Data):
                     message=f"Value '{value}' for field '{key}' is not valid - {nameReported}"
                 )
 
-                if key == 'resultUnitReported' and value == "%":
+                if key == 'resultUnitReported' and value in self.result_unit_reported_synonyms:
                     ig.unique_logging_buffer_load(
                         level="info",
-                        message=f"\tSubstituting 'percentage' for '{value}' for field '{key}' - {nameReported}"
+                        message=f"\tSubstituting '{self.result_unit_reported_synonyms[value]}' for '{value}' for field '{key}' - {nameReported}"
                     )
-                    value = 'percentage'
+                    value = self.result_unit_reported_synonyms[value]
             self.set_data_value(key, value)
+
 
 
 schema_store = get_schema_store(schema_search_path)
