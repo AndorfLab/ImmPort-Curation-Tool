@@ -8,6 +8,8 @@ from modules import immport_gui as ig
 schema_search_path="ImmPort_Curation_Tool/templates/json-templates"
 txt_template_path = "ImmPort_Curation_Tool/templates/txt-templates"
 
+last_error =""
+
 def get_schema_store(schema_search_path):
     schema_store = {}
     fnames = os.listdir(schema_search_path)
@@ -19,6 +21,7 @@ def get_schema_store(schema_search_path):
     return schema_store
 
 def validate_data(data, schema_name=None):
+    global last_error
     try: 
         schema_store 
     except:
@@ -38,7 +41,15 @@ def validate_data(data, schema_name=None):
     try:
         jsonschema.Draft4Validator(schema, resolver=resolver).validate(data)
         return True
-    except jsonschema.ValidationError as error:
+    except jsonschema.exceptions.ValidationError as error:
+        last_error=error
+        if("properties/data/items/properties/resultData/items/properties/resultUnitReported/enum" == "/".join(list(error.schema_path))):
+            ig.unique_logging_buffer_load(
+                        level="info",
+                        message=f"\tNon-Preferred Unit of '{error.instance}'"
+                    )
+            print("Error is with Result Unit Reported")
+            return True
         print("Validation Error")
         print(error)
         pass
@@ -216,14 +227,14 @@ class Assessment(ImmPort_Data):
         assessment_components_template["ASSESSMENT_PANEL_ACCESSION"]=''
         assessment_components_template=cf.datafileToComponents(datafile,data_dictionary,[table_code],assessment_components_template,workspace_id)
         
-        self.load_df(assessment_components_template,study_file_panel)
+        loaded_assessment = self.load_df(assessment_components_template,study_file_panel)
 
         # Iterate through template DF and create Assessment_Datum
         return [study_file_panel, assessment_components_template]
 
     def load_df(self, dataframe, panel):
         assessment_data = {}
-        new_assessment = Assessment()
+        # new_assessment = Assessment()
         for index, row in dataframe.iterrows():
             field_data = self.convert_result_columns_to_fields(row.to_dict())
             userID = field_data.get('userDefinedId')
@@ -235,9 +246,8 @@ class Assessment(ImmPort_Data):
 
 
         for record in assessment_data.values():
-            new_assessment.add_record(record)
+            self.add_record(record)
 
-        new_assessment.export_to_json(filename='test_output.json')
 
     # TODO: Look about moving to ImmPort_Data Class
     def export_to_json(self, filename=None):
@@ -324,7 +334,6 @@ class Assessment(ImmPort_Data):
         field_dict = dict(map(lambda x: (x[1], column_dict.get(x[0],"")), mapping_dict.items()))
         filtered_dict = dict(filter(lambda elem: ((type(elem[1]) != float and elem[1] not in ['','userDefinedId']) or str(elem[1]) not in ['nan', '', 'userDefinedId']), field_dict.items()))
         return filtered_dict
-
 
 class Assessment_Datum(ImmPort_Data):
 
@@ -444,7 +453,7 @@ class Assessment_ResultData(ImmPort_Data):
         
         for key, value in kwargs.items():
             # TODO: need a way to identify/report ALL instances, and then allow user to specify mapping in GUI
-            if key in self.enumFields and value not in self.enumFields[key]:
+            if key in self.enumFields and value not in self.enumFields[key]["enum"]:
                 ig.unique_logging_buffer_load(
                     level="warn",
                     message=f"Value '{value}' for field '{key}' is not valid - {nameReported}"
@@ -460,8 +469,6 @@ class Assessment_ResultData(ImmPort_Data):
 
 
 schema_store = get_schema_store(schema_search_path)
-
-
 
 
 
