@@ -1,0 +1,30 @@
+{
+  "$schema":"http://json-schema.org/draft-04/schema",
+  "title":" template schema",
+  "description":"",
+  "type":"object",
+  "properties":{
+    "userDefinedId":{
+    "type":"string","maxLength":100
+    },
+    "name":{
+    "type":"string","maxLength":125
+    },
+    "orderNumber":{
+    "type":"integer","minimum":1
+    },
+    "minStartDay":{
+    "type":"number"
+    },
+    "maxStartDay":{
+    "type":"number"
+    },
+    "startRule":{
+    "type":"string","maxLength":256
+    },
+    "endRule":{
+    "type":"string","maxLength":256
+    }
+    },
+  "required":["userDefinedId","name","orderNumber","minStartDay"]
+}

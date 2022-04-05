@@ -1,0 +1,18 @@
+{
+  "$schema":"http://json-schema.org/draft-04/schema",
+  "title":"publicRepositories.json template schema",
+  "description":"The public repository template allows one or more public repository accession(s) and name(s) to be assigned to an experiment sample.",
+  "type":"object",
+  "properties":{
+    "expsampleId":{
+    "type":"string"
+    },
+    "repositoryName":{
+    "type":"string","enum":["ArrayExpress","Broad Single Cell Portal","dbGAP","ENA","Ensembl","FlowRepository","GenBank","GEO","GISAID","IEDB","ImmPort","MassIVE","MetaboLights","Metabolomics Workbench","MGnify","NCBI Gene","PRIDE","SRA","UniProt"]
+    },
+    "repositoryAccession":{
+    "type":"string","maxLength":20
+    }
+    },
+  "required":["expsampleId","repositoryName","repositoryAccession"]
+}

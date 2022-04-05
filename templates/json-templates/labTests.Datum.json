@@ -1,0 +1,20 @@
+{
+  "$schema":"http://json-schema.org/draft-04/schema",
+  "title":"labTests.json template schema",
+  "description": "The lab tests template defines and annotates the lab test panels, the lab tests and results. This template combines the functions of the legacy lab test panels and lab test results templates into a single template.   The biological sample and the lab test panel can be either new or pre-defined in this template. Any combination is acceptable. The only restriction is that the biological sample is the key to template and must be unique within the template.",
+  "type":"object",
+  "properties":{
+    "metaData":{
+     "$ref":"labTests.MetaData.json#"
+    },
+    "resultData":{
+      "type":"array",
+      "items":{
+        "$ref":"labTests.ResultData.json#"
+      },
+      "minItems":1
+    }
+  },
+  "additionalProperties":false,
+  "required":["metaData","resultData"]
+}

@@ -1,0 +1,63 @@
+{
+  "$schema":"http://json-schema.org/draft-04/schema",
+  "title":"adverseEvents.json template schema",
+  "description":"The Adverse Event Template reports adverse events that are recorded for subjects in a study.",
+  "type":"object",
+  "properties":{
+    "userDefinedId":{
+    "type":"string","maxLength":150
+    },
+    "subjectId":{
+    "type":"string"
+    },
+    "studyId":{
+    "type":"string"
+    },
+    "nameReported":{
+    "type":"string","maxLength":126
+    },
+    "namePreferred":{
+    "type":"string","maxLength":126
+    },
+    "severityReported":{
+    "type":"string","enum":["Grade 1 Mild Adverse Event","Grade 2 Moderate Adverse Event","Grade 3 Severe Adverse Event","Grade 4 Life Threatening or Disabling Adverse Event","Grade 5 Death Related to Adverse Event","Not Specified"]
+    },
+    "outcomeReported":{
+    "type":"string","maxLength":40
+    },
+    "startStudyDay":{
+    "type":"number"
+    },
+    "endStudyDay":{
+    "type":"number"
+    },
+    "relationToStudyTreatment":{
+    "type":"string","maxLength":250
+    },
+    "organOrBodySystemReported":{
+    "type":"string","maxLength":126
+    },
+    "description":{
+    "type":"string","maxLength":4000
+    },
+    "locationOfReactionReported":{
+    "type":"string","maxLength":126
+    },
+    "studyTreatmentActionTaken":{
+    "type":"string","maxLength":250
+    },
+    "relationToNonstudyTreatment":{
+    "type":"string","maxLength":250
+    },
+    "causality":{
+    "type":"string","maxLength":250
+    },
+    "startTime":{
+    "type":"string","maxLength":40
+    },
+    "endTime":{
+    "type":"string","maxLength":40
+    }
+    },
+  "required":["userDefinedId","subjectId","studyId","nameReported","severityReported","outcomeReported","relationToStudyTreatment"]
+}
