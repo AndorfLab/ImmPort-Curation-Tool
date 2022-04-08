@@ -4,11 +4,19 @@ import jsonschema
 import json
 from modules import curationFunctions as cf
 from modules import immport_gui as ig
+from pathlib import Path
 
 schema_search_path="ImmPort_Curation_Tool/templates/json-templates"
 txt_template_path = "ImmPort_Curation_Tool/templates/txt-templates"
 
 last_error =""
+
+
+def check_directory_exists(path):
+    directory_path = os.path.dirname(path)
+    if not os.path.exists(directory_path):
+        Path(directory_path).mkdir(parents=True, exist_ok=True)
+    return
 
 def get_schema_store(schema_search_path):
     schema_store = {}
@@ -239,7 +247,7 @@ class Assessment(ImmPort_Data):
             field_data = self.convert_result_columns_to_fields(row.to_dict())
             userID = field_data.get('userDefinedId')
             if userID not in assessment_data:
-                assessment_data[userID] = Assessment_Datum(panel)
+                assessment_data[userID] = Assessment_Datum(assessment_panel=panel, subject_id=userID)
             
             result_data_obj = Assessment_ResultData(**field_data)
             assessment_data[userID].add_result_data(result_data_obj)
@@ -249,10 +257,13 @@ class Assessment(ImmPort_Data):
             self.add_record(record)
 
 
+
     # TODO: Look about moving to ImmPort_Data Class
     def export_to_json(self, filename=None):
         if not self.validate():
             raise ValueError("Assessment data is not valid")
+        
+        check_directory_exists(filename)
         with open(filename, 'w')as fh:
             print(json.dumps(self.get_obj(), indent=4), file=fh)
         return
@@ -262,6 +273,7 @@ class Assessment(ImmPort_Data):
         if not self.validate():
             raise ValueError("Assessment data is not valid")
         separator = "\t"
+        check_directory_exists(filename)
         with open(filename, 'w') as fh:
 
             print(self.name, f"Schema Version {self.schemaVersion}", sep=separator, file=fh)
@@ -337,8 +349,8 @@ class Assessment(ImmPort_Data):
 
 class Assessment_Datum(ImmPort_Data):
 
-    def __init__(self, assessment_panel=None):
-        metadata_obj = Assessment_MetaData(assessment_panel=assessment_panel)
+    def __init__(self, subject_id=None, assessment_panel=None):
+        metadata_obj = Assessment_MetaData(subject_id=subject_id, assessment_panel=assessment_panel)
         self.set_metadata(metadata_obj)
         self.resultData = []
     
@@ -400,13 +412,14 @@ class Assessment_MetaData(ImmPort_Data):
 
 
     
-    def __init__(self, assessment_panel=None):
-        Assessment_MetaData.iterable_counter +=1
-
+    def __init__(self, subject_id=None, assessment_panel=None):
+        if subject_id == None:
+            Assessment_MetaData.iterable_counter +=1
+            subject_id = "Subject%s" % Assessment_MetaData.iterable_counter
         self.data={}
         self.data.update(assessment_panel.get_data())
 
-        self.set_data("subjectId", "Subject%s" % Assessment_MetaData.iterable_counter)
+        self.set_data("subjectId", subject_id)
 
 class Assessment_ResultData(ImmPort_Data):
     """Class to hold data to go into the Results section of the Assessment template.
