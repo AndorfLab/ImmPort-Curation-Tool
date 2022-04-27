@@ -476,17 +476,23 @@ class Assessment_ResultData(ImmPort_Data):
         for key, value in kwargs.items():
             # TODO: need a way to identify/report ALL instances, and then allow user to specify mapping in GUI
             if key in self.enumFields and value not in self.enumFields[key]["enum"]:
-                ig.unique_logging_buffer_load(
-                    level="warn",
-                    message=f"Value '{value}' for field '{key}' is not valid - {nameReported}"
-                )
-
-                if key == 'resultUnitReported' and value in self.result_unit_reported_synonyms:
+                if key.endswith("UnitReported"):
+                    if value in self.result_unit_reported_synonyms:
+                        ig.unique_logging_buffer_load(
+                            level="info",
+                            message=f"\tSuggest substituting '{self.result_unit_reported_synonyms[value]}' for '{value}' for field '{key}' - {nameReported}"
+                        )
+                    else:
+                        ig.unique_logging_buffer_load(
+                            level="info",
+                            message=f"Value '{value}' for field '{key}' is not a preferred term - {nameReported}"
+                        )
+                else:
                     ig.unique_logging_buffer_load(
-                        level="info",
-                        message=f"\tSubstituting '{self.result_unit_reported_synonyms[value]}' for '{value}' for field '{key}' - {nameReported}"
+                        level="warn",
+                        message=f"Value '{value}' for field '{key}' is not valid - {nameReported}"
                     )
-                    value = self.result_unit_reported_synonyms[value]
+
             self.set_data_value(key, value)
 
 
