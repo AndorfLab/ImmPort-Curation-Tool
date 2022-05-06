@@ -1,5 +1,5 @@
-basic_study_design	Schema Version 3.31
-Please do not delete or edit this column
+basic_study_design	Schema Version 3.35
+Please do not delete or edit this column	The basic study design template defines and annotates key elements of a study including the purpose, subject grouping, schedule of events, personnel, and references (weblinks, publications). Use the study_design_edit template to add additional information for a study after a study is defined in ImmPort. The basic study design template consists of several sections or compound templates. Some compound templates are required: study, arm_or_cohort, inclusion_exclusion, planned_visit, study_2_condition_or_disease, study_2_protocol, study_categorization, study_personnel.  Other compound templates are optional: study_file, study_link, and study_pubmed.
 Column Name
 
 
@@ -9,16 +9,16 @@ Brief Title
 Official Title	
 Brief Description	
 Description	
-Hypothesis	
-Objectives	
+Intervention Agent	
 Endpoints	
 Sponsoring Organization	
+Age Unit	
+Actual Start Date	
+Hypothesis	
+Objectives	
 Target Enrollment	
 Minimum Age	
 Maximum Age	
-Age Unit	
-Actual Start Date	
-Intervention Agent	
 
 study_categorization
 Research Focus	
@@ -27,7 +27,7 @@ study_2_condition_or_disease
 Condition Reported	
 
 arm_or_cohort
-User Defined ID	Name	Description	Type
+User Defined ID	Name	Description	Type Reported
 			
 
 study_personnel

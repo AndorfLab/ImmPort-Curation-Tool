@@ -1,5 +1,5 @@
-study_design_edit	Schema Version 3.31
-Please do not delete or edit this column
+study_design_edit	Schema Version 3.35
+Please do not delete or edit this column	The optional study design edit template defines and annotates elements of a study that are optional when it is initially defined (e.g. weblinks, publications) and for which updates are available after the initial design is uploaded. Use the study_design_edit template to add additional information for a study after a study is defined in ImmPort. IF ANY OF THE FOLLOWING SECTIONS ARE NOT USED, THEY NEED TO BE DELETED FROM THE TEMPLATE PRIOR TO UPLOADING THE TEMPLATE: arm_2_subject, arm_or_cohort, inclusion_exclusion, planned_visit, study_2_condition_or_disease, study_2_protocol, study_categorization, study_data_release, study_file, study_image, study_link, study_personnel, or study_pubmed.
 Column Name
 
 
@@ -32,22 +32,16 @@ Study ID	Pubmed ID	DOI	Title	Journal	Year	Month	Issue	Pages	Authors
 									
 
 arm_or_cohort
-Study ID	User Defined ID	Name	Description	Type
+Study ID	User Defined ID	Name	Description	Type Reported
 				
 
 arm_2_subject
 Subject ID	Arm Or Cohort ID	Min Subject Age	Max Subject Age	Age Unit	Age Event	Age Event Specify	Subject Phenotype	Subject Location
 								
 
-period
-Study ID	
-User Defined ID	
-Name	
-Order Number	
-
 planned_visit
-Study ID	User Defined ID	Name	Order Number	Min Start Day	Max Start Day	Start Rule	End Rule	Period ID
-								
+Study ID	User Defined ID	Name	Order Number	Min Start Day	Max Start Day	Start Rule	End Rule
+							
 
 study_personnel
 Study ID	User Defined ID	Honorific	Last Name	First Name	Suffixes	Organization	ORCID ID	Email	Title In Study	Role In Study	Site Name

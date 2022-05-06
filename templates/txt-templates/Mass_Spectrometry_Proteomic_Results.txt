@@ -1,4 +1,4 @@
-mass_spec_proteomic_results	Schema Version 3.31
+mass_spec_proteomic_results	Schema Version 3.35
 Please do not delete or edit this column
-Column Name	Expsample ID	Intensity	Retention Time	Retention Time Unit	M/Z Ratio	Z (Charge)	Protein Name Reported	Comments
-								
+Column Name	Expsample ID	Intensity	Protein Name Reported	Comments
+				
