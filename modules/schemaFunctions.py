@@ -6,8 +6,8 @@ from modules import curationFunctions as cf
 from modules import immport_gui as ig
 from pathlib import Path
 
-schema_search_path= "templates/json-templates"
-txt_template_path = "templates/txt-templates"
+json_schema_template_path   = "templates/json-templates"
+txt_template_path           = "templates/txt-templates"
 
 last_error =""
 
@@ -18,12 +18,12 @@ def check_directory_exists(path):
         Path(directory_path).mkdir(parents=True, exist_ok=True)
     return
 
-def get_schema_store(schema_search_path):
+def get_schema_store(json_schema_template_path):
     schema_store = {}
-    fnames = os.listdir(schema_search_path)
+    fnames = os.listdir(json_schema_template_path)
     for fname in fnames:
         if fname.endswith(".json"):
-            with open(os.path.join(schema_search_path, fname)) as schema_fd:
+            with open(os.path.join(json_schema_template_path, fname)) as schema_fd:
                 schema = json.load(schema_fd)
                 schema_store[fname] = schema
     return schema_store
@@ -44,7 +44,7 @@ def validate_data(data, schema_name=None):
     if schema is None:
         raise NotImplementedError("Missing Schema for '%s'" % schema_name)
 
-    ref_resolver_path = os.path.abspath(os.path.join(os.getcwd(),schema_search_path,schema_name))
+    ref_resolver_path = os.path.abspath(os.path.join(os.getcwd(),json_schema_template_path,schema_name))
     resolver = jsonschema.RefResolver("file://%s" % ref_resolver_path, schema, store=schema_store)
     try:
         jsonschema.Draft4Validator(schema, resolver=resolver).validate(data)
@@ -118,7 +118,7 @@ def check_data_length(value, maxLength, truncate=False, key=None):
     raise ValueError("Value exceeds max length of {maxLength} for field {key}: {maxLength[0:25]}...")
 
 def load_data_fields(validator):
-    with open(os.path.abspath(os.path.join(schema_search_path,validator+".json"))) as fh_json_file:
+    with open(os.path.abspath(os.path.join(json_schema_template_path,validator+".json"))) as fh_json_file:
         json_data = json.load(fh_json_file)
         return json_data['properties']
 class ImmPort_Data: 
@@ -497,7 +497,7 @@ class Assessment_ResultData(ImmPort_Data):
 
 
 
-schema_store = get_schema_store(schema_search_path)
+schema_store = get_schema_store(json_schema_template_path)
 
 
 
