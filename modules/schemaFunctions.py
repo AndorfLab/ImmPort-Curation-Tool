@@ -6,8 +6,8 @@ from modules import curationFunctions as cf
 from modules import immport_gui as ig
 from pathlib import Path
 
-schema_search_path="ImmPort_Curation_Tool/templates/json-templates"
-txt_template_path = "ImmPort_Curation_Tool/templates/txt-templates"
+schema_search_path= "templates/json-templates"
+txt_template_path = "templates/txt-templates"
 
 last_error =""
 
