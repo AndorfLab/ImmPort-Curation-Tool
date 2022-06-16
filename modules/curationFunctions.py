@@ -250,6 +250,12 @@ def datafileToComponents(datafile,dictionary,table_name_array,assessment_compone
                             ~df_slim["Result Value Reported"].isna() &
                             df_slim["Result Value Reported"].str.contains(" ")
                             , "Result Value Reported"].str.split(" ", n=1, expand=True)
+                    elif dictionary["tables"][table_name]["fields"][col]["unit"].startswith("[") and dictionary["tables"][table_name]["fields"][col]["unit"].endswith("]"):
+                        lookup_col = dictionary["tables"][table_name]["fields"][col]["unit"][1:-1]  #remove '[' and ']'
+                        lookup_col_name = dictionary["tables"][table_name]["fields"][lookup_col]["description"]
+    
+                        df_slim["Result Unit Reported"]= datafile[lookup_col_name]
+
                     else:
                         # Need to see if the value is "[Split]"
                         df_slim.loc[~df_slim["Result Value Reported"].isna(), "Result Unit Reported"] = dictionary["tables"][table_name]["fields"][col]["unit"]
