@@ -205,7 +205,7 @@ class Assessment(ImmPort_Data):
             self.data.append(this_record_data)
         
         
-    def process_study_file(self, study_file_info=None, study_file_directory=None, data_dictionary=None, planned_visits=None, study_id=None, workspace_id=None):
+    def process_study_file(self, study_file_info=None, study_file_directory=None, data_dictionary=None, planned_visits=None, study_id=None, workspace_id=None, name_reported=None):
         filename = study_file_info.get("Filename")
         table_code = study_file_info.get("Table Code")
         assessment_name = study_file_info.get("Assessment Name")
@@ -221,8 +221,11 @@ class Assessment(ImmPort_Data):
             "template":template,
             "visit":default_visit
         }
+        if name_reported is None:
+            name_reported=ig.getStudyFileReportedName(filename)
+
         study_file_panel = Assessment_Panel(
-            nameReported=ig.getStudyFileReportedName(filename),
+            nameReported=name_reported,
             assessmentType=assessment_name,
             crfFileNames=[filename],
             studyId=study_id

@@ -54,10 +54,13 @@ def readFileFromZip(dir,zip,file):
         zip = zip.replace('.zip','')
     if not dir.endswith('/'):
         dir += "/"
-    with ZipFile(f"{dir}{zip}.zip") as myzip:
-        with myzip.open(f"{zip}/Tab/{file}") as myfile:
-            myfile_contents = pd.read_csv(io.BytesIO(myfile.read()), encoding='utf8', sep="\t")
-            return myfile_contents
+    try:
+        with ZipFile(f"{dir}{zip}.zip") as myzip:
+            with myzip.open(f"{zip}/Tab/{file}") as myfile:
+                myfile_contents = pd.read_csv(io.BytesIO(myfile.read()), encoding='utf8', sep="\t")
+                return myfile_contents
+    except:
+        raise NotImplementedError("Zip extract went wrong")
 
 def getColumnNumber(df,col_name):  #legacy?
     try:
