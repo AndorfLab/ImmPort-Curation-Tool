@@ -766,13 +766,14 @@ class Log_Output(GUI_Object):
             "critical":self.logger.critical,
         }
 
-        # self.debug = self.log["debug"]
-        # self.info = self.log["info"]
-        # self.warning = self.log["warning"]
-        # self.warn = self.log["warning"]
-        # self.error = self.log["error"]
-        # self.critical = self.log["critical"]
-
+        self.log_levels = {
+            "critical":50,
+            "error":40,
+            "warning":30,
+            "warn":30,
+            "info":20,
+            "debug":10
+            }
 
     ##Add history to the log output
     ##Add a button to clear the log
@@ -791,7 +792,8 @@ class Log_Output(GUI_Object):
             self.flush()
 
     def flush(self):
-        for level in self.messages.keys():
+
+        for level in sorted(self.messages, key=lambda x: self.log_levels[x], reverse=True):
             for message, count in self.messages[level].items():
                 # return
                 if count == 1:
