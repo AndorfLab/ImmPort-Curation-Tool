@@ -52,18 +52,24 @@ def validate_data(data, schema_name=None):
     except jsonschema.exceptions.ValidationError as error:
         last_error=error
         if("properties/data/items/properties/resultData/items/properties/resultUnitReported/enum" == "/".join(list(error.schema_path))):
-            ig.unique_logging_buffer_load(
-                        level="info",
-                        message=f"\tNon-Preferred Unit of '{error.instance}'"
-                    )
+            # ig.unique_logging_buffer_load(
+            #             level="info",
+            #             message=f"\tNon-Preferred Unit of '{error.instance}'"
+            #         )
+            ig.main_logger.write(
+                level="warn",
+                message=f"\tNon-Preferred Unit of '{error.instance}'"
+            )
             print("Error is with Result Unit Reported")
             return True
         print("Validation Error")
         print(error)
+        return error
         pass
     except jsonschema.SchemaError as error:
         print("Schema Error")
         print(error)
+        return error
         pass
     
     return False
@@ -206,14 +212,19 @@ class Assessment(ImmPort_Data):
         
         
     def process_study_file(self, study_file_info=None, study_file_directory=None, data_dictionary=None, planned_visits=None, study_id=None, workspace_id=None, name_reported=None):
+        # return
+        ig.main_logger.write(message="test", level="warn", flush=True)
+        ig.main_logger.write(message="Processing study file:h", level="info", flush=True)
         filename = study_file_info.get("Filename")
         table_code = study_file_info.get("Table Code")
         assessment_name = study_file_info.get("Assessment Name")
         template = study_file_info.get("Template")
+        ig.main_logger.write(message="Processing study file:g", level="info", flush=True)
         if template == "Assessment":
             template = "assessments"
         default_visit = study_file_info.get("Default Visit")
 
+        ig.main_logger.write(message="Processing study file:f", level="info", flush=True)
         study_file_path = os.path.abspath(os.path.join(study_file_directory,filename))
         table_data = {
             "tables":[table_code], 
@@ -221,50 +232,66 @@ class Assessment(ImmPort_Data):
             "template":template,
             "visit":default_visit
         }
+        ig.main_logger.write(message="Processing study file:e", level="info", flush=True)
         if name_reported is None:
             name_reported=ig.getStudyFileReportedName(filename)
 
+        ig.main_logger.write(message="Processing study file:d", level="info", flush=True)
         study_file_panel = Assessment_Panel(
             nameReported=name_reported,
             assessmentType=assessment_name,
             crfFileNames=[filename],
             studyId=study_id
         )
+        ig.main_logger.write(message="Processing study file:c", level="info", flush=True)
 
         datafile = cf.readAndModifyStudyFile(study_file_path, table_data, data_dictionary, planned_visits)
         
+        ig.main_logger.write(message="Processing study file:b", level="info", flush=True)
         #Read Templates
         [assessment_panel_template,assessment_components_template,assessment_template_header] = cf.readTemplate(template, template_path=txt_template_path)  # self.text_template_path??
         assessment_components_template["ASSESSMENT_PANEL_ACCESSION"]=''
         assessment_components_template=cf.datafileToComponents(datafile,data_dictionary,[table_code],assessment_components_template,workspace_id)
+        ig.main_logger.write(message="Processing study file:a", level="info", flush=True)
         
         loaded_assessment = self.load_df(assessment_components_template,study_file_panel)
+        ig.main_logger.write(message="Processing study file:a0", level="info", flush=True)
 
         # Iterate through template DF and create Assessment_Datum
         return [study_file_panel, assessment_components_template]
 
     def load_df(self, dataframe, panel):
         assessment_data = {}
+        ig.main_logger.write(message="Load DF:0", level="info", flush=True)
+
         # new_assessment = Assessment()
         for index, row in dataframe.iterrows():
+            # ig.main_logger.write(message="Load DF:1", level="info", flush=True)
             field_data = self.convert_result_columns_to_fields(row.to_dict())
+            # ig.main_logger.write(message="Load DF:2", level="info", flush=True)
             userID = field_data.get('userDefinedId')
             if userID not in assessment_data:
                 assessment_data[userID] = Assessment_Datum(assessment_panel=panel, subject_id=userID)
+            # ig.main_logger.write(message="Load DF:3", level="info", flush=True)
             
             result_data_obj = Assessment_ResultData(**field_data)
+            # ig.main_logger.write(message="Load DF:4", level="info", flush=True)
             assessment_data[userID].add_result_data(result_data_obj)
+            # ig.main_logger.write(message="Load DF:5", level="info", flush=True)
 
 
+        ig.main_logger.write(message="Load DF:AA", level="info", flush=True)
         for record in assessment_data.values():
             self.add_record(record)
+        ig.main_logger.write(message="Load DF:BB", level="info", flush=True)
 
 
 
     # TODO: Look about moving to ImmPort_Data Class
     def export_to_json(self, filename=None):
-        if not self.validate():
-            raise ValueError("Assessment data is not valid")
+        valid = self.validate()
+        if not valid:
+            raise ValueError(f"Assessment data is not valid: {valid}")
         
         check_directory_exists(filename)
         with open(filename, 'w')as fh:
@@ -481,17 +508,29 @@ class Assessment_ResultData(ImmPort_Data):
             if key in self.enumFields and value not in self.enumFields[key]["enum"]:
                 if key.endswith("UnitReported"):
                     if value in self.result_unit_reported_synonyms:
-                        ig.unique_logging_buffer_load(
+                        # ig.unique_logging_buffer_load(
+                        #     level="info",
+                        #     message=f"\tSuggest substituting '{self.result_unit_reported_synonyms[value]}' for '{value}' for field '{key}' - {nameReported}"
+                        # )
+                        ig.main_logger.write(
                             level="info",
                             message=f"\tSuggest substituting '{self.result_unit_reported_synonyms[value]}' for '{value}' for field '{key}' - {nameReported}"
                         )
                     else:
-                        ig.unique_logging_buffer_load(
+                        # ig.unique_logging_buffer_load(
+                        #     level="info",
+                        #     message=f"Value '{value}' for field '{key}' is not a preferred term - {nameReported}"
+                        # )
+                        ig.main_logger.write(
                             level="info",
                             message=f"Value '{value}' for field '{key}' is not a preferred term - {nameReported}"
                         )
                 else:
-                    ig.unique_logging_buffer_load(
+                    # ig.unique_logging_buffer_load(
+                    #     level="warn",
+                    #     message=f"Value '{value}' for field '{key}' is not valid - {nameReported}"
+                    # )
+                    ig.main_logger.write(
                         level="warn",
                         message=f"Value '{value}' for field '{key}' is not valid - {nameReported}"
                     )

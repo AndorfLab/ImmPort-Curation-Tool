@@ -14,7 +14,7 @@ from ipyfilechooser import FileChooser
 import functools
 import logging
 logging_buffer_data = {}
-
+main_logger=""
 output2 = widgets.Output(layout=widgets.Layout(max_height="425px", overflow_y="auto"))
 
 class CustomFormatter(logging.Formatter):
@@ -49,26 +49,38 @@ class log_viewer(logging.Handler):
     fmt = '%(name)s | %(levelname)8s | %(message)s'
 
     # have a class member to store the existing logger
-    logger_instance = logging.getLogger("__name__")
 
     def __init__(self, *args, **kwargs):
-         # Initialize the Handler
-         logging.Handler.__init__(self, *args)
+        # Initialize the Handler
+        self.logger_instance = logging.getLogger(kwargs.get("name",__name__))
+        # print("Name",kwargs.get("name",__name__))
+        logging.Handler.__init__(self, *args)
 
-         # optional take format
-         # setFormatter function is derived from logging.Handler
-         for key, value in kwargs.items():
-             if "{}".format(key) == "format":
-                 self.setFormatter(value)
+        # optional take format
+        # setFormatter function is derived from logging.Handler
+        for key, value in kwargs.items():
+            # print(f"{key}:{value}")
+            if "{}".format(key) == "format":
+                self.setFormatter(value)
+        # print(kwargs.items())
 
-         # make the logger send data to this class
-         self.logger_instance.addHandler(self)
-         self.setFormatter(CustomFormatter(self.fmt))
+        if "output" in kwargs:
+            # print("use widget")
+            self.output = kwargs["output"]
+        else:
+            # print("use output2")
+            self.output = output2
+
+        # make the logger send data to this class
+        self.logger_instance.addHandler(self)
+        self.setFormatter(CustomFormatter(self.fmt))
+        # print(f"output: {self.output}")
 
     def emit(self, record):
         """ Overload of logging.Handler method """
         record = self.format(record)
-        with output2:
+        # print(self.output)
+        with self.output:
             print(record)
 
 class GUI_Object():
@@ -136,6 +148,7 @@ class GUI(GUI_Object):
         self.config={}
         self.objects={}
         self.dictionary={}
+        self.loggers={}
         self.generate_gui()
 
     def add_tab(self, tab):
@@ -150,11 +163,38 @@ class GUI(GUI_Object):
             index = len(self.widget.children)-1
         self.widget.set_title(index, title)
 
+    def log(self, message, level="debug", flush=False):
+        self.main_logger.write(message, level, flush)
+        return
+    
+    def flush_log(self):
+        self.main_logger.flush()
+        return
+
+    def create_logger(self, name="main_logger",level="debug"):
+        layout = {
+            'width': '100%',
+            'height': '550px',
+            'border': '1px solid black'
+        }
+
+        self.loggers[name] = logging.getLogger(name)
+        self.loggers[name].setLevel(logging.DEBUG)
+        self.loggers[name].widget = widgets.Output(layout=layout)
+        handler = OutputWidgetHandler(self.loggers[name].widget)
+        handler.setFormatter(logging.Formatter('%(asctime)s  - [%(levelname)s] %(message)s'))
+        self.loggers[name].addHandler(handler)
+        # self.loggers[name].setLevel(level)
+
     def generate_gui(self):
         """Generate the GUI"""
         self.add_tab(Tab("Study",self.generate_tab_study_info()))
         self.add_tab(Tab("Data Dictionary",self.generate_tab_data_dictionary()))
         self.add_tab(Tab("Study Files",self.generate_tab_study_files()))
+        self.add_tab(Tab("Logging",self.generate_tab_logging()))
+        # self.main_logger = self.objects["output_logger"]
+        self.log(message="GUI generated", level="info")
+        self.flush_log()
         return self.widget
     
     def generate_tab_study_info(self):
@@ -185,12 +225,12 @@ class GUI(GUI_Object):
         self.objects["button_filechooser_data_dictionary_load"].button_change(button=self.objects["button_filechooser_data_dictionary_load"], style='warning', text='Loading',tooltip='The data dictionary file is being loaded',disabled=False, icon='spinner')
         self.show_row("tab_row_dd_form_row")
 
-        unique_logging_buffer_load(message='test me',level='info',flush=True)
-        unique_logging_buffer_load(message=self,level='info',flush=True)
-        unique_logging_buffer_load(message=self.objects["filechooser_data_dictionary"],level='info',flush=True)
+#        unique_logging_buffer_load(message='test me',level='info',flush=True)  # Check
+#        unique_logging_buffer_load(message=self,level='info',flush=True)  # Check
+#        unique_logging_buffer_load(message=self.objects["filechooser_data_dictionary"],level='info',flush=True)  # Check
         # unique_logging_buffer_load(message=self.objects["filechooser_data_dictionary"].__dict__,level='info',flush=True)
-        unique_logging_buffer_load(message=self.objects["filechooser_data_dictionary"].get_filename(),level='info',flush=True)
-        unique_logging_buffer_load(message=self.objects["filechooser_data_dictionary"].get_dir(),level='info',flush=True)
+#        unique_logging_buffer_load(message=self.objects["filechooser_data_dictionary"].get_filename(),level='info',flush=True)  # Check
+#        unique_logging_buffer_load(message=self.objects["filechooser_data_dictionary"].get_dir(),level='info',flush=True)  # Check
 
         self.config["data_dictionary"] = {
             "filename": self.objects["filechooser_data_dictionary"].get_filename(),
@@ -199,21 +239,21 @@ class GUI(GUI_Object):
         }
 
         # dictionary_path = f"{self.config['data_dictionary']['filepath']}/{self.config['data_dictionary']['filename']}"
-        unique_logging_buffer_load(message=self.config['data_dictionary']['filepath'],level='info',flush=True)
+#        unique_logging_buffer_load(message=self.config['data_dictionary']['filepath'],level='info',flush=True)  # Check
         try:
 
             self.dictionary = rc.parseDataDictionary(self.config['data_dictionary']['filepath'])
-            unique_logging_buffer_load(message="Dictionary Parsed",level='info',flush=True)
-            unique_logging_buffer_load(message=type(self.dictionary),level='info',flush=True)
+#            unique_logging_buffer_load(message="Dictionary Parsed",level='info',flush=True)  # Check
+#            unique_logging_buffer_load(message=type(self.dictionary),level='info',flush=True)  # Check
             self.objects["button_filechooser_data_dictionary_load"].button_change(button=self.objects["button_filechooser_data_dictionary_load"], style='success', text='Dictionary Loaded',tooltip='The dictionary file has been loaded',disabled=True, icon='')
-            unique_logging_buffer_load(message="Button changed to success",level='info',flush=True)
+#            unique_logging_buffer_load(message="Button changed to success",level='info',flush=True)  # Check
 
             self.objects["dropdown_table_form_column"].set_options(option_list=list(self.dictionary['columns'].items()))
-            unique_logging_buffer_load(message="Options set",level='info',flush=True)
+#            unique_logging_buffer_load(message="Options set",level='info',flush=True)  # Check
 
         except:
             self.objects["button_filechooser_data_dictionary_load"].button_change(button=self.objects["button_filechooser_data_dictionary_load"], style='danger', text='Load Failed',tooltip='Something went wrong while loading the Data Dictionary',disabled=False, icon='')
-            unique_logging_buffer_load(message="failed",level='error',flush=True)
+#            unique_logging_buffer_load(message="failed",level='error',flush=True)  # Check
         
     def get_study_file_attribute(self, filename, attribute):
         """Get the study file attribute"""
@@ -248,40 +288,67 @@ class GUI(GUI_Object):
         self.objects["button_generate_files"].button_change(button=self.objects["button_generate_files"], style='warning', text='Generating...',tooltip='The files are being generated. This could take a few minutes',disabled=False, icon='spinner')
         for index, study_file_row in self.data['file_list_df'].iterrows():
             if study_file_row["Template"] == "Assessment":
-                table_code = study_file_row["Table Code"]
-                print(table_code)
-                filename = study_file_row.to_dict().get("Filename")
-                my_assessments[table_code]=sf.Assessment()
-                my_assessments[table_code].process_study_file(
-                    study_file_info = study_file_row.to_dict(), 
-                    study_file_directory = self.objects["filechooser_study_file_directory"].get_filepath(),
-                    data_dictionary = self.dictionary,
-                    planned_visits = self.data["planned_visit"],
-                    study_id =study_id,
-                    workspace_id = self.get_workspace_id(),
-                    name_reported = self.get_study_file_attribute(filename, "DESCRIPTION"),
-                )
+                try:
+                    
+                    table_code = study_file_row["Table Code"]
+                    self.log(message=f"table_code:{table_code}",level='info', flush=True)
+                    self.objects["button_generate_files"].button_change(button=self.objects["button_generate_files"], style='warning', text=f'Generating... {table_code}',tooltip='The files are being generated. This could take a few minutes',disabled=False, icon='spinner')
+                    filename = study_file_row.to_dict().get("Filename")
+                    self.log(message=f"filename:{filename}",level='info', flush=True)
+                    my_assessments[table_code]=sf.Assessment()
+                    self.log(message=f"assessment",level='info', flush=True)
+                    self.log(message=self.get_workspace_id(),level='info', flush=True)
+                    self.log(message=self.get_study_file_attribute(filename, "DESCRIPTION"),level='info', flush=True)
+                    # main_logger.log(message=self.get_study_file_attribute(filename, "DESCRIPTION"),level='info', flush=True)
+                    
+                    
+                    
+                    my_assessments[table_code].process_study_file(
+                        study_file_info = study_file_row.to_dict(), 
+                        study_file_directory = self.objects["filechooser_study_file_directory"].get_filepath(),
+                        data_dictionary = self.dictionary,
+                        planned_visits = self.data["planned_visit"],
+                        study_id =study_id,
+                        workspace_id = self.get_workspace_id(),
+                        name_reported = self.get_study_file_attribute(filename, "DESCRIPTION"),
+                    )
 
-                
+                    self.log(message=f"ready to export",level='info', flush=True)
 
-                my_assessments[table_code].export_to_txt( filename=f"results/{study_id}/{study_id}_{table_code}.txt")
-                my_assessments[table_code].export_to_json(filename=f"results/{study_id}/{study_id}_{table_code}.json")
-                
-                fh_zip_file = zipfile.ZipFile(f"results/{study_id}/{table_code}.zip", 'w', zipfile.ZIP_DEFLATED)
-                self.generate_zip_file(fh_zip=fh_zip_file, files=[
-                    f"results/{study_id}/{study_id}_{table_code}.txt", 
-                    os.path.relpath(self.objects["filechooser_study_file_directory"].get_filepath()+filename)
-                ])
-                fh_zip_file.close()
-                unique_logging_buffer_flush()
+
+                    my_assessments[table_code].export_to_txt( filename=f"results/{study_id}/{study_id}_{table_code}.txt")
+                    my_assessments[table_code].export_to_json(filename=f"results/{study_id}/{study_id}_{table_code}.json")
+                    
+                    fh_zip_file = zipfile.ZipFile(f"results/{study_id}/{table_code}.zip", 'w', zipfile.ZIP_DEFLATED)
+                    self.generate_zip_file(fh_zip=fh_zip_file, files=[
+                        f"results/{study_id}/{study_id}_{table_code}.txt", 
+                        os.path.relpath(self.objects["filechooser_study_file_directory"].get_filepath()+filename)
+                    ])
+                    fh_zip_file.close()
+                    self.flush_log()
+                except Exception as err:
+                    self.log(message=f"Error processing {table_code} - {err}", level='error', flush=True)
+                    pass
         self.objects["button_generate_files"].button_change(button=self.objects["button_generate_files"], style='success', text='Files Generated',tooltip='Files have been generated in the Results folder. Click to re-generate files.',disabled=False, icon='')
-        return fh_zip_file
+        # return fh_zip_file
+
+    def generate_tab_logging(self):
+        """Generate the logging tab"""
+        global main_logger
+        self.loggers["output_logger"] = Log_Output(name="output_logger")
+        self.main_logger=self.loggers["output_logger"]
+        main_logger = self.loggers["output_logger"]
+        
+        tab = widgets.VBox([self.loggers["output_logger"].get()])
+
+        return tab
 
     def load_study_files(self, b): #HERE
         """Load the study files"""
         # self.objects["button_filechooser_study_file_directory_load"].button_change(button=self.objects["button_filechooser_study_file_directory_load"], style='success', text='Study Files Loaded',tooltip='The Study files have been loaded',disabled=False, icon='')
 
         # unique_logging_buffer_load(message='load_study_files-before isdir',level='info',flush=True)
+        self.objects["button_filechooser_study_file_directory_load"].button_change(button=self.objects["button_filechooser_study_file_directory_load"], style='warning', text='Loading Study Files...',tooltip='The Study files are loading',disabled=False, icon='spinner')
         self.objects["html_study_files_display_text"] = HTML(html_text='Generating Study File Table...')
         self.objects["box_study_files_table"].set_children([self.objects["html_study_files_display_text"].get()])
         included_extensions = ['txt','csv', 'tsv']
@@ -337,13 +404,13 @@ class GUI(GUI_Object):
             self.data["immport_data"]["study_id"]=study_info["STUDY_ACCESSION"][0]
             self.data["immport_data"]["workspace_id"]=study_info["WORKSPACE_ID"][0]
             
-            unique_logging_buffer_load(level="debug",message="display visits")
+#            unique_logging_buffer_load(level="debug",message="display visits")  # Check
             visit_names = get_planned_visits(nameonly=True, returnType="list")
-            unique_logging_buffer_load(level="debug",message=f"visit names: {', '.join(visit_names)}")
+#            unique_logging_buffer_load(level="debug",message=f"visit names: {', '.join(visit_names)}")  # Check
             set_visit_dropdown(visit_names)
 
-            unique_logging_buffer_load(level="debug",message=f"display visits - Done")
-            unique_logging_buffer_flush()
+#            unique_logging_buffer_load(level="debug",message=f"display visits - Done")  # Check
+#            unique_logging_buffer_flush()  # Check
 
     def get_study_id(self):
         return self.data["study"]["STUDY_ACCESSION"][0]
@@ -636,12 +703,13 @@ class Dropdown(GUI_Object):
             self.widget.on_transition(callback)
     
     def set_options(self, option_list):
-        unique_logging_buffer_load(message="Setting Options",level='info',flush=True)
+#        unique_logging_buffer_load(message="Setting Options",level='info',flush=True)  # Check
         # unique_logging_buffer_load(message=option_list,level='info',flush=True)
         try:
             self.widget.options = option_list
         except Exception as err:
-            unique_logging_buffer_load(message="Error loading option list",level='info',flush=True)
+            self.log(message="Error loading option list",level='info',flush=True)
+#            unique_logging_buffer_load(message="Error loading option list",level='info',flush=True)  # Check
             # unique_logging_buffer_load(message=err,level='info',flush=True)
 
 class HBox(GUI_Object):
@@ -681,11 +749,119 @@ class HTML(GUI_Object):
     def set_text(self, text):
         self.widget.value = text
 
-logging.basicConfig(stream=output2, level=logging.INFO)
+class Log_Output(GUI_Object):
+    """Log_Output class"""
 
-main_logger = logging.getLogger(__name__)
-main_logger.setLevel(logging.DEBUG)
-main_logger.addHandler(log_viewer())
+    fmt = '%(name)s | %(levelname)8s | %(message)s'
+
+    def __init__(self, level=logging.DEBUG, name=__name__):
+        super().__init__(
+            widgets.Output(layout=widgets.Layout(max_height="525px", overflow_y="auto"))
+        )
+        self.messages={}
+        # logging.basicConfig(stream=self.widget, level=level)
+
+        self.logger = logging.getLogger(name)
+        self.logger.setLevel(level)
+        # self.logger.StreamHandler(handler=self.widget)
+        self.logger.addHandler(log_viewer(output=self.widget,name=name))
+        
+        self.log={
+            "debug":self.logger.debug,
+            "info":self.logger.info,
+            "warning":self.logger.warning,
+            "warn":self.logger.warning,
+            "error":self.logger.error,
+            "critical":self.logger.critical,
+        }
+
+        # self.debug = self.log["debug"]
+        # self.info = self.log["info"]
+        # self.warning = self.log["warning"]
+        # self.warn = self.log["warning"]
+        # self.error = self.log["error"]
+        # self.critical = self.log["critical"]
+
+
+    ##Add history to the log output
+    ##Add a button to clear the log
+    ##Add a button to write from history with certain level
+
+    def write(self,message=None, level=None, flush=False):
+        
+        if level not in self.messages:
+            self.messages[level]={message:1}
+        else:
+            if message not in self.messages[level]:
+                self.messages[level][message]=1
+            else:
+                self.messages[level][message]+=1
+        if flush:
+            self.flush()
+
+    def flush(self):
+        for level in self.messages.keys():
+            for message, count in self.messages[level].items():
+                # return
+                if count == 1:
+                    self.log[level](f"{message}")
+                else:
+                    self.log[level](f"({count}) {message}")
+
+        self.messages={}
+
+########################################################################################################################
+class OutputWidgetHandler(logging.Handler):  #Archive
+    """ Custom logging handler sending logs to an output widget """
+
+    def __init__(self, output_widget, *args, **kwargs):
+        super(OutputWidgetHandler, self).__init__(*args, **kwargs)
+        layout = {
+            'width': '100%',
+            'height': '550px',
+            'border': '1px solid black'
+        }
+        self.out = output_widget #widgets.Output(layout=layout)
+
+    def emit(self, record):
+        
+        
+        """ Overload of logging.Handler method """
+        formatted_record = self.format(record)
+        with self.out:
+            print(formatted_record)
+        return
+        
+        new_output = {
+            'name': 'stdout',
+            'output_type': 'stream',
+            'text': formatted_record+'\n'
+        }
+        self.out.outputs = (new_output, ) + self.out.outputs
+
+    def show_logs(self):
+        """ Show the logs """
+        display(self.out)
+
+    def clear_logs(self):
+        """ Clear the current logs """
+        self.out.clear_output()
+
+
+# logger = logging.getLogger(__name__)
+# handler = OutputWidgetHandler()
+# handler.setFormatter(logging.Formatter('%(asctime)s  - [%(levelname)s] %(message)s'))
+# logger.addHandler(handler)
+# logger.setLevel(logging.INFO)
+
+########################################################################################################################
+
+# widgets.Output(layout={'border': '1px solid black'})
+# logging.basicConfig(stream=output2, level=logging.INFO)
+
+# main_logger = logging.getLogger(__name__)
+# main_logger.setLevel(logging.DEBUG)
+# main_logger.addHandler(log_viewer())
 immport_data = {'tab_data':{},'config':{}}
 
 def unique_logging_buffer_load(message=None, level=None, flush=False):
@@ -699,7 +875,8 @@ def unique_logging_buffer_load(message=None, level=None, flush=False):
         else:
             logging_buffer_data[level][message]=logging_buffer_data[level][message]+1
     if flush:
-        unique_logging_buffer_flush()
+        return
+#        unique_logging_buffer_flush()  # Check
 
 def unique_logging_buffer_flush():
     global logging_buffer_data
@@ -832,28 +1009,29 @@ def on_data_dictionary_select(change):
         reset_dd_load_button()
     else:
         show_hide_element(element=button_data_dictionary_load,display='none')
-    unique_logging_buffer_load(level="debug",message=f"On data dictionary select:{change}")
-    unique_logging_buffer_flush()
+#    unique_logging_buffer_load(level="debug",message=f"On data dictionary select:{change}")  # Check
+#    unique_logging_buffer_flush()  # Check
 
 def on_study_file_select(value):
     global box_study_file_table
     global file_list_df
-    unique_logging_buffer_load(level="debug",message=f"on_study_file_select{value}")
+#    unique_logging_buffer_load(level="debug",message=f"on_study_file_select{value}")  # Check
 
 
     if value.description == "Change":
         box_study_file_table.children = ([widgets.HTML(r'Generating Study File Table...')])
         generate_study_file_table()
         reset_sf_dir_load_button()
-        unique_logging_buffer_load(level="debug",message=f"Generate DF table")
+#        unique_logging_buffer_load(level="debug",message=f"Generate DF table")  # Check
         study_file_table_widget = generate_df_table(dataframe=file_list_df)
         box_study_file_table.children = ([study_file_table_widget])
-    unique_logging_buffer_flush()
+#    unique_logging_buffer_flush()  # Check
 
 
 def process_study_file_directory():
-    unique_logging_buffer_load(level="debug",message=fc_study_file_directory)
-    unique_logging_buffer_flush()
+    return
+#    unique_logging_buffer_load(level="debug",message=fc_study_file_directory)  # Check
+#    unique_logging_buffer_flush()  # Check
 
 
 def generate_tab_study_files():
@@ -1059,13 +1237,13 @@ def on_select_study_tab_file(value, fc_field=None):
         immport_data["study_id"]=study_info["STUDY_ACCESSION"][0]
         immport_data["workspace_id"]=study_info["WORKSPACE_ID"][0]
         
-        unique_logging_buffer_load(level="debug",message="display visits")
+#        unique_logging_buffer_load(level="debug",message="display visits")  # Check
         visit_names = get_planned_visits(nameonly=True, returnType="list")
-        unique_logging_buffer_load(level="debug",message=f"visit names: {', '.join(visit_names)}")
+#        unique_logging_buffer_load(level="debug",message=f"visit names: {', '.join(visit_names)}")  # Check
         set_visit_dropdown(visit_names)
 
-        unique_logging_buffer_load(level="debug",message=f"display visits - Done")
-        unique_logging_buffer_flush()
+#        unique_logging_buffer_load(level="debug",message=f"display visits - Done")  # Check
+#        unique_logging_buffer_flush()  # Check
 
 def getStudyFileReportedName(studyfileName):
     global immport_data
@@ -1140,7 +1318,7 @@ def generate_tab_study_info():
 def get_planned_visits2(planned_visits, nameonly=False, returnType=None):
     
     if nameonly:
-        unique_logging_buffer_load(level="debug", message="\tName Only", flush=True)
+#        unique_logging_buffer_load(level="debug", message="\tName Only", flush=True)  # Check
         names = planned_visits["NAME"]
         if returnType == 'list':
             return names.tolist()
@@ -1150,7 +1328,7 @@ def get_planned_visits2(planned_visits, nameonly=False, returnType=None):
 def get_planned_visits(nameonly=False, returnType=None):
     
     if nameonly:
-        unique_logging_buffer_load(level="debug", message="\tName Only", flush=True)
+#        unique_logging_buffer_load(level="debug", message="\tName Only", flush=True)  # Check
         names = immport_data['tab_data']["planned_visits"]["NAME"]
         if returnType == 'list':
             return names.tolist()
