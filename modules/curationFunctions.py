@@ -80,25 +80,20 @@ def get_studyfile_line_count(directory):
 
 def addVisitAccessionFromName(planned_visits, table, visit_col,dictionary,file_table,default_visit):
     global missingVisits_all    
-    ig.main_logger.write(message="test",level="debug",flush=True)
     table_column = getColumnName(dictionary, file_table,visit_col)
 
     #dict_visits is a dictionary of planned visits. Keys are names, values are IDs
     dict_visits=dict(zip(planned_visits["NAME"],planned_visits["PLANNED_VISIT_ACCESSION"]))
-    ig.main_logger.write(message="test",level="debug",flush=True)
     
     if(table_column is None):
-        ig.main_logger.write(level="warn",message=f"No visit column in table, using default: {default_visit}", flush=True)
         # ig.unique_logging_buffer_load(level="debug",message=f"No visit column in table, using default: {default_visit}", flush=True)
         if(default_visit is not None):
             table["PLANNED_VISIT_ID"]=dict_visits.get(default_visit,"")
             table_visit = pd.DataFrame(data={'plannedVisit':['']})
             return table_visit
         else:
-            ig.main_logger.write(level="error",message=f"No default visit has been defined for {file_table}", flush=True)
             raise ValueError(f"No default visit has been defiled for {file_table}")
 
-    ig.main_logger.write(message="test",level="debug",flush=True)
     table_visits = table.groupby([table_column], as_index=False).agg('nunique')
 
     table_visits.drop(table_visits.columns.difference([table_column]),1, inplace=True)
@@ -352,36 +347,27 @@ def readAndModifyStudyFile(filepath,file_tables,dictionary,planned_visits):
     Returns:
         DataFrame: modified dataframe from study file.
     """
-    ig.main_logger.write(message="Read and modify study file", level="info", flush=True)
 
     full_datafile = pd.DataFrame()
 
     for file_table in file_tables["tables"]:
-        ig.main_logger.write(message="Read and modify study file: 1", level="info", flush=True)
         datafile = readStudyFile(filepath,file_table,dictionary)
-        ig.main_logger.write(message="Read and modify study file: 2", level="info", flush=True)
         visit_col = getColumnMapping(dictionary, file_table,"[Visit]")
-        ig.main_logger.write(message="Read and modify study file: 3", level="info", flush=True)
 
         table_visits = addVisitAccessionFromName(planned_visits,datafile,visit_col,dictionary,file_table,file_tables.get("visit",None))
         table_visits[table_visits["plannedVisit"] == ""]
-        ig.main_logger.write(message="Read and modify study file: 4", level="info", flush=True)
 
         planned_visit_data = datafile["PLANNED_VISIT_ID"]
         datafile=datafile.drop(columns=["PLANNED_VISIT_ID"])
         datafile.insert(loc=3, column="PLANNED_VISIT_ID",value=planned_visit_data)
 
-        ig.main_logger.write(message="Read and modify study file: 5", level="info", flush=True)
         dd_ID = getColumnMapping(dictionary,file_table,"User Defined ID")
-        ig.main_logger.write(message="Read and modify study file: 6", level="info", flush=True)
         dd_ID_col = getColumnName(dictionary, file_table,dd_ID)
-        ig.main_logger.write(message="Read and modify study file: 7", level="info", flush=True)
 
         if(dd_ID_col not in datafile.columns):
             if("Accession" in datafile.columns):
                 datafile.rename(columns={"Accession":dd_ID_col},inplace=True)
         full_datafile = full_datafile.append(datafile)
-        ig.main_logger.write(message="Read and modify study file: 8", level="info", flush=True)
         
     return full_datafile
 

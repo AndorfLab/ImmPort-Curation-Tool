@@ -291,17 +291,11 @@ class GUI(GUI_Object):
                 try:
                     
                     table_code = study_file_row["Table Code"]
-                    self.log(message=f"table_code:{table_code}",level='info', flush=True)
-                    self.objects["button_generate_files"].button_change(button=self.objects["button_generate_files"], style='warning', text=f'Generating... {table_code}',tooltip='The files are being generated. This could take a few minutes',disabled=False, icon='spinner')
                     filename = study_file_row.to_dict().get("Filename")
-                    self.log(message=f"filename:{filename}",level='info', flush=True)
+                    self.log(message=f"Processing filename {filename} ({table_code})",level='info', flush=True)
+                    self.objects["button_generate_files"].button_change(button=self.objects["button_generate_files"], style='warning', text=f'Generating... {table_code}',tooltip='The files are being generated. This could take a few minutes',disabled=False, icon='spinner')
+                  
                     my_assessments[table_code]=sf.Assessment()
-                    self.log(message=f"assessment",level='info', flush=True)
-                    self.log(message=self.get_workspace_id(),level='info', flush=True)
-                    self.log(message=self.get_study_file_attribute(filename, "DESCRIPTION"),level='info', flush=True)
-                    # main_logger.log(message=self.get_study_file_attribute(filename, "DESCRIPTION"),level='info', flush=True)
-                    
-                    
                     
                     my_assessments[table_code].process_study_file(
                         study_file_info = study_file_row.to_dict(), 
@@ -312,9 +306,6 @@ class GUI(GUI_Object):
                         workspace_id = self.get_workspace_id(),
                         name_reported = self.get_study_file_attribute(filename, "DESCRIPTION"),
                     )
-
-                    self.log(message=f"ready to export",level='info', flush=True)
-
 
                     my_assessments[table_code].export_to_txt( filename=f"results/{study_id}/{study_id}_{table_code}.txt")
                     my_assessments[table_code].export_to_json(filename=f"results/{study_id}/{study_id}_{table_code}.json")
