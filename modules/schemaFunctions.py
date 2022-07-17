@@ -128,7 +128,7 @@ def load_data_fields(validator):
         json_data = json.load(fh_json_file)
         return json_data['properties']
 class ImmPort_Data: 
-    schemaVersion = "3.35"
+    schemaVersion = "3.36"
 
     def print_obj(self):
         print_data = {}

@@ -14,7 +14,7 @@
       },
      "schemaVersion":{
 	  "type":"string",
-	  "enum":["3.35"]
+	  "enum":["3.36"]
       },
      "templateType":{
 	  "type":"string",
