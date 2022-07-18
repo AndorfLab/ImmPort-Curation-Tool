@@ -294,7 +294,7 @@ class GUI(GUI_Object):
                     filename = study_file_row.to_dict().get("Filename")
                     self.log(message=f"Processing filename {filename} ({table_code})",level='info', flush=True)
                     self.objects["button_generate_files"].button_change(button=self.objects["button_generate_files"], style='warning', text=f'Generating... {table_code}',tooltip='The files are being generated. This could take a few minutes',disabled=False, icon='spinner')
-                  
+                    
                     my_assessments[table_code]=sf.Assessment()
                     
                     my_assessments[table_code].process_study_file(
@@ -364,12 +364,15 @@ class GUI(GUI_Object):
                 self.data['file_list_df']["Table Code"] = pd.Categorical([], ordered=True, categories=table_code_categories)
                 self.data["file_list_df"]["Template"] = pd.Categorical([],ordered=True,categories=get_immport_template_names())
                 self.data["file_list_df"]["Default Visit"] = pd.Categorical([],ordered=True,categories=self.get_planned_visits(nameonly=True, returnType="list"))
-                # unique_logging_buffer_load(message='categories created',level='info',flush=True)
                 self.data["file_list_df"]["Filename"] = study_files
+                self.data['file_list_df'] = self.data['file_list_df'].merge(self.data["study_files"][["FILE_NAME","DESCRIPTION"]], left_on="Filename", right_on="FILE_NAME", how="left")
+                self.data['file_list_df'].rename(columns={"DESCRIPTION":"Description"}, inplace=True)
+                self.data['file_list_df'] = self.data['file_list_df'][["Filename","Description","Table Code","Assessment Name","Template","Default Visit"]]
+                # unique_logging_buffer_load(message='categories created',level='info',flush=True)
                 # unique_logging_buffer_load(message='study_files loaded',level='info',flush=True)
 
 
-                self.objects["study_file_table"] = self.generate_df_table()
+                self.objects["study_file_table"] = self.generate_df_table(column_widths =  ["300px","250px","100px","150px","125px","175px"], readonly=["Filename","Description"])
                 # unique_logging_buffer_load(message='Table Generated',level='info',flush=True)
                 self.objects["button_generate_files"]= Button(text="Generate Filled Templates", tooltip='Generate filled ImmPort Templates for upload into ImmPort', callback=self.generate_filled_template_files) #, style=dict(description_width='initial'))
                 #generate_filled_template_files
@@ -413,40 +416,35 @@ class GUI(GUI_Object):
         return self.data["study"]["WORKSPACE_ID"][0]
 
 
-    def generate_df_table(self):
+    def generate_df_table(self, column_widths =  ["300px","100px","150px","125px","175px"], readonly=["Filename"]):
         global box, grid_body
         header_names =  self.data["file_list_df"].columns
 
         shape =  self.data["file_list_df"].shape
-
-        column_widths = ["300px","100px","150px","125px","175px"]
-
-        grid_header = widgets.GridspecLayout(shape[0], shape[1])
-        grid_body = widgets.GridspecLayout(shape[0], shape[1])
+        grid_body = widgets.GridspecLayout(shape[0]+1, shape[1])
 
         for idx, title in enumerate(header_names):
-            grid_header[0,idx] = widgets.HTML(f"<b>{title}</b>")
-
-            grid_header[0,idx].layout = widgets.Layout(width=column_widths[idx])
+            grid_body[0,idx] = widgets.HTML(f"<b>{title}</b>")
+            grid_body[0,idx].layout = widgets.Layout(width=column_widths[idx])
         
         dataframe_for_table =  self.data["file_list_df"].copy()
         dataframe_for_table = dataframe_for_table.astype('string')
         dataframe_for_table.fillna('', inplace=True)
 
         for ind in  self.data["file_list_df"].index:
+            ind2 = ind+1
             for idx, column_title in enumerate(header_names):
-                readonly = (True if column_title == "Filename" else False)
-                grid_body[ind, idx] = create_table_widget(dtype= self.data["file_list_df"][column_title].dtype, value=dataframe_for_table[column_title][ind], readonly= readonly, dataframe= self.data["file_list_df"],columnName=column_title)
-                grid_body[ind, idx].layout = widgets.Layout(width=column_widths[idx])
+                readonly_bool = (True if column_title in readonly else False)
+                grid_body[ind2, idx] = create_table_widget(dtype= self.data["file_list_df"][column_title].dtype, value=dataframe_for_table[column_title][ind], readonly= readonly_bool, dataframe= self.data["file_list_df"],columnName=column_title)
+                grid_body[ind2, idx].layout = widgets.Layout(width=column_widths[idx])
 
-                grid_body[ind, idx].description_tooltip=f"{{'row':{ind},'col':{idx}','title':'{column_title}'}}"
+                grid_body[ind2, idx].description_tooltip=f"{{'row':{ind},'col':{idx}','title':'{column_title}'}}"
 
-                grid_body[ind,idx].observe(functools.partial(update_dataframe_from_table, dataframe= self.data["file_list_df"], column_name=column_title,column=idx,row=ind), names='value')
+                grid_body[ind2,idx].observe(functools.partial(update_dataframe_from_table, dataframe= self.data["file_list_df"], column_name=column_title,column=idx,row=ind), names='value')
 
 
-        box_head = widgets.VBox([grid_header], layout=widgets.Layout(height='50px'))
-        box_body = widgets.VBox([grid_body], layout=widgets.Layout(height='350px', overflow_y='auto'))
-        box = widgets.VBox([box_head,box_body], layout=widgets.Layout(height='460px'))
+        box_body = widgets.VBox([grid_body], layout=widgets.Layout(height='450px', overflow_y='auto'))
+        box = widgets.VBox([box_body], layout=widgets.Layout(height='510px'))
         return box
 
         
@@ -545,14 +543,15 @@ class Tab(GUI_Object):
     """Tab class"""
     def __init__(self, name, contents=None):
         self.name = name
+        box_layout = widgets.Layout(overflow='scroll hidden')
         if contents is not None:
             if hasattr(contents, "widget"):
-                self.widget = widgets.VBox([contents.widget])
+                self.widget = widgets.Box(children = [contents.widget], layout=box_layout)
             else:
-                self.widget = widgets.VBox([contents])
+                self.widget = widgets.Box(children=[contents], layout=box_layout)
         else:
-            self.widget =widgets.VBox([])
-
+            self.widget =widgets.Box(children=[], layout=box_layout)
+        
 class Button(GUI_Object):
     """Button class"""
     def __init__(self, text, style=None, icon="", tooltip="", state=False, callback=None, display=True):
