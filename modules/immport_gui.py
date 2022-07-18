@@ -188,9 +188,9 @@ class GUI(GUI_Object):
 
     def generate_gui(self):
         """Generate the GUI"""
-        self.add_tab(Tab("Study",self.generate_tab_study_info()))
-        self.add_tab(Tab("Data Dictionary",self.generate_tab_data_dictionary()))
-        self.add_tab(Tab("Study Files",self.generate_tab_study_files()))
+        self.add_tab(Tab("1. Study",self.generate_tab_study_info()))
+        self.add_tab(Tab("2. Data Dictionary",self.generate_tab_data_dictionary()))
+        self.add_tab(Tab("3. Study Files",self.generate_tab_study_files()))
         self.add_tab(Tab("Logging",self.generate_tab_logging()))
         # self.main_logger = self.objects["output_logger"]
         self.log(message="GUI generated", level="info")
@@ -327,10 +327,13 @@ class GUI(GUI_Object):
         """Generate the logging tab"""
         global main_logger
         self.loggers["output_logger"] = Log_Output(name="output_logger")
+        
+        self.objects["button_clear_main_logger"] = self.loggers["output_logger"].add_clear_button(description="Clear", tooltip="Clear the main logger")
+
         self.main_logger=self.loggers["output_logger"]
         main_logger = self.loggers["output_logger"]
-        
-        tab = widgets.VBox([self.loggers["output_logger"].get()])
+
+        tab = widgets.VBox([self.objects["button_clear_main_logger"].get(), self.loggers["output_logger"].get()])
 
         return tab
 
@@ -751,7 +754,7 @@ class Log_Output(GUI_Object):
         )
         self.messages={}
         # logging.basicConfig(stream=self.widget, level=level)
-
+        self.name = name
         self.logger = logging.getLogger(name)
         self.logger.setLevel(level)
         # self.logger.StreamHandler(handler=self.widget)
@@ -802,6 +805,21 @@ class Log_Output(GUI_Object):
                     self.log[level](f"({count}) {message}")
 
         self.messages={}
+
+    def clear_output(self,b):
+        self.widget.clear_output()
+
+    def add_clear_button(self, description="Clear Log", tooltip="Clear the main logger"):
+        # print(self)
+        # my_callback = functools.partial(self.clear_output)
+        button = Button(
+            text=description,
+            tooltip=tooltip,
+            callback=self.clear_output
+        )
+        # button.clear_output = self.clear_output
+        # button.set_callback(callback = button.clear_output)
+        return button
 
 ########################################################################################################################
 class OutputWidgetHandler(logging.Handler):  #Archive
