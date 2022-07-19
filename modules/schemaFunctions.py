@@ -64,12 +64,12 @@ def validate_data(data, schema_name=None):
             return True
         print("Validation Error")
         print(error)
-        return error
+        return f"ValidationError: {error}"
         pass
     except jsonschema.SchemaError as error:
         print("Schema Error")
         print(error)
-        return error
+        return f"SchemaError: {error}"
         pass
     
     return False
