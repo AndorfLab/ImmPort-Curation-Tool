@@ -52,10 +52,6 @@ def validate_data(data, schema_name=None):
     except jsonschema.exceptions.ValidationError as error:
         last_error=error
         if("properties/data/items/properties/resultData/items/properties/resultUnitReported/enum" == "/".join(list(error.schema_path))):
-            # ig.unique_logging_buffer_load(
-            #             level="info",
-            #             message=f"\tNon-Preferred Unit of '{error.instance}'"
-            #         )
             ig.main_logger.write(
                 level="warn",
                 message=f"\tNon-Preferred Unit of '{error.instance}'"
@@ -488,35 +484,22 @@ class Assessment_ResultData(ImmPort_Data):
             if key in self.enumFields and value not in self.enumFields[key]["enum"]:
                 if key.endswith("UnitReported"):
                     if value in self.result_unit_reported_synonyms:
-                        # ig.unique_logging_buffer_load(
-                        #     level="info",
-                        #     message=f"\tSuggest substituting '{self.result_unit_reported_synonyms[value]}' for '{value}' for field '{key}' - {nameReported}"
-                        # )
                         ig.main_logger.write(
                             level="info",
                             message=f"\tSuggest substituting '{self.result_unit_reported_synonyms[value]}' for '{value}' for field '{key}' - {nameReported}"
                         )
                     else:
-                        # ig.unique_logging_buffer_load(
-                        #     level="info",
-                        #     message=f"Value '{value}' for field '{key}' is not a preferred term - {nameReported}"
-                        # )
                         ig.main_logger.write(
                             level="info",
                             message=f"Value '{value}' for field '{key}' is not a preferred term - {nameReported}"
                         )
                 else:
-                    # ig.unique_logging_buffer_load(
-                    #     level="warn",
-                    #     message=f"Value '{value}' for field '{key}' is not valid - {nameReported}"
-                    # )
                     ig.main_logger.write(
                         level="warn",
                         message=f"Value '{value}' for field '{key}' is not valid - {nameReported}"
                     )
 
             self.set_data_value(key, value)
-
 
 
 schema_store = get_schema_store(json_schema_template_path)

@@ -19,7 +19,6 @@ pd.options.display.max_rows = 200
 
 missingVisits_all = {}
 
-
 def writePanelComponentTemplate(panel, component,header, filepath):
     panel["Result Separator Column"]=""
     df_temp = panel.merge(component, left_on='Assessment Panel ID', right_on='ASSESSMENT_PANEL_ACCESSION')
@@ -45,7 +44,6 @@ def processStudyFile(table_list,directory,dictionary,planned_visits,study_files,
         panel=getAssessmentPanelByID(panel_id,assessment_panel_template)
         
         assessment_components_template=datafileToComponents(datafile,dictionary,table_set["tables"],assessment_components_template,panel_id,workspace_id)
-
 
     return [assessment_panel_template,assessment_components_template]
 
@@ -208,7 +206,7 @@ def datafileToComponents(datafile,dictionary,table_name_array,assessment_compone
     assessment_components_template.drop(assessment_components_template[assessment_components_template["ASSESSMENT_PANEL_ACCESSION"] == panel_id].index, inplace=True)
     for table_name in table_name_array:
         col_mappings = createColumnMappingDict(dictionary,table_name)
-        
+
         question_id = 0
         datafile.rename(columns=col_mappings,inplace=True)
     

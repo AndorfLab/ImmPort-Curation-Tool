@@ -27,17 +27,33 @@ class CustomFormatter(logging.Formatter):
     bold_red =  '\x1b[48;5;196;1m'
     reset =     '\x1b[0m'
     
+    colors={
+        "debug" : "grey",
+        "info" : "blue",
+        "warning" : "OrangeRed",
+        "error" : "red",
+        "critical" : "red"
+    }
 
     def __init__(self, fmt):
         super().__init__()
         self.fmt = fmt
         self.FORMATS = {
-            logging.DEBUG: self.grey + self.fmt + self.reset,
-            logging.INFO: self.blue + self.fmt + self.reset,
-            logging.WARNING: self.yellow + self.fmt + self.reset,
-            logging.ERROR: self.red + self.fmt + self.reset,
-            logging.CRITICAL: self.bold_red + self.fmt + self.reset
+            # logging.DEBUG: self.grey + self.fmt + self.reset,
+            # logging.INFO: self.blue + self.fmt + self.reset,
+            # logging.WARNING: self.yellow + self.fmt + self.reset,
+            # logging.ERROR: self.red + self.fmt + self.reset,
+            # logging.CRITICAL: self.bold_red + self.fmt + self.reset
+
+            logging.DEBUG: f"{self.format_string('debug')}{self.fmt}",
+            logging.INFO: f"{self.format_string('info')}{self.fmt}",
+            logging.WARNING: f"{self.format_string('warning')}{self.fmt}",
+            logging.ERROR: f"{self.format_string('error')}{self.fmt}",
+            logging.CRITICAL: f"<b>{self.format_string('critical')}{self.fmt}</b>",
         }
+
+    def format_string(self,level):
+        return f"<font color='{self.colors[level]}' style='white-space: pre; font-size=16px; font-family: Consolas'>"
 
     def format(self, record):
         log_fmt = self.FORMATS.get(record.levelno)
@@ -46,42 +62,38 @@ class CustomFormatter(logging.Formatter):
 
 class log_viewer(logging.Handler):
     """ Class to redistribute python logging data """
-    fmt = '%(name)s | %(levelname)8s | %(message)s'
+    # fmt = '%(name)s | %(levelname)8s | %(message)s'
+    fmt = '%(levelname)-8s | %(message)s'
 
     # have a class member to store the existing logger
 
     def __init__(self, *args, **kwargs):
         # Initialize the Handler
         self.logger_instance = logging.getLogger(kwargs.get("name",__name__))
-        # print("Name",kwargs.get("name",__name__))
         logging.Handler.__init__(self, *args)
 
-        # optional take format
         # setFormatter function is derived from logging.Handler
         for key, value in kwargs.items():
             # print(f"{key}:{value}")
             if "{}".format(key) == "format":
                 self.setFormatter(value)
-        # print(kwargs.items())
 
         if "output" in kwargs:
-            # print("use widget")
             self.output = kwargs["output"]
         else:
-            # print("use output2")
             self.output = output2
 
         # make the logger send data to this class
         self.logger_instance.addHandler(self)
         self.setFormatter(CustomFormatter(self.fmt))
-        # print(f"output: {self.output}")
 
     def emit(self, record):
         """ Overload of logging.Handler method """
-        record = self.format(record)
-        # print(self.output)
+        formatted_record = self.format(record)
+        print_html2 = HTML(html_text = f"<font color='blue' style='white-space: pre; font-size=16px'>{formatted_record}")
+
         with self.output:
-            print(record)
+            display(print_html2.widget)
 
 class GUI_Object():
     """Class to hold GUI object methods"""
@@ -192,19 +204,15 @@ class GUI(GUI_Object):
         self.add_tab(Tab("2. Data Dictionary",self.generate_tab_data_dictionary()))
         self.add_tab(Tab("3. Study Files",self.generate_tab_study_files()))
         self.add_tab(Tab("Logging",self.generate_tab_logging()))
-        # self.main_logger = self.objects["output_logger"]
         self.log(message="GUI generated", level="info")
         self.flush_log()
         return self.widget
     
     def generate_tab_study_info(self):
         """Generate the study info tab"""
-        # tab = widgets.VBox(layout=widgets.Layout(min_height="500px"))
-
         self.objects["toggle_current_immport_study"] = ToggleButtons(description="Is this a current Immport study?", options=[('Yes',1),('No',0)], value=1, tooltip='Has this study been registered in ImmPort?', style=dict(description_width='initial'))
         self.objects["dropdown_study_visit_list"] = Dropdown(options=[''], description='<b>Study Visits:</b>', tooltip='View the loaded study visits')
         self.objects["filechooser_study_tab_file"] = File_Chooser(name="filechooser_study_tab_file", title='<b>Select the ImmPort Study Tab zip file</b>', tooltip='Load a study tab file',multiple=False,filter_pattern=['SDY*-DR*_Tab.zip'], style=dict(description_width='initial'))
-
         self.objects["filechooser_study_tab_file"].set_onclick(self, callback_function=on_select_study_tab_file2, callback_data = {"gui":self, "fc_name":"filechooser_study_tab_file"})
 
         box_immport_study_yes = widgets.VBox([self.objects["filechooser_study_tab_file"].get()])
@@ -220,17 +228,7 @@ class GUI(GUI_Object):
         return tab
 
     def load_data_dictionary(self,gui):
-        # unique_logging_buffer_load(message=self,level='info',flush=True)
-        # unique_logging_buffer_load(message=self.objects["button_filechooser_data_dictionary_load"],level='info',flush=True)
         self.objects["button_filechooser_data_dictionary_load"].button_change(button=self.objects["button_filechooser_data_dictionary_load"], style='warning', text='Loading',tooltip='The data dictionary file is being loaded',disabled=False, icon='spinner')
-        self.show_row("tab_row_dd_form_row")
-
-#        unique_logging_buffer_load(message='test me',level='info',flush=True)  # Check
-#        unique_logging_buffer_load(message=self,level='info',flush=True)  # Check
-#        unique_logging_buffer_load(message=self.objects["filechooser_data_dictionary"],level='info',flush=True)  # Check
-        # unique_logging_buffer_load(message=self.objects["filechooser_data_dictionary"].__dict__,level='info',flush=True)
-#        unique_logging_buffer_load(message=self.objects["filechooser_data_dictionary"].get_filename(),level='info',flush=True)  # Check
-#        unique_logging_buffer_load(message=self.objects["filechooser_data_dictionary"].get_dir(),level='info',flush=True)  # Check
 
         self.config["data_dictionary"] = {
             "filename": self.objects["filechooser_data_dictionary"].get_filename(),
@@ -238,22 +236,17 @@ class GUI(GUI_Object):
             "filepath": self.objects["filechooser_data_dictionary"].get_filepath(),
         }
 
-        # dictionary_path = f"{self.config['data_dictionary']['filepath']}/{self.config['data_dictionary']['filename']}"
-#        unique_logging_buffer_load(message=self.config['data_dictionary']['filepath'],level='info',flush=True)  # Check
         try:
-
             self.dictionary = rc.parseDataDictionary(self.config['data_dictionary']['filepath'])
-#            unique_logging_buffer_load(message="Dictionary Parsed",level='info',flush=True)  # Check
-#            unique_logging_buffer_load(message=type(self.dictionary),level='info',flush=True)  # Check
+            self.log(message="Dictionary Parsed",level='debug',flush=True)
             self.objects["button_filechooser_data_dictionary_load"].button_change(button=self.objects["button_filechooser_data_dictionary_load"], style='success', text='Dictionary Loaded',tooltip='The dictionary file has been loaded',disabled=True, icon='')
-#            unique_logging_buffer_load(message="Button changed to success",level='info',flush=True)  # Check
 
             self.objects["dropdown_table_form_column"].set_options(option_list=list(self.dictionary['columns'].items()))
-#            unique_logging_buffer_load(message="Options set",level='info',flush=True)  # Check
+            self.show_row("tab_row_dd_form_row")
 
-        except:
+        except Exception as e:
+            self.log(message=f"Error loading data dictionary: {e}", level="error", flush=True)
             self.objects["button_filechooser_data_dictionary_load"].button_change(button=self.objects["button_filechooser_data_dictionary_load"], style='danger', text='Load Failed',tooltip='Something went wrong while loading the Data Dictionary',disabled=False, icon='')
-#            unique_logging_buffer_load(message="failed",level='error',flush=True)  # Check
         
     def get_study_file_attribute(self, filename, attribute):
         """Get the study file attribute"""
@@ -265,7 +258,7 @@ class GUI(GUI_Object):
         """Generate the study files tab"""
         
         self.objects["filechooser_study_file_directory"] = File_Chooser(name="filechooser_study_file_directory", title='<b>Select the Study Files Directory</b>', tooltip='Load the study files directory',multiple=False,filter_pattern=['*'], style=dict(description_width='initial'),show_only_dirs=True)
-        # self.objects["button_filechooser_study_file_directory_load"] = self.objects["filechooser_study_file_directory"].add_load_button(description="Load Study Files Directory", tooltip="Load the study files directory")  #callback=self.process_study_file_directory
+
         self.objects["button_filechooser_study_file_directory_load"] = self.objects["filechooser_study_file_directory"].add_load_button(description="Load Study Files Directory", tooltip="Load the study files directory", callback=self.load_study_files)
         
         self.objects["html_data_dictionary_tables"] = HTML(html_text='',description="<b>Tables Listed in Dictionary:</b>")
@@ -341,23 +334,17 @@ class GUI(GUI_Object):
         """Load the study files"""
         # self.objects["button_filechooser_study_file_directory_load"].button_change(button=self.objects["button_filechooser_study_file_directory_load"], style='success', text='Study Files Loaded',tooltip='The Study files have been loaded',disabled=False, icon='')
 
-        # unique_logging_buffer_load(message='load_study_files-before isdir',level='info',flush=True)
         self.objects["button_filechooser_study_file_directory_load"].button_change(button=self.objects["button_filechooser_study_file_directory_load"], style='warning', text='Loading Study Files...',tooltip='The Study files are loading',disabled=False, icon='spinner')
         self.objects["html_study_files_display_text"] = HTML(html_text='Generating Study File Table...')
         self.objects["box_study_files_table"].set_children([self.objects["html_study_files_display_text"].get()])
         included_extensions = ['txt','csv', 'tsv']
-        # return
-        # unique_logging_buffer_load(message='load_study_files-before isdir',level='info',flush=True)
         if os.path.isdir(self.objects["filechooser_study_file_directory"].get_dir()):
             try:
-                # unique_logging_buffer_load(message='load_study_files-in isdir',level='info',flush=True)
+                self.log(message='Loading files in study file directory',level='debug',flush=True)
                 study_files = [f for f in os.listdir(self.objects["filechooser_study_file_directory"].get_dir()) if any(f.endswith(ext) for ext in included_extensions)]
                 study_files.sort()
-                # self.data
-                # unique_logging_buffer_load(message='study_files',level='info',flush=True)
-                
+
                 self.data['file_list_df'] = pd.DataFrame(columns=['Filename','Table Code', 'Assessment Name','Template','Default Visit'])
-                # unique_logging_buffer_load(message='DF created',level='info',flush=True)
                 
                 table_code_categories = list(self.dictionary["tables"].keys())
                 table_code_categories.insert(0,'--Select--')
@@ -368,12 +355,9 @@ class GUI(GUI_Object):
                 self.data['file_list_df'] = self.data['file_list_df'].merge(self.data["study_files"][["FILE_NAME","DESCRIPTION"]], left_on="Filename", right_on="FILE_NAME", how="left")
                 self.data['file_list_df'].rename(columns={"DESCRIPTION":"Description"}, inplace=True)
                 self.data['file_list_df'] = self.data['file_list_df'][["Filename","Description","Table Code","Assessment Name","Template","Default Visit"]]
-                # unique_logging_buffer_load(message='categories created',level='info',flush=True)
-                # unique_logging_buffer_load(message='study_files loaded',level='info',flush=True)
 
-
+                self.log(message="Generating DF Table", level='debug',flush=True)
                 self.objects["study_file_table"] = self.generate_df_table(column_widths =  ["300px","250px","100px","150px","125px","175px"], readonly=["Filename","Description"])
-                # unique_logging_buffer_load(message='Table Generated',level='info',flush=True)
                 self.objects["button_generate_files"]= Button(text="Generate Filled Templates", tooltip='Generate filled ImmPort Templates for upload into ImmPort', callback=self.generate_filled_template_files) #, style=dict(description_width='initial'))
                 #generate_filled_template_files
                 self.objects["box_study_files_table"].set_children([ self.objects["button_generate_files"].get(), self.objects["study_file_table"]])
@@ -381,8 +365,11 @@ class GUI(GUI_Object):
             except Exception as e:
                 error = HTML(html_text='<b>Error:</b> ' + str(e))
                 self.objects["box_study_files_table"].set_children([ error])
+                self.log(message="Error processing study files: "+str(e), level='error', flush=True)
 
                 raise Exception("Error loading study files: {}".format(e))
+        else:
+            self.log(message='Study File Directory is not a directory', level='error', flush=True)
 
         return
     
@@ -401,13 +388,8 @@ class GUI(GUI_Object):
             self.data["immport_data"]["study_id"]=study_info["STUDY_ACCESSION"][0]
             self.data["immport_data"]["workspace_id"]=study_info["WORKSPACE_ID"][0]
             
-#            unique_logging_buffer_load(level="debug",message="display visits")  # Check
-            visit_names = get_planned_visits(nameonly=True, returnType="list")
-#            unique_logging_buffer_load(level="debug",message=f"visit names: {', '.join(visit_names)}")  # Check
+            visit_names = self.get_planned_visits(nameonly=True, returnType="list")
             set_visit_dropdown(visit_names)
-
-#            unique_logging_buffer_load(level="debug",message=f"display visits - Done")  # Check
-#            unique_logging_buffer_flush()  # Check
 
     def get_study_id(self):
         return self.data["study"]["STUDY_ACCESSION"][0]
@@ -439,9 +421,7 @@ class GUI(GUI_Object):
                 grid_body[ind2, idx].layout = widgets.Layout(width=column_widths[idx])
 
                 grid_body[ind2, idx].description_tooltip=f"{{'row':{ind},'col':{idx}','title':'{column_title}'}}"
-
                 grid_body[ind2,idx].observe(functools.partial(update_dataframe_from_table, dataframe= self.data["file_list_df"], column_name=column_title,column=idx,row=ind), names='value')
-
 
         box_body = widgets.VBox([grid_body], layout=widgets.Layout(height='450px', overflow_y='auto'))
         box = widgets.VBox([box_body], layout=widgets.Layout(height='510px'))
@@ -449,7 +429,6 @@ class GUI(GUI_Object):
 
         
     def load_data_dictionary_columns(self, b):
-        # self.objects["button_form_column_confirm"].button_change(button=self.objects["button_form_column_confirm"], text='Confirmed')
         self.objects["button_form_column_confirm"].button_change(button=self.objects["button_form_column_confirm"], style='success', text='Confirmed',tooltip='The form columns have been loaded',disabled=True, icon='')
         
         dictionary_tables = list(self.dictionary['tables'].keys())
@@ -459,24 +438,11 @@ class GUI(GUI_Object):
 
     def generate_tab_data_dictionary(self):
         """Generate the data dictionary tab"""
-        
         self.objects["filechooser_data_dictionary"] = File_Chooser(name="filechooser_data_dictionary", title='<b>Select the curated data dictionary</b>', tooltip='Load a curated data dictionary file',multiple=False,filter_pattern=['*.csv','*.txt',"*.tsv"], style=dict(description_width='initial'))
         
         #TODO work on Callback function
         self.objects["button_filechooser_data_dictionary_load"]= self.objects["filechooser_data_dictionary"].add_load_button(description="Load Data Dictionary", tooltip="Load a curated data dictionary file", callback=self.load_data_dictionary)
-        # self.objects["button_filechooser_data_dictionary_load"].widget.on_click(self.load_data_dictionary)
-        # self.objects["button_filechooser_data_dictionary_load"].widget.on_click(functools.partial(self.load_data_dictionary, self))
-        # set on click function to load data dictionary
-        # self.objects["button_filechooser_data_dictionary_load"]
-
-        # self.objects["button_filechooser_data_dictionary_load"] = Button(text="Load Data Dictionary", tooltip='Load a curated data dictionary file', display=False) #, style=dict(description_width='initial'))
-        # self.objects["button_data_dictionary_load"].toggle_display()
-        # self.objects["button_data_dictionary_load"].set_onclick(self, callback_function=loadDataDictionary, callback_data = {})
-
-        
         self.objects["button_form_column_confirm"]= Button(text="Confirm Form Columns", tooltip='Confirm that the selected column from the data dictionary contains the instrument/CRF/form codes', callback=self.load_data_dictionary_columns) #, style=dict(description_width='initial'))
-        # self.objects["button_form_column_confirm"].widget.on_click(self.load_data_dictionary_columns)
-        # self.objects["button_form_column_confirm"].set_callback(callback=self.load_data_dictionary_columns)
 
         self.objects["dropdown_table_form_column"] = Dropdown(options=[''], description='<b>Column specifying form/instrument:</b>', tooltip='Select the column from the data dictionary that contains the form codes', style=dict(description_width='initial'))
 
@@ -484,7 +450,6 @@ class GUI(GUI_Object):
         self.objects["tab_row_dd_form_row"] = widgets.HBox([self.objects["dropdown_table_form_column"].get(),self.objects["button_form_column_confirm"].get()])
         self.hide_row("tab_row_dd_form_row")
 
-        # tab = widgets.VBox(layout=widgets.Layout(min_height="500px"))
         tab = widgets.VBox([self.objects["tab_row_dd_row"],self.objects["tab_row_dd_form_row"]])
 
         return tab
@@ -636,6 +601,7 @@ class File_Chooser(GUI_Object):
         self.widget.filter_pattern = filter
 
     def set_onclick(self, gui, callback_function, callback_data):
+        self.widget.disabled=False
         self.widget._select.on_click(functools.partial(callback_function, **callback_data))
 
     def set_path(self, path):
@@ -666,7 +632,6 @@ class File_Chooser(GUI_Object):
         )
         button.show_hide_element('none')
         
-        # self.widget.register_callback(button.show_hide_element('none'))
         self.load_button = button
         return button
 
@@ -676,6 +641,7 @@ class File_Chooser(GUI_Object):
             if len(self.widget._selected_path)>0:
                 self.load_button.show_hide_element('')
                 self.load_button.widget.button_style='info'
+                self.load_button.widget.disabled=False
             else:
                 self.load_button.show_hide_element('none')
 
@@ -696,14 +662,10 @@ class Dropdown(GUI_Object):
             self.widget.on_transition(callback)
     
     def set_options(self, option_list):
-#        unique_logging_buffer_load(message="Setting Options",level='info',flush=True)  # Check
-        # unique_logging_buffer_load(message=option_list,level='info',flush=True)
         try:
             self.widget.options = option_list
         except Exception as err:
             self.log(message="Error loading option list",level='info',flush=True)
-#            unique_logging_buffer_load(message="Error loading option list",level='info',flush=True)  # Check
-            # unique_logging_buffer_load(message=err,level='info',flush=True)
 
 class HBox(GUI_Object):
     """HBox class"""
@@ -874,258 +836,269 @@ class OutputWidgetHandler(logging.Handler):  #Archive
 # main_logger.addHandler(log_viewer())
 immport_data = {'tab_data':{},'config':{}}
 
-def unique_logging_buffer_load(message=None, level=None, flush=False):
+####Keep
 
-    global logging_buffer_data
-    if level not in logging_buffer_data:
-        logging_buffer_data[level]={message:1}
-    else:
-        if message not in logging_buffer_data[level]:
-            logging_buffer_data[level][message]=1
-        else:
-            logging_buffer_data[level][message]=logging_buffer_data[level][message]+1
-    if flush:
-        return
-#        unique_logging_buffer_flush()  # Check
 
-def unique_logging_buffer_flush():
-    global logging_buffer_data
 
-    log={
-        "debug":main_logger.debug,
-        "info":main_logger.info,
-        "warning":main_logger.warning,
-        "warn":main_logger.warning,
-        "error":main_logger.error,
-        "critical":main_logger.critical,
-    }
-
-    for level in logging_buffer_data.keys():
-        for message, count in logging_buffer_data[level].items():
-            log[level](f"({count}) - {message}")
-
-    logging_buffer_data={}
-
-def button_change(button=None, style=None, text=None, tooltip=None, icon=None, display=None, disabled=None):
-    """Change button properties
-
-    Args:
-        button (_type_, optional): _description_. Defaults to None.
-        style (_type_, optional): _description_. Defaults to None.
-        text (_type_, optional): _description_. Defaults to None.
-        tooltip (_type_, optional): _description_. Defaults to None.
-        icon (_type_, optional): _description_. Defaults to None.
-        display (_type_, optional): _description_. Defaults to None.
-        disabled (_type_, optional): _description_. Defaults to None.
-    """
-    if button is None:
-        return
-
-    if style is not None:
-        button.button_style = style
-    if text is not None:
-        button.description = text
-    if tooltip is not None:
-        button.tooltip = tooltip
-    if icon is not None:
-        button.icon = icon
-    if disabled is not None:
-        button.disabled = disabled
-    if display is not None:
-        button.layout.display = display
-
-def reset_dd_form_row():
-    button_change(button=button_confirm_form_column, text='Confirm Selection',style='',icon='',tooltip='Click to store values')
-    show_hide_element(element=dd_form_row, display='none')
-
-def reset_dd_load_button():
-    button_change(button=button_data_dictionary_load, text='Load', style='',tooltip='Load Data Dictionary',display='')
-
-def reset_sf_dir_load_button():
-    button_change(button=button_study_file_directory_load, text='Confirm Selection', style='',tooltip='',display='')
-
-def test_function_notify(value):
-    """Helper function to test actions
-
-    Args:
-        value (any): Anything to echo out
-    """
-    with output2:
-        print("test notification",value)
-
-def show_hide_element(element=None, display=None):
-    """Helper function to show or hide an element
-
-    Args:
-        element (widget.*, required): widget element. Defaults to None.
-        display (text, optional): ['','none','inline']. Defaults to None.
-    """
-    if element is None or display is None:
-        return
-    element.layout.display=display
-
-def change_notify_text(element=None, text=None):
-    """Helper function to change notification text - archive?
-
-    Args:
-        element (_type_, optional): _description_. Defaults to None.
-        text (_type_, optional): _description_. Defaults to None.
-    """
-    if element is not None and text is not None:
-        element.value = text
-
-def loadDataDictionary(value):
-    global dictionary
+def getStudyFileReportedName(studyfileName):
     global immport_data
+    return immport_data["tab_data"]["study_files"][immport_data["tab_data"]["study_files"]["FILE_NAME"] == studyfileName]["DESCRIPTION"].values[0]
 
-    reset_dd_form_row()
-    button_change(button=button_data_dictionary_load, style='info', text='Loading',tooltip='hi there',disabled=False, icon='spinner')     # 'success', 'info', 'warning', 'danger' or ''
+############
+
+
+# def unique_logging_buffer_load(message=None, level=None, flush=False):
+
+#     global logging_buffer_data
+#     if level not in logging_buffer_data:
+#         logging_buffer_data[level]={message:1}
+#     else:
+#         if message not in logging_buffer_data[level]:
+#             logging_buffer_data[level][message]=1
+#         else:
+#             logging_buffer_data[level][message]=logging_buffer_data[level][message]+1
+#     if flush:
+#         return
+# #        unique_logging_buffer_flush()  # Check
+
+# def unique_logging_buffer_flush():
+#     global logging_buffer_data
+
+#     log={
+#         "debug":main_logger.debug,
+#         "info":main_logger.info,
+#         "warning":main_logger.warning,
+#         "warn":main_logger.warning,
+#         "error":main_logger.error,
+#         "critical":main_logger.critical,
+#     }
+
+#     for level in logging_buffer_data.keys():
+#         for message, count in logging_buffer_data[level].items():
+#             log[level](f"({count}) - {message}")
+
+#     logging_buffer_data={}
+
+# def button_change(button=None, style=None, text=None, tooltip=None, icon=None, display=None, disabled=None):
+#     """Change button properties
+
+#     Args:
+#         button (_type_, optional): _description_. Defaults to None.
+#         style (_type_, optional): _description_. Defaults to None.
+#         text (_type_, optional): _description_. Defaults to None.
+#         tooltip (_type_, optional): _description_. Defaults to None.
+#         icon (_type_, optional): _description_. Defaults to None.
+#         display (_type_, optional): _description_. Defaults to None.
+#         disabled (_type_, optional): _description_. Defaults to None.
+#     """
+#     if button is None:
+#         return
+
+#     if style is not None:
+#         button.button_style = style
+#     if text is not None:
+#         button.description = text
+#     if tooltip is not None:
+#         button.tooltip = tooltip
+#     if icon is not None:
+#         button.icon = icon
+#     if disabled is not None:
+#         button.disabled = disabled
+#     if display is not None:
+#         button.layout.display = display
+
+# def reset_dd_form_row():
+#     button_change(button=button_confirm_form_column, text='Confirm Selection',style='',icon='',tooltip='Click to store values')
+#     show_hide_element(element=dd_form_row, display='none')
+
+# def reset_dd_load_button():
+#     button_change(button=button_data_dictionary_load, text='Load', style='',tooltip='Load Data Dictionary',display='')
+
+# def reset_sf_dir_load_button():
+#     button_change(button=button_study_file_directory_load, text='Confirm Selection', style='',tooltip='',display='')
+
+# def test_function_notify(value):
+#     """Helper function to test actions
+
+#     Args:
+#         value (any): Anything to echo out
+#     """
+#     with output2:
+#         print("test notification",value)
+
+# def show_hide_element(element=None, display=None):
+#     """Helper function to show or hide an element
+
+#     Args:
+#         element (widget.*, required): widget element. Defaults to None.
+#         display (text, optional): ['','none','inline']. Defaults to None.
+#     """
+#     if element is None or display is None:
+#         return
+#     element.layout.display=display
+
+# def change_notify_text(element=None, text=None):
+#     """Helper function to change notification text - archive?
+
+#     Args:
+#         element (_type_, optional): _description_. Defaults to None.
+#         text (_type_, optional): _description_. Defaults to None.
+#     """
+#     if element is not None and text is not None:
+#         element.value = text
+
+# def loadDataDictionary(value):
+#     global dictionary
+#     global immport_data
+
+#     reset_dd_form_row()
+#     button_change(button=button_data_dictionary_load, style='info', text='Loading',tooltip='hi there',disabled=False, icon='spinner')     # 'success', 'info', 'warning', 'danger' or ''
     
-    immport_data["config"]["data_dictionary"]={
-        "directory":fc_data_dictionary._pathlist.value,
-        "filename":fc_data_dictionary._filename.value
-    }
-    data_dictionary_path = f'{fc_data_dictionary._pathlist.value}/{fc_data_dictionary._filename.value}'
-    try: #This is not adequately catching errors in parsing the data dictionary
-        dictionary = rc.parseDataDictionary(data_dictionary_path)
-    except:
-        button_change(button=button_data_dictionary_load, style='danger', text='Load Failed',tooltip='',disabled=False, icon='')     # 'success', 'info', 'warning', 'danger' or ''
-        show_hide_element(element=dd_form_row, display='none')
-        change_notify_text(element=text_study_files_notify_dd_selection, text='Load Dictionary File to continue...')
+#     immport_data["config"]["data_dictionary"]={
+#         "directory":fc_data_dictionary._pathlist.value,
+#         "filename":fc_data_dictionary._filename.value
+#     }
+#     data_dictionary_path = f'{fc_data_dictionary._pathlist.value}/{fc_data_dictionary._filename.value}'
+#     try: #This is not adequately catching errors in parsing the data dictionary
+#         dictionary = rc.parseDataDictionary(data_dictionary_path)
+#     except:
+#         button_change(button=button_data_dictionary_load, style='danger', text='Load Failed',tooltip='',disabled=False, icon='')     # 'success', 'info', 'warning', 'danger' or ''
+#         show_hide_element(element=dd_form_row, display='none')
+#         change_notify_text(element=text_study_files_notify_dd_selection, text='Load Dictionary File to continue...')
 
-    change_notify_text(element=text_study_files_notify_dd_selection, text='Select Table/Form Column from Data Dictionary...')
+#     change_notify_text(element=text_study_files_notify_dd_selection, text='Select Table/Form Column from Data Dictionary...')
 
-    button_change(button=button_data_dictionary_load, style='success', text='Dictionary Loaded',tooltip='Click to Reload Dictionary',disabled=False, icon='')     # 'success', 'info', 'warning', 'danger' or ''
-    table_columns = dictionary['columns']
-    table_column_titles = list(map(lambda x: x.lower(), table_columns.keys()))
-    dropdown_table_form_column.options = list(table_columns.items())
-    for field in ['form','table name','table','form name']:
-        if field in table_column_titles:
-            dropdown_table_form_column.value = dropdown_table_form_column.options[table_column_titles.index(field)][1]
-            break
-    show_hide_element(element=dd_form_row, display='')
+#     button_change(button=button_data_dictionary_load, style='success', text='Dictionary Loaded',tooltip='Click to Reload Dictionary',disabled=False, icon='')     # 'success', 'info', 'warning', 'danger' or ''
+#     table_columns = dictionary['columns']
+#     table_column_titles = list(map(lambda x: x.lower(), table_columns.keys()))
+#     dropdown_table_form_column.options = list(table_columns.items())
+#     for field in ['form','table name','table','form name']:
+#         if field in table_column_titles:
+#             dropdown_table_form_column.value = dropdown_table_form_column.options[table_column_titles.index(field)][1]
+#             break
+#     show_hide_element(element=dd_form_row, display='')
 
-    return dictionary
+#     return dictionary
 
-def loadDDColumnNames(value): 
-    button_change(button=value, text='Confirmed',icon='check',style='success')
-    dictionary_tables = get_data_dictionary_tables()
-    if dictionary_tables[0] == '--Select--':
-        dictionary_tables.pop(0)
-    change_notify_text(element=text_study_files_notify_dd_selection, text=f"<b>Tables Listed in Dictionary:</b> {', '.join(dictionary_tables)}")
+# def loadDDColumnNames(value): 
+#     button_change(button=value, text='Confirmed',icon='check',style='success')
+#     dictionary_tables = get_data_dictionary_tables()
+#     if dictionary_tables[0] == '--Select--':
+#         dictionary_tables.pop(0)
+#     change_notify_text(element=text_study_files_notify_dd_selection, text=f"<b>Tables Listed in Dictionary:</b> {', '.join(dictionary_tables)}")
 
-def on_data_dictionary_select(change):
-    if change['new'] and len(change['new'])>0:
-        reset_dd_load_button()
-    else:
-        show_hide_element(element=button_data_dictionary_load,display='none')
-#    unique_logging_buffer_load(level="debug",message=f"On data dictionary select:{change}")  # Check
-#    unique_logging_buffer_flush()  # Check
+# def on_data_dictionary_select(change):
+#     if change['new'] and len(change['new'])>0:
+#         reset_dd_load_button()
+#     else:
+#         show_hide_element(element=button_data_dictionary_load,display='none')
+# #    unique_logging_buffer_load(level="debug",message=f"On data dictionary select:{change}")  # Check
+# #    unique_logging_buffer_flush()  # Check
 
-def on_study_file_select(value):
-    global box_study_file_table
-    global file_list_df
-#    unique_logging_buffer_load(level="debug",message=f"on_study_file_select{value}")  # Check
-
-
-    if value.description == "Change":
-        box_study_file_table.children = ([widgets.HTML(r'Generating Study File Table...')])
-        generate_study_file_table()
-        reset_sf_dir_load_button()
-#        unique_logging_buffer_load(level="debug",message=f"Generate DF table")  # Check
-        study_file_table_widget = generate_df_table(dataframe=file_list_df)
-        box_study_file_table.children = ([study_file_table_widget])
-#    unique_logging_buffer_flush()  # Check
+# def on_study_file_select(value):
+#     global box_study_file_table
+#     global file_list_df
+# #    unique_logging_buffer_load(level="debug",message=f"on_study_file_select{value}")  # Check
 
 
-def process_study_file_directory():
-    return
-#    unique_logging_buffer_load(level="debug",message=fc_study_file_directory)  # Check
-#    unique_logging_buffer_flush()  # Check
+#     if value.description == "Change":
+#         box_study_file_table.children = ([widgets.HTML(r'Generating Study File Table...')])
+#         generate_study_file_table()
+#         reset_sf_dir_load_button()
+# #        unique_logging_buffer_load(level="debug",message=f"Generate DF table")  # Check
+#         study_file_table_widget = generate_df_table(dataframe=file_list_df)
+#         box_study_file_table.children = ([study_file_table_widget])
+# #    unique_logging_buffer_flush()  # Check
 
 
-def generate_tab_study_files():
-    global text_study_files_notify_dd_selection, fc_study_file_directory, box_study_file_table,button_study_file_directory_load
+# def process_study_file_directory():
+#     return
+# #    unique_logging_buffer_load(level="debug",message=fc_study_file_directory)  # Check
+# #    unique_logging_buffer_flush()  # Check
+
+
+# def generate_tab_study_files():
+#     global text_study_files_notify_dd_selection, fc_study_file_directory, box_study_file_table,button_study_file_directory_load
     
-    fc_study_file_directory = FileChooser('./',)
-    fc_study_file_directory.layout=widgets.Layout(width='700px')
+#     fc_study_file_directory = FileChooser('./',)
+#     fc_study_file_directory.layout=widgets.Layout(width='700px')
 
-    fc_study_file_directory.show_only_dirs = True
-    button_study_file_directory_load = widgets.Button()
-    reset_sf_dir_load_button()
-    button_study_file_directory_load.on_click(process_study_file_directory)
+#     fc_study_file_directory.show_only_dirs = True
+#     button_study_file_directory_load = widgets.Button()
+#     reset_sf_dir_load_button()
+#     button_study_file_directory_load.on_click(process_study_file_directory)
 
-    dataFiles_row = widgets.HBox([widgets.HTML(value = f"<b>Study File Directory:</b>"), fc_study_file_directory])
+#     dataFiles_row = widgets.HBox([widgets.HTML(value = f"<b>Study File Directory:</b>"), fc_study_file_directory])
 
-    text_study_files_notify_dd_selection = widgets.HTML(value = f"Load Dictionary File to continue...")
-    box_study_file_table =widgets.HBox()
-    box = widgets.VBox([dataFiles_row,text_study_files_notify_dd_selection,box_study_file_table])
-    box.layout = widgets.Layout(width='925px')
-    fc_study_file_directory._select.on_click(on_study_file_select)
+#     text_study_files_notify_dd_selection = widgets.HTML(value = f"Load Dictionary File to continue...")
+#     box_study_file_table =widgets.HBox()
+#     box = widgets.VBox([dataFiles_row,text_study_files_notify_dd_selection,box_study_file_table])
+#     box.layout = widgets.Layout(width='925px')
+#     fc_study_file_directory._select.on_click(on_study_file_select)
 
-    return box
+#     return box
 
-def generate_tab_data_dictionary():
-    global fc_data_dictionary, button_data_dictionary_load, button_confirm_form_column, dropdown_table_form_column, dd_row, dd_form_row, box
+# def generate_tab_data_dictionary():
+#     global fc_data_dictionary, button_data_dictionary_load, button_confirm_form_column, dropdown_table_form_column, dd_row, dd_form_row, box
 
-    fc_data_dictionary = FileChooser('./')
-    fc_data_dictionary.layout=widgets.Layout(width='700px')
-    fc_data_dictionary.filter_pattern = ['*.txt', '*.csv', '*.tsv']
+#     fc_data_dictionary = FileChooser('./')
+#     fc_data_dictionary.layout=widgets.Layout(width='700px')
+#     fc_data_dictionary.filter_pattern = ['*.txt', '*.csv', '*.tsv']
 
-    button_data_dictionary_load = widgets.Button()
-    reset_dd_load_button()
+#     button_data_dictionary_load = widgets.Button()
+#     reset_dd_load_button()
 
-    button_confirm_form_column = widgets.Button()
+#     button_confirm_form_column = widgets.Button()
 
-    dropdown_table_form_column = widgets.Dropdown(
-        options=[''],
-        value='',
-        description='',
-        disabled=False,
-    )
+#     dropdown_table_form_column = widgets.Dropdown(
+#         options=[''],
+#         value='',
+#         description='',
+#         disabled=False,
+#     )
 
-    show_hide_element(element=button_data_dictionary_load, display='none')
+#     show_hide_element(element=button_data_dictionary_load, display='none')
 
-    dd_row = widgets.HBox([widgets.HTML(value = f"<b>Data Dictionary:</b>"), fc_data_dictionary,button_data_dictionary_load])
-    dd_form_row = widgets.HBox([widgets.HTML(value = f"<b>Table/Form Column:</b>"), dropdown_table_form_column,button_confirm_form_column])
+#     dd_row = widgets.HBox([widgets.HTML(value = f"<b>Data Dictionary:</b>"), fc_data_dictionary,button_data_dictionary_load])
+#     dd_form_row = widgets.HBox([widgets.HTML(value = f"<b>Table/Form Column:</b>"), dropdown_table_form_column,button_confirm_form_column])
     
     
-    button_data_dictionary_load.on_click(loadDataDictionary)
-    button_confirm_form_column.on_click(loadDDColumnNames)
+#     button_data_dictionary_load.on_click(loadDataDictionary)
+#     button_confirm_form_column.on_click(loadDDColumnNames)
 
-    reset_dd_form_row()
+#     reset_dd_form_row()
 
-    #todo: to implement dd_form_row, parsing of the data dictionary needs to change as it assumes the table/form column name is "Table Name"
-    box = widgets.VBox([dd_row,dd_form_row])
+#     #todo: to implement dd_form_row, parsing of the data dictionary needs to change as it assumes the table/form column name is "Table Name"
+#     box = widgets.VBox([dd_row,dd_form_row])
 
-    fc_data_dictionary._filename.observe(on_data_dictionary_select, 'value')
-    return box
+#     fc_data_dictionary._filename.observe(on_data_dictionary_select, 'value')
+#     return box
 
 def get_immport_template_names():
     return ['--Select--',"Assessment"]
 
-def get_data_dictionary_tables():
-    my_list = list(dictionary["tables"].keys())
-    my_list.insert(0,'--Select--')
-    return my_list
+# def get_data_dictionary_tables():
+#     my_list = list(dictionary["tables"].keys())
+#     my_list.insert(0,'--Select--')
+#     return my_list
 
-def generate_study_file_table():
-    global study_file_list, file_list_df
-    study_file_list = []
-    file_list_df=""
+# def generate_study_file_table():
+#     global study_file_list, file_list_df
+#     study_file_list = []
+#     file_list_df=""
 
-    included_extensions = ['txt','csv', 'tsv']
-    if os.path.isdir(fc_study_file_directory.value):
-        study_file_list = [fn for fn in os.listdir(fc_study_file_directory.value)
-                if any(fn.endswith(ext) for ext in included_extensions)]
+#     included_extensions = ['txt','csv', 'tsv']
+#     if os.path.isdir(fc_study_file_directory.value):
+#         study_file_list = [fn for fn in os.listdir(fc_study_file_directory.value)
+#                 if any(fn.endswith(ext) for ext in included_extensions)]
 
-        study_file_list.sort()
-        file_list_df = pd.DataFrame(columns=['Filename','Table Code','Assessment Name','Template','Default Visit'])
-        file_list_df["Table Code"] = pd.Categorical([], ordered=True, categories=get_data_dictionary_tables())
-        file_list_df["Template"] = pd.Categorical([], ordered=True, categories=get_immport_template_names())
-        planned_visit_list = get_planned_visits(nameonly=True, returnType="list")
-        file_list_df["Default Visit"]=pd.Categorical([],ordered=True, categories=planned_visit_list)
-        file_list_df["Filename"]=study_file_list
+#         study_file_list.sort()
+#         file_list_df = pd.DataFrame(columns=['Filename','Table Code','Assessment Name','Template','Default Visit'])
+#         file_list_df["Table Code"] = pd.Categorical([], ordered=True, categories=get_data_dictionary_tables())
+#         file_list_df["Template"] = pd.Categorical([], ordered=True, categories=get_immport_template_names())
+#         planned_visit_list = get_planned_visits(nameonly=True, returnType="list")
+#         file_list_df["Default Visit"]=pd.Categorical([],ordered=True, categories=planned_visit_list)
+#         file_list_df["Filename"]=study_file_list
 
 def update_dataframe_from_table(value,row=None, column=None, column_name=None, dataframe=None):
     if dataframe is None:
@@ -1153,66 +1126,66 @@ def create_table_widget(dtype=None, value='', readonly=False, dataframe=None, co
             disabled=False,
         )
 
-def generate_df_table(dataframe=None):
-    global box, grid_body
-    header_names = dataframe.columns
+# def generate_df_table(dataframe=None):
+#     global box, grid_body
+#     header_names = dataframe.columns
 
-    shape = dataframe.shape
+#     shape = dataframe.shape
 
-    column_widths = ["300px","100px","150px","125px","175px"]
+#     column_widths = ["300px","100px","150px","125px","175px"]
 
-    grid_header = widgets.GridspecLayout(shape[0], shape[1])
-    grid_body = widgets.GridspecLayout(shape[0], shape[1])
+#     grid_header = widgets.GridspecLayout(shape[0], shape[1])
+#     grid_body = widgets.GridspecLayout(shape[0], shape[1])
 
-    for idx, title in enumerate(header_names):
-        grid_header[0,idx] = widgets.HTML(f"<b>{title}</b>")
+#     for idx, title in enumerate(header_names):
+#         grid_header[0,idx] = widgets.HTML(f"<b>{title}</b>")
 
-        grid_header[0,idx].layout = widgets.Layout(width=column_widths[idx])
+#         grid_header[0,idx].layout = widgets.Layout(width=column_widths[idx])
     
-    dataframe_for_table = dataframe.copy()
-    dataframe_for_table = dataframe_for_table.astype('string')
-    dataframe_for_table.fillna('', inplace=True)
+#     dataframe_for_table = dataframe.copy()
+#     dataframe_for_table = dataframe_for_table.astype('string')
+#     dataframe_for_table.fillna('', inplace=True)
 
-    for ind in dataframe.index:
-        for idx, column_title in enumerate(header_names):
-            readonly = (True if column_title == "Filename" else False)
-            grid_body[ind, idx] = create_table_widget(dtype=dataframe[column_title].dtype, value=dataframe_for_table[column_title][ind], readonly= readonly, dataframe=dataframe,columnName=column_title)
-            grid_body[ind, idx].layout = widgets.Layout(width=column_widths[idx])
+#     for ind in dataframe.index:
+#         for idx, column_title in enumerate(header_names):
+#             readonly = (True if column_title == "Filename" else False)
+#             grid_body[ind, idx] = create_table_widget(dtype=dataframe[column_title].dtype, value=dataframe_for_table[column_title][ind], readonly= readonly, dataframe=dataframe,columnName=column_title)
+#             grid_body[ind, idx].layout = widgets.Layout(width=column_widths[idx])
 
-            grid_body[ind, idx].description_tooltip=f"{{'row':{ind},'col':{idx}','title':'{column_title}'}}"
+#             grid_body[ind, idx].description_tooltip=f"{{'row':{ind},'col':{idx}','title':'{column_title}'}}"
 
-            grid_body[ind,idx].observe(functools.partial(update_dataframe_from_table, dataframe=dataframe, column_name=column_title,column=idx,row=ind), names='value')
+#             grid_body[ind,idx].observe(functools.partial(update_dataframe_from_table, dataframe=dataframe, column_name=column_title,column=idx,row=ind), names='value')
 
 
-    box_head = widgets.VBox([grid_header], layout=widgets.Layout(height='50px'))
-    box_body = widgets.VBox([grid_body], layout=widgets.Layout(height='350px', overflow_y='auto'))
-    box = widgets.VBox([box_head,box_body], layout=widgets.Layout(height='460px'))
-    return box
+#     box_head = widgets.VBox([grid_header], layout=widgets.Layout(height='50px'))
+#     box_body = widgets.VBox([grid_body], layout=widgets.Layout(height='350px', overflow_y='auto'))
+#     box = widgets.VBox([box_head,box_body], layout=widgets.Layout(height='460px'))
+#     return box
 
-def generate_gui():
-    global output2
-    tab_contents = ['Study','Data Dictionary', 'Study Files',"Debug"]
-    output2 = widgets.Output(layout=widgets.Layout(max_height="425px", overflow_y="auto"))
-    children = [generate_tab_study_info(),generate_tab_data_dictionary(),generate_tab_study_files(),output2]
-    tab = widgets.Tab(layout=widgets.Layout(min_height="500px"))
-    tab.children = children
-    for idx, title in enumerate(tab_contents):
-        tab.set_title(idx, title)
-    return tab
+# def generate_gui():
+#     global output2
+#     tab_contents = ['Study','Data Dictionary', 'Study Files',"Debug"]
+#     output2 = widgets.Output(layout=widgets.Layout(max_height="425px", overflow_y="auto"))
+#     children = [generate_tab_study_info(),generate_tab_data_dictionary(),generate_tab_study_files(),output2]
+#     tab = widgets.Tab(layout=widgets.Layout(min_height="500px"))
+#     tab.children = children
+#     for idx, title in enumerate(tab_contents):
+#         tab.set_title(idx, title)
+#     return tab
 
-def toggle_study_immport(value,show_if_true=[],hide_if_true=[]):
-    if value["new"]:
-        elements_to_show = show_if_true
-        elements_to_hide = hide_if_true
-    else:
-        elements_to_show = hide_if_true
-        elements_to_hide = show_if_true
+# def toggle_study_immport(value,show_if_true=[],hide_if_true=[]):
+#     if value["new"]:
+#         elements_to_show = show_if_true
+#         elements_to_hide = hide_if_true
+#     else:
+#         elements_to_show = hide_if_true
+#         elements_to_hide = show_if_true
 
-    for element in elements_to_show:
-        show_hide_element(element=element, display='')
+#     for element in elements_to_show:
+#         show_hide_element(element=element, display='')
 
-    for element in elements_to_hide:
-        show_hide_element(element=element, display='none')
+#     for element in elements_to_hide:
+#         show_hide_element(element=element, display='none')
 
 def on_select_study_tab_file2(value, gui=None, fc_name=None):
     if value.description == "Change":
@@ -1232,98 +1205,94 @@ def on_select_study_tab_file2(value, gui=None, fc_name=None):
         # # unique_logging_buffer_load(level="debug",message=f"display visits - Done")
         # # unique_logging_buffer_flush()
 
-#Refactored: Can remove at end of refactoring
-def on_select_study_tab_file(value, fc_field=None): 
-    global immport_data
-    if value.description == "Change":
-        immport_data["config"]["tabfile"]={
-            "directory":fc_immport_study_tab_file.selected_path,
-            "file":fc_immport_study_tab_file.selected_filename
-        }
-        immport_data["tab_data"]["planned_visits"] = cf.readFileFromZip(fc_immport_study_tab_file.selected_path,fc_immport_study_tab_file.selected_filename,"planned_visit.txt")
-        immport_data["tab_data"]["study_files"] = cf.readFileFromZip(fc_immport_study_tab_file.selected_path,fc_immport_study_tab_file.selected_filename,"study_file.txt")
-        study_info = cf.readFileFromZip(fc_immport_study_tab_file.selected_path,fc_immport_study_tab_file.selected_filename,"study.txt")
-        immport_data["tab_data"]["study"] = study_info
-        immport_data["study_id"]=study_info["STUDY_ACCESSION"][0]
-        immport_data["workspace_id"]=study_info["WORKSPACE_ID"][0]
+# #Refactored: Can remove at end of refactoring
+# def on_select_study_tab_file(value, fc_field=None): 
+#     global immport_data
+#     if value.description == "Change":
+#         immport_data["config"]["tabfile"]={
+#             "directory":fc_immport_study_tab_file.selected_path,
+#             "file":fc_immport_study_tab_file.selected_filename
+#         }
+#         immport_data["tab_data"]["planned_visits"] = cf.readFileFromZip(fc_immport_study_tab_file.selected_path,fc_immport_study_tab_file.selected_filename,"planned_visit.txt")
+#         immport_data["tab_data"]["study_files"] = cf.readFileFromZip(fc_immport_study_tab_file.selected_path,fc_immport_study_tab_file.selected_filename,"study_file.txt")
+#         study_info = cf.readFileFromZip(fc_immport_study_tab_file.selected_path,fc_immport_study_tab_file.selected_filename,"study.txt")
+#         immport_data["tab_data"]["study"] = study_info
+#         immport_data["study_id"]=study_info["STUDY_ACCESSION"][0]
+#         immport_data["workspace_id"]=study_info["WORKSPACE_ID"][0]
         
-#        unique_logging_buffer_load(level="debug",message="display visits")  # Check
-        visit_names = get_planned_visits(nameonly=True, returnType="list")
-#        unique_logging_buffer_load(level="debug",message=f"visit names: {', '.join(visit_names)}")  # Check
-        set_visit_dropdown(visit_names)
+# #        unique_logging_buffer_load(level="debug",message="display visits")  # Check
+#         visit_names = get_planned_visits(nameonly=True, returnType="list")
+# #        unique_logging_buffer_load(level="debug",message=f"visit names: {', '.join(visit_names)}")  # Check
+#         set_visit_dropdown(visit_names)
 
-#        unique_logging_buffer_load(level="debug",message=f"display visits - Done")  # Check
-#        unique_logging_buffer_flush()  # Check
+# #        unique_logging_buffer_load(level="debug",message=f"display visits - Done")  # Check
+# #        unique_logging_buffer_flush()  # Check
 
-def getStudyFileReportedName(studyfileName):
-    global immport_data
-    return immport_data["tab_data"]["study_files"][immport_data["tab_data"]["study_files"]["FILE_NAME"] == studyfileName]["DESCRIPTION"].values[0]
+# def display_visits(visit_data):
+#     w_study_visit_text.value = visit_data
 
-def display_visits(visit_data):
-    w_study_visit_text.value = visit_data
+# def create_visit_dropdown(data=None, add_select=False):
+#     options = data;
+#     if add_select:
+#         if(type(options[0]) == str):
+#             options.insert(0,"--Select--")
+#         else:
+#             options.insert(0,("--Select--",""))
 
-def create_visit_dropdown(data=None, add_select=False):
-    options = data;
-    if add_select:
-        if(type(options[0]) == str):
-            options.insert(0,"--Select--")
-        else:
-            options.insert(0,("--Select--",""))
-
-#Refactored: Can remove at end of refactoring
+# #Refactored: Can remove at end of refactoring
 def set_visit_dropdown(visit_data): 
     w_study_visit_dropdown.options = visit_data
 
-def generate_tab_study_info():
-    global study_data, fc_immport_study_tab_file, w_study_visit_text, w_study_visit_dropdown
+# def generate_tab_study_info():
+#     global study_data, fc_immport_study_tab_file, w_study_visit_text, w_study_visit_dropdown
 
-    ## Not Needed
-    w_study_visit_text = widgets.HTML(
-        layout=widgets.Layout(width='700px'),
-        description='<b>Visit List:</b>',
-    )
+#     ## Not Needed
+#     w_study_visit_text = widgets.HTML(
+#         layout=widgets.Layout(width='700px'),
+#         description='<b>Visit List:</b>',
+#     )
 
-    w_study_visit_dropdown = create_visit_dropdown(data=[''], description = "<b> Visit List:</b>")
+#     w_study_visit_dropdown = create_visit_dropdown(data=[''], description = "<b> Visit List:</b>")
 
-    w_study_visit_dropdown.layout=widgets.Layout(width='700px')
+#     w_study_visit_dropdown.layout=widgets.Layout(width='700px')
 
-    w_study_immport_boolean = widgets.ToggleButtons(
-        options=[('Yes',1),('No',0)],
-        description='Current ImmPort Study:',
-        description_tooltip='Is this study a current ImmPort study?',
-        style=dict(description_width='initial')
-    )
+#     w_study_immport_boolean = widgets.ToggleButtons(
+#         options=[('Yes',1),('No',0)],
+#         description='Current ImmPort Study:',
+#         description_tooltip='Is this study a current ImmPort study?',
+#         style=dict(description_width='initial')
+#     )
 
-    w_immport_study_id = widgets.IntText(   #TODO: Delete this
-        description='Immport Study ID:',
-        style=dict(description_width='initial'),
-        disabled=True
-    )
+#     w_immport_study_id = widgets.IntText(   #TODO: Delete this
+#         description='Immport Study ID:',
+#         style=dict(description_width='initial'),
+#         disabled=True
+#     )
 
-    w_immport_workspace_id = widgets.IntText(      #TODO: Delete this
-        description='Immport Workspace ID:',
-        style=dict(description_width='initial'),
-        disabled=True
-    )
+#     w_immport_workspace_id = widgets.IntText(      #TODO: Delete this
+#         description='Immport Workspace ID:',
+#         style=dict(description_width='initial'),
+#         disabled=True
+#     )
 
-    fc_immport_study_tab_file = FileChooser(
-        './',
-        title='<b>Select the ImmPort Study Tab zip file:</b>'
-    )
+#     fc_immport_study_tab_file = FileChooser(
+#         './',
+#         title='<b>Select the ImmPort Study Tab zip file:</b>'
+#     )
     
-    fc_immport_study_tab_file.layout=widgets.Layout(width='700px')
-    fc_immport_study_tab_file.filter_pattern = ['*.zip']
-    w_immport_study_tab_file_status = widgets.HTML()
-    fc_immport_study_tab_file._select.on_click(functools.partial(self.on_select_study_tab_file, fc_field=fc_immport_study_tab_file))
+#     fc_immport_study_tab_file.layout=widgets.Layout(width='700px')
+#     fc_immport_study_tab_file.filter_pattern = ['*.zip']
+#     w_immport_study_tab_file_status = widgets.HTML()
+#     fc_immport_study_tab_file._select.on_click(functools.partial(self.on_select_study_tab_file, fc_field=fc_immport_study_tab_file))
 
-    box_immport_study_yes = widgets.VBox([fc_immport_study_tab_file,w_immport_study_tab_file_status])
-    box_immport_study_no = widgets.VBox([])
-    box_immport_study = widgets.VBox([w_study_immport_boolean,box_immport_study_yes,box_immport_study_no,w_study_visit_dropdown])
+#     box_immport_study_yes = widgets.VBox([fc_immport_study_tab_file,w_immport_study_tab_file_status])
+#     box_immport_study_no = widgets.VBox([])
+#     box_immport_study = widgets.VBox([w_study_immport_boolean,box_immport_study_yes,box_immport_study_no,w_study_visit_dropdown])
 
-    #Need to add this
-    w_study_immport_boolean.observe(functools.partial(toggle_study_immport,show_if_true=[box_immport_study_yes], hide_if_true=[]), names='value')
+#     #Need to add this
+#     w_study_immport_boolean.observe(functools.partial(toggle_study_immport,show_if_true=[box_immport_study_yes], hide_if_true=[]), names='value')
 
-    return box_immport_study
+#     return box_immport_study
 
 def get_planned_visits2(planned_visits, nameonly=False, returnType=None):
     
@@ -1335,40 +1304,40 @@ def get_planned_visits2(planned_visits, nameonly=False, returnType=None):
         return names
     return planned_visits[["PLANNED_VISIT_ACCESSION","NAME"]]
 
-def get_planned_visits(nameonly=False, returnType=None):
+# def get_planned_visits(nameonly=False, returnType=None):
     
-    if nameonly:
-#        unique_logging_buffer_load(level="debug", message="\tName Only", flush=True)  # Check
-        names = immport_data['tab_data']["planned_visits"]["NAME"]
-        if returnType == 'list':
-            return names.tolist()
-        return names
-    return immport_data['tab_data']["planned_visits"][["PLANNED_VISIT_ACCESSION","NAME"]]
+#     if nameonly:
+# #        unique_logging_buffer_load(level="debug", message="\tName Only", flush=True)  # Check
+#         names = immport_data['tab_data']["planned_visits"]["NAME"]
+#         if returnType == 'list':
+#             return names.tolist()
+#         return names
+#     return immport_data['tab_data']["planned_visits"][["PLANNED_VISIT_ACCESSION","NAME"]]
 
 
-def create_visit_dropdown(data=None, add_select=False,description=None):
-    options = data;
-    if add_select:
-        if(type(options[0]) == str):
-            options.insert(0,"--Select--")
-        else:
-            options.insert(0,("--Select--",""))
+# def create_visit_dropdown(data=None, add_select=False,description=None):
+#     options = data;
+#     if add_select:
+#         if(type(options[0]) == str):
+#             options.insert(0,"--Select--")
+#         else:
+#             options.insert(0,("--Select--",""))
     
-    if(type(options[0]) == str):
-        value = options[0]
-    else:
-        value = options[0][1]
+#     if(type(options[0]) == str):
+#         value = options[0]
+#     else:
+#         value = options[0][1]
 
-    v_dropdown = widgets.Dropdown(
-        options=options,
-        value=value
-    )
+#     v_dropdown = widgets.Dropdown(
+#         options=options,
+#         value=value
+#     )
 
-    if description is not None:
-        v_dropdown.description=description
-        v_dropdown.style=style=dict(description_width='initial')
+#     if description is not None:
+#         v_dropdown.description=description
+#         v_dropdown.style=style=dict(description_width='initial')
 
-    return v_dropdown
+#     return v_dropdown
 
 
 
