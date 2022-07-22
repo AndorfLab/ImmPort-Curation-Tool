@@ -52,18 +52,20 @@ def validate_data(data, schema_name=None):
     except jsonschema.exceptions.ValidationError as error:
         last_error=error
         if("properties/data/items/properties/resultData/items/properties/resultUnitReported/enum" == "/".join(list(error.schema_path))):
-            ig.unique_logging_buffer_load(
-                        level="info",
-                        message=f"\tNon-Preferred Unit of '{error.instance}'"
-                    )
+            ig.main_logger.write(
+                level="warn",
+                message=f"\tNon-Preferred Unit of '{error.instance}'"
+            )
             print("Error is with Result Unit Reported")
             return True
         print("Validation Error")
         print(error)
+        return f"ValidationError: {error}"
         pass
     except jsonschema.SchemaError as error:
         print("Schema Error")
         print(error)
+        return f"SchemaError: {error}"
         pass
     
     return False
@@ -122,7 +124,7 @@ def load_data_fields(validator):
         json_data = json.load(fh_json_file)
         return json_data['properties']
 class ImmPort_Data: 
-    schemaVersion = "3.35"
+    schemaVersion = "3.36"
 
     def print_obj(self):
         print_data = {}
@@ -205,7 +207,8 @@ class Assessment(ImmPort_Data):
             self.data.append(this_record_data)
         
         
-    def process_study_file(self, study_file_info=None, study_file_directory=None, data_dictionary=None, planned_visits=None, study_id=None, workspace_id=None):
+    def process_study_file(self, study_file_info=None, study_file_directory=None, data_dictionary=None, planned_visits=None, study_id=None, workspace_id=None, name_reported=None):
+        # return
         filename = study_file_info.get("Filename")
         table_code = study_file_info.get("Table Code")
         assessment_name = study_file_info.get("Assessment Name")
@@ -221,15 +224,17 @@ class Assessment(ImmPort_Data):
             "template":template,
             "visit":default_visit
         }
+        if name_reported is None:
+            name_reported=ig.getStudyFileReportedName(filename)
+
         study_file_panel = Assessment_Panel(
-            nameReported=ig.getStudyFileReportedName(filename),
+            nameReported=name_reported,
             assessmentType=assessment_name,
             crfFileNames=[filename],
             studyId=study_id
         )
 
         datafile = cf.readAndModifyStudyFile(study_file_path, table_data, data_dictionary, planned_visits)
-        
         #Read Templates
         [assessment_panel_template,assessment_components_template,assessment_template_header] = cf.readTemplate(template, template_path=txt_template_path)  # self.text_template_path??
         assessment_components_template["ASSESSMENT_PANEL_ACCESSION"]=''
@@ -242,6 +247,7 @@ class Assessment(ImmPort_Data):
 
     def load_df(self, dataframe, panel):
         assessment_data = {}
+
         # new_assessment = Assessment()
         for index, row in dataframe.iterrows():
             field_data = self.convert_result_columns_to_fields(row.to_dict())
@@ -257,11 +263,11 @@ class Assessment(ImmPort_Data):
             self.add_record(record)
 
 
-
     # TODO: Look about moving to ImmPort_Data Class
     def export_to_json(self, filename=None):
-        if not self.validate():
-            raise ValueError("Assessment data is not valid")
+        valid = self.validate()
+        if not valid:
+            raise ValueError(f"Assessment data is not valid: {valid}")
         
         check_directory_exists(filename)
         with open(filename, 'w')as fh:
@@ -478,23 +484,22 @@ class Assessment_ResultData(ImmPort_Data):
             if key in self.enumFields and value not in self.enumFields[key]["enum"]:
                 if key.endswith("UnitReported"):
                     if value in self.result_unit_reported_synonyms:
-                        ig.unique_logging_buffer_load(
+                        ig.main_logger.write(
                             level="info",
                             message=f"\tSuggest substituting '{self.result_unit_reported_synonyms[value]}' for '{value}' for field '{key}' - {nameReported}"
                         )
                     else:
-                        ig.unique_logging_buffer_load(
+                        ig.main_logger.write(
                             level="info",
                             message=f"Value '{value}' for field '{key}' is not a preferred term - {nameReported}"
                         )
                 else:
-                    ig.unique_logging_buffer_load(
+                    ig.main_logger.write(
                         level="warn",
                         message=f"Value '{value}' for field '{key}' is not valid - {nameReported}"
                     )
 
             self.set_data_value(key, value)
-
 
 
 schema_store = get_schema_store(json_schema_template_path)

@@ -18,9 +18,8 @@ def parseCodeListValues(valueString):
     #As such, not we split on ONLY the first "=" as the value might have "=" in it.
     try:
         codes = dict(x.split("=", 1) for x in regex.split(r"(?:, )(?=\d+=|\w+=)",valueString))
-    except Exception:
-        print(valueString)
-        sys.exit(1)
+    except Exception as e:
+        return "Error parsing code list values: " + str(e)
     return codes
 
 def getColumnMapping(dictionary,table_name,mapping):
@@ -68,16 +67,12 @@ def parseDataDictionary(filename):
     with open(filename, encoding="utf-8-sig") as dictionary_FH:
         reader = csv.reader(dictionary_FH, delimiter=',', quotechar='"')
         header = next(reader)
-        # logging.warn("header")
-        # logging.warn(header)
         for column in header:
             dictionary["columns"][column]=header.index(column)
-            # print(column)
-
-        # print(dictionary)
+            
         for row in reader:
             parseDictionaryRow(row, dictionary)
-            # break
+
     return dictionary
 
 def helloWorld():

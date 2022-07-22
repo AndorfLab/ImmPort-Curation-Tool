@@ -19,7 +19,6 @@ pd.options.display.max_rows = 200
 
 missingVisits_all = {}
 
-
 def writePanelComponentTemplate(panel, component,header, filepath):
     panel["Result Separator Column"]=""
     df_temp = panel.merge(component, left_on='Assessment Panel ID', right_on='ASSESSMENT_PANEL_ACCESSION')
@@ -46,7 +45,6 @@ def processStudyFile(table_list,directory,dictionary,planned_visits,study_files,
         
         assessment_components_template=datafileToComponents(datafile,dictionary,table_set["tables"],assessment_components_template,panel_id,workspace_id)
 
-
     return [assessment_panel_template,assessment_components_template]
 
 def readFileFromZip(dir,zip,file):
@@ -54,10 +52,13 @@ def readFileFromZip(dir,zip,file):
         zip = zip.replace('.zip','')
     if not dir.endswith('/'):
         dir += "/"
-    with ZipFile(f"{dir}{zip}.zip") as myzip:
-        with myzip.open(f"{zip}/Tab/{file}") as myfile:
-            myfile_contents = pd.read_csv(io.BytesIO(myfile.read()), encoding='utf8', sep="\t")
-            return myfile_contents
+    try:
+        with ZipFile(f"{dir}{zip}.zip") as myzip:
+            with myzip.open(f"{zip}/Tab/{file}") as myfile:
+                myfile_contents = pd.read_csv(io.BytesIO(myfile.read()), encoding='utf8', sep="\t")
+                return myfile_contents
+    except:
+        raise NotImplementedError("Zip extract went wrong")
 
 def getColumnNumber(df,col_name):  #legacy?
     try:
@@ -77,20 +78,18 @@ def get_studyfile_line_count(directory):
 
 def addVisitAccessionFromName(planned_visits, table, visit_col,dictionary,file_table,default_visit):
     global missingVisits_all    
-    
     table_column = getColumnName(dictionary, file_table,visit_col)
 
     #dict_visits is a dictionary of planned visits. Keys are names, values are IDs
     dict_visits=dict(zip(planned_visits["NAME"],planned_visits["PLANNED_VISIT_ACCESSION"]))
     
     if(table_column is None):
-        ig.unique_logging_buffer_load(level="debug",message=f"No visit column in table, using default: {default_visit}", flush=True)
+        # ig.unique_logging_buffer_load(level="debug",message=f"No visit column in table, using default: {default_visit}", flush=True)
         if(default_visit is not None):
             table["PLANNED_VISIT_ID"]=dict_visits.get(default_visit,"")
             table_visit = pd.DataFrame(data={'plannedVisit':['']})
             return table_visit
         else:
-            ig.unique_logging_buffer_load(level="error",message=f"No default visit has been defined for {file_table}", flush=True)
             raise ValueError(f"No default visit has been defiled for {file_table}")
 
     table_visits = table.groupby([table_column], as_index=False).agg('nunique')
@@ -118,7 +117,7 @@ def addVisitAccessionFromName(planned_visits, table, visit_col,dictionary,file_t
             #     ig.unique_logging_buffer_load(level="warn", message=f"Cannot find planned visit for {key}")
     
         dict_visits2=dict(zip(table_visits[table_column],table_visits["plannedVisit"]))
-    ig.unique_logging_buffer_flush()
+    ig.main_logger.flush()
 
     if len(dictionary["tables"][file_table]["fields"][visit_col]["map_to_visit"])>0:
         visit_map_dict = json.loads(dictionary["tables"][file_table]["fields"][visit_col]["map_to_visit"])
@@ -129,7 +128,7 @@ def addVisitAccessionFromName(planned_visits, table, visit_col,dictionary,file_t
     missingVisits = dict(filter(lambda visit: visit[1] == "", dict_visits2.items()))
 
     if(len(missingVisits)>0):
-        ig.unique_logging_buffer_load(level="error",message=f"Missing Visits\n{'|'.join(list(missingVisits.keys()))}")
+        ig.main_logger.write(level="error",message=f"Missing Visits\n{'|'.join(list(missingVisits.keys()))}")
         # missingVisits_all[file_table]=list(missingVisits.keys())
 
         # logging.info(missingVisits_all)
@@ -207,7 +206,7 @@ def datafileToComponents(datafile,dictionary,table_name_array,assessment_compone
     assessment_components_template.drop(assessment_components_template[assessment_components_template["ASSESSMENT_PANEL_ACCESSION"] == panel_id].index, inplace=True)
     for table_name in table_name_array:
         col_mappings = createColumnMappingDict(dictionary,table_name)
-        
+
         question_id = 0
         datafile.rename(columns=col_mappings,inplace=True)
     
@@ -234,7 +233,7 @@ def datafileToComponents(datafile,dictionary,table_name_array,assessment_compone
                     df_slim["ASSESSMENT_PANEL_ACCESSION"]=panel_id
                     df_slim["WORKSPACE_ID"]=workspace_id
                 except Exception as e:
-                    ig.unique_logging_buffer_load(level="error",message=f"Error with column {col_name} in {table_name}- {str(e)}\n{traceback.format_exc()}", flush=True)
+                    ig.main_logger.write(level="error",message=f"Error with column {col_name} in {table_name}- {str(e)}\n{traceback.format_exc()}", flush=True)
                     raise
 
                 df_slim.loc[(df_slim["Result Value Reported"] == "<NA>"), "Result Value Reported"] = np.NaN
@@ -287,7 +286,7 @@ def datafileToComponents(datafile,dictionary,table_name_array,assessment_compone
                 assessment_components_template=assessment_components_template.append(df_slim[~df_slim["Result Value Reported"].isnull()], ignore_index=True)
                 # assessment_components_template=assessment_components_template.append(df_slim, ignore_index=True)
             else:
-                ig.unique_logging_buffer_load(level='critical', message=f"Table Field not found in file: {col_name} in {table_name}", flush=True)
+                ig.main_logger.write(level='critical', message=f"Table Field not found in file: {col_name} in {table_name}", flush=True)
         
     return assessment_components_template
 
@@ -346,6 +345,7 @@ def readAndModifyStudyFile(filepath,file_tables,dictionary,planned_visits):
     Returns:
         DataFrame: modified dataframe from study file.
     """
+
     full_datafile = pd.DataFrame()
 
     for file_table in file_tables["tables"]:
