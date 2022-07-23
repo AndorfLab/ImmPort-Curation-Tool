@@ -175,6 +175,14 @@ class GUI(GUI_Object):
             index = len(self.widget.children)-1
         self.widget.set_title(index, title)
 
+    def go_to_tab(self, tab_index=None, tab_name=None):
+        if tab_index is not None:
+            self.widget.selected_index=tab_index
+        if tab_name is not None and tab_name in self.widget._titles.values():
+            tab_index = list(filter(lambda x: x[1] == tab_name, enumerate(self.widget._titles.values())))[0][0]
+            self.widget.selected_index=tab_index
+        return
+
     def log(self, message, level="debug", flush=False):
         self.main_logger.write(message, level, flush)
         return
