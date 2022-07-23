@@ -744,7 +744,7 @@ class Log_Output(GUI_Object):
     ##Add a button to write from history with certain level
 
     def write(self,message=None, level=None, flush=False):
-        
+        level = level.lower()
         if level not in self.messages:
             self.messages[level]={message:1}
         else:
