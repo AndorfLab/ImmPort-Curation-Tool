@@ -50,7 +50,6 @@ def validate_data(data, schema_name=None):
         jsonschema.Draft4Validator(schema, resolver=resolver).validate(data)
         return True
     except jsonschema.exceptions.ValidationError as error:
-        last_error=error
         if("properties/data/items/properties/resultData/items/properties/resultUnitReported/enum" == "/".join(list(error.schema_path))):
             ig.main_logger.write(
                 level="warn",
@@ -58,15 +57,16 @@ def validate_data(data, schema_name=None):
             )
             print("Error is with Result Unit Reported")
             return True
-        print("Validation Error")
-        print(error)
+        else:
+            last_error=error
+            ig.main_logger.write(
+                level="error",
+                message=f"{error}",
+                flush=True
+            )
         return f"ValidationError: {error}"
-        pass
     except jsonschema.SchemaError as error:
-        print("Schema Error")
-        print(error)
         return f"SchemaError: {error}"
-        pass
     
     return False
 
@@ -113,9 +113,14 @@ def check_data_type(value, key_properties, key):
 
 def check_data_length(value, maxLength, truncate=False, key=None):
     if len(value)<=maxLength:
-        return value
-    if truncate:
-        return value[0:maxLength]
+        return None
+    ig.main_logger.write(message=f"Value of {key} exceeds max length of {maxLength}: {value[0:40]}...", level='critical')
+    if truncate and type(value) is str:
+        ig.main_logger.write(message=f"\tTruncated value from {len(value)} to {maxLength}", level='critical')
+        try:
+            return value[0:maxLength]
+        except Exception as e:
+            ig.main_logger.write(message=f"\tTruncation failed: {e}", level='critical')
 
     raise ValueError("Value exceeds max length of {maxLength} for field {key}: {maxLength[0:25]}...")
 
@@ -161,8 +166,12 @@ class ImmPort_Data:
             raise AttributeError("{key} has no 'type' property in the schema")
         value = check_data_type(value, key_properties, key)
         if "maxLength" in key_properties:
-            check_data_length(value, key_properties["maxLength"], truncate=type(self).truncate_long_fields, key=key)
-        
+            truncated_value = check_data_length(value, key_properties["maxLength"], truncate=type(self).truncate_long_fields, key=key)
+            if truncated_value is not None:
+                # ig.main_logger(message=f"\tTruncated {key} from {len(value)} to {len(truncated_value)}", level='warn')
+                self.set_data(key, truncated_value)
+                return
+
         self.set_data(key,value)
 
     def get_data_key_properties(self, key):
@@ -240,23 +249,32 @@ class Assessment(ImmPort_Data):
         assessment_components_template["ASSESSMENT_PANEL_ACCESSION"]=''
         assessment_components_template=cf.datafileToComponents(datafile,data_dictionary,[table_code],assessment_components_template,workspace_id)
         
-        loaded_assessment = self.load_df(assessment_components_template,study_file_panel)
+        loaded_assessment = self.load_df(assessment_components_template,study_file_panel,
+            crfFileNames=[filename],
+            studyId=study_id)
 
         # Iterate through template DF and create Assessment_Datum
         return [study_file_panel, assessment_components_template]
 
-    def load_df(self, dataframe, panel):
+    def load_df(self, dataframe, panel, crfFileNames=None, studyId=None):
         assessment_data = {}
 
         # new_assessment = Assessment()
         for index, row in dataframe.iterrows():
             field_data = self.convert_result_columns_to_fields(row.to_dict())
             userID = field_data.get('userDefinedId')
+            # ig.main_logger.write(message="Processing userDefinedId:", level='debug', flush=True)
+            # ig.main_logger.write(message=userID, level='debug', flush=True)
+            
             if userID not in assessment_data:
                 assessment_data[userID] = Assessment_Datum(assessment_panel=panel, subject_id=userID)
+            # ig.main_logger.write(message="datum added, going to result data", level='debug', flush=True)
+            # ig.main_logger.write(message=f"{studyId} - {crfFileNames}", level='debug', flush=True)
             
-            result_data_obj = Assessment_ResultData(**field_data)
+            result_data_obj = Assessment_ResultData(studyId=studyId, crfFileNames=crfFileNames ,**field_data)
+            # ig.main_logger.write(message="Done - result data", level='debug', flush=True)
             assessment_data[userID].add_result_data(result_data_obj)
+            # ig.main_logger.write(message="Done - result data - Added", level='debug', flush=True)
 
 
         for record in assessment_data.values():
@@ -402,9 +420,11 @@ class Assessment_Panel(ImmPort_Data):
 
     def __init__(self, nameReported=None, assessmentType=None,studyId=None, crfFileNames=[]):
         Assessment_Panel.iterable_counter +=1
+        filename_string = "-".join(crfFileNames)
 
         self.data={}
-        self.set_data_value("assessmentPanelId", "Panel%s" % Assessment_Panel.iterable_counter)
+        self.set_data_value("assessmentPanelId", f"{studyId}_{filename_string}_Panel{Assessment_Panel.iterable_counter}")
+        # self.set_data_value("assessmentPanelId", "Panel%s" % Assessment_Panel.iterable_counter)
         self.set_data_value("nameReported", nameReported)
         self.set_data_value("assessmentType", assessmentType)
         self.set_data_value("studyId", studyId)
@@ -468,11 +488,19 @@ class Assessment_ResultData(ImmPort_Data):
 
     enumFields = dict(filter(lambda x: "enum" in x[1], data_fields.items()))
 
-    def __init__(self, plannedVisitId=None, nameReported=None, studyDay=None, **kwargs):
+    def __init__(self, plannedVisitId=None, nameReported=None, studyDay=None, studyId=None, crfFileNames=[], **kwargs):
         Assessment_ResultData.iterable_counter +=1
         
+        if crfFileNames is not None:
+            filename_string = "_".join(crfFileNames)
+        else:
+            filename_string = "NoCRF"
+
         self.data={}
-        self.set_data("userDefinedId", "RD%s" % Assessment_ResultData.iterable_counter)
+        new_user_id = f"{studyId}_{filename_string}_RD{Assessment_ResultData.iterable_counter}"
+        
+        self.set_data("userDefinedId", new_user_id)
+        
         self.set_data("plannedVisitId", plannedVisitId)
         self.set_data("nameReported", nameReported)
         self.set_data("studyDay", studyDay if studyDay is not None else 99999)
