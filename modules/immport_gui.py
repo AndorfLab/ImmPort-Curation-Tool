@@ -30,9 +30,9 @@ class CustomFormatter(logging.Formatter):
     colors={
         "debug" : "grey",
         "info" : "blue",
-        "warning" : "OrangeRed",
+        "warning" : "#FF6700",
         "error" : "red",
-        "critical" : "red"
+        "critical" : "#C11B17"
     }
 
     def __init__(self, fmt):
@@ -49,10 +49,15 @@ class CustomFormatter(logging.Formatter):
             logging.INFO: f"{self.format_string('info')}{self.fmt}",
             logging.WARNING: f"{self.format_string('warning')}{self.fmt}",
             logging.ERROR: f"{self.format_string('error')}{self.fmt}",
-            logging.CRITICAL: f"<b>{self.format_string('critical')}{self.fmt}</b>",
+            logging.CRITICAL: f"{self.format_string('critical')}{self.fmt}",
         }
 
     def format_string(self,level):
+        if level in ["error","warning"]:
+            return f"<font color='{self.colors[level]}' style='white-space: pre; font-size=16px; font-family: Consolas; font-weight: bold'>"
+        elif level == "critical":
+            return f"<font color='white' style='background-color:{self.colors[level]}; white-space: pre; font-size=16px; font-family: Consolas; font-weight: bold'>"
+
         return f"<font color='{self.colors[level]}' style='white-space: pre; font-size=16px; font-family: Consolas'>"
 
     def format(self, record):
@@ -206,8 +211,18 @@ class GUI(GUI_Object):
         self.loggers[name].addHandler(handler)
         # self.loggers[name].setLevel(level)
 
+    # def generate_error_header(self):
+    #     self.objects["box_errors"] = HBox(name="box_errors")
+    #     self.objects["html_errors"] = HTML()
+    #     self.objects["button_errors_clear"] = Button(description="Clear")
+    #     self.objects["box_errors"].set_children(self.objects["html_errors"].get(),self.objects["button_errors_clear"].get())
+    #     return
+
     def generate_gui(self):
         """Generate the GUI"""
+
+        # self.generate_error_header()
+
         self.add_tab(Tab("1. Study",self.generate_tab_study_info()))
         self.add_tab(Tab("2. Data Dictionary",self.generate_tab_data_dictionary()))
         self.add_tab(Tab("3. Study Files",self.generate_tab_study_files()))

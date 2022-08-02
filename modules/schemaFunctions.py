@@ -116,8 +116,9 @@ def check_data_length(value, maxLength, truncate=False, key=None):
         return None
     ig.main_logger.write(message=f"Value of {key} exceeds max length of {maxLength}: {value[0:40]}...", level='critical')
     if truncate and type(value) is str:
-        ig.main_logger.write(message=f"\tTruncated value from {len(value)} to {maxLength}", level='critical')
+        ig.main_logger.write(message=f"\tTruncated value from {len(value)} characters to {maxLength} characters", level='critical')
         try:
+            value = "[TRUNCATED]"+value
             return value[0:maxLength]
         except Exception as e:
             ig.main_logger.write(message=f"\tTruncation failed: {e}", level='critical')
