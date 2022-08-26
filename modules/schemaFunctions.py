@@ -55,7 +55,7 @@ def validate_data(data, schema_name=None):
                 level="warn",
                 message=f"\tNon-Preferred Unit of '{error.instance}'"
             )
-            print("Error is with Result Unit Reported")
+            # print("Error is with Result Unit Reported")
             return True
         else:
             last_error=error
