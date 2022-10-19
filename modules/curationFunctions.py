@@ -129,6 +129,7 @@ def addVisitAccessionFromName(planned_visits, table, visit_col,dictionary,file_t
 
     if(len(missingVisits)>0):
         ig.main_logger.write(level="error",message=f"Missing Visits\n{'|'.join(list(missingVisits.keys()))}")
+        ig.main_logger.write(level="error",message=f"Available Visits\n{'|'.join(list(dict_visits2.keys()))}")
         # missingVisits_all[file_table]=list(missingVisits.keys())
 
         # logging.info(missingVisits_all)
