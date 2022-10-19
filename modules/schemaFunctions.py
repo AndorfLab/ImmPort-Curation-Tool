@@ -55,7 +55,7 @@ def validate_data(data, schema_name=None):
                 level="warn",
                 message=f"\tNon-Preferred Unit of '{error.instance}'"
             )
-            print("Error is with Result Unit Reported")
+            # print("Error is with Result Unit Reported")
             return True
         else:
             last_error=error
@@ -131,6 +131,8 @@ def load_data_fields(validator):
         return json_data['properties']
 class ImmPort_Data: 
     schemaVersion = "3.36"
+    #Stored in schemas as properties.schemaVersion.enum[0]
+    #It would be good to read this in rather than hard-coding
 
     def print_obj(self):
         print_data = {}
