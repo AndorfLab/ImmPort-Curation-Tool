@@ -131,6 +131,8 @@ def load_data_fields(validator):
         return json_data['properties']
 class ImmPort_Data: 
     schemaVersion = "3.36"
+    #Stored in schemas as properties.schemaVersion.enum[0]
+    #It would be good to read this in rather than hard-coding
 
     def print_obj(self):
         print_data = {}
