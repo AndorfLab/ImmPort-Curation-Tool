@@ -1,5 +1,9 @@
 # Instructions for Curation the Data Dictionary
 
+The ImmPort tool uses a curated data dictionary to transform study files into completed ImmPort Templates. The data dictionary adds extra information such as verbatim question text and units. It also allows the specification of fields that should pivot into a column for every field on the form, such as the subject ID or visit number. 
+
+Currently, the curated data dictionary should be a csv file with at least the columns specified in the table below. While additional columns are acceptible, the specified columns below are required.
+
 ## Data Dictionary Columns
 | Column Name | Description | Acceptable Values | Example |
 | ----------- | ----------- | ----------------- | ------- |
@@ -25,6 +29,6 @@
 
 
 
-
-
+## Data Dictionary Validation
+A data dictionary validator is scheduled for future work.
 
