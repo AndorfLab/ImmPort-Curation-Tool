@@ -490,13 +490,14 @@ class GUI(GUI_Object):
 
     def toggle_show_hide(self, value, toggle):
         """Toggle the study immport tab"""
+        ## Need to cycle through all elements in all keys to hide if not present.
         for (key, element_list) in toggle.items():
             if key == value["new"]:
                 for element in element_list:
-                    self.show_hide_element(element, '')
+                    element.show_hide_element('')
             else:
                 for element in element_list:
-                    self.show_hide_element(element, 'none')
+                    element.show_hide_element('none')
 
     def hide_row(self, row):
         """Hide a row"""
