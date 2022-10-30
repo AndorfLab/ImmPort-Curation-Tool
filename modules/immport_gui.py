@@ -1,5 +1,6 @@
 import pandas as pd
 import os
+import re
 import shutil
 
 from modules import processRedCapFiles as rc
@@ -18,6 +19,40 @@ main_logger=""
 output2 = widgets.Output(layout=widgets.Layout(max_height="425px", overflow_y="auto"))
 
 documentation_base_url = "https://github.com/JoshuaFortriede/ImmPort-Curation-Tool/blob/develop"
+
+import asyncio
+
+class Timer:
+    def __init__(self, timeout, callback):
+        self._timeout = timeout
+        self._callback = callback
+
+    async def _job(self):
+        await asyncio.sleep(self._timeout)
+        self._callback()
+
+    def start(self):
+        self._task = asyncio.ensure_future(self._job())
+
+    def cancel(self):
+        self._task.cancel()
+
+def debounce(wait):
+    """ Decorator that will postpone a function's
+        execution until after `wait` seconds
+        have elapsed since the last time it was invoked. """
+    def decorator(fn):
+        timer = None
+        def debounced(*args, **kwargs):
+            nonlocal timer
+            def call_it():
+                fn(*args, **kwargs)
+            if timer is not None:
+                timer.cancel()
+            timer = Timer(wait, call_it)
+            timer.start()
+        return debounced
+    return decorator
 
 class CustomFormatter(logging.Formatter):
     """Logging colored formatter, adapted from https://stackoverflow.com/a/56944256/3638629"""
@@ -114,7 +149,7 @@ class GUI_Object():
     
     def display(self):
         """Display the widget"""
-        return self.widget
+        return self.get()
     
     def set_observe(self, callback_function, callback_data):
         self.widget.observe(functools.partial(callback_function, **callback_data), names='value')
@@ -735,7 +770,44 @@ class ToggleButtons(GUI_Object):
                 style=style
             )
         )
+
+class TextField(GUI_Object):
+    counter = 0
+    def __init__(self, **kwargs):
+        super().__init__(
+            widgets.Text(
+                value=kwargs.get("text",""),
+                placeholder=kwargs.get("placeholder",""),
+                description=kwargs.get("description",""),
+                disabled=False
+            )
+        )
+
+        self.name = kwargs.get("name","undefined_textfield_"+str(TextField.counter))
+        TextField.counter+=1
+
+        if "regex" in kwargs:
+            self.widget.observe(self.check_value, names='value')
+            self.regex = kwargs["regex"]
+            self.helper = HTML(html_text=f"<span style='color:red'>Invalid Value! Please use a value that matches the format of {self.regex}</span>")
+            self.helper.toggle_display()
     
+    def get(self):
+        """Return the widget"""
+        if hasattr(self, "helper"):
+            return widgets.HBox([self.widget,self.helper.get()])
+        return self.widget
+
+
+
+    @debounce(1)    #Wait 1 second
+    def check_value(self, value):
+        if value["type"]=="change":
+            if re.fullmatch(self.regex, self.widget.value.upper()) is None:
+                self.helper.show_hide_element(display='')
+                return
+            self.helper.show_hide_element(display='none')
+
 class File_Chooser(GUI_Object):
     """FileChooser class"""
     def __init__(self, name, **kwargs):
