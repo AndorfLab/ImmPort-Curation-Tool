@@ -17,6 +17,8 @@ logging_buffer_data = {}
 main_logger=""
 output2 = widgets.Output(layout=widgets.Layout(max_height="425px", overflow_y="auto"))
 
+documentation_base_url = "https://github.com/JoshuaFortriede/ImmPort-Curation-Tool/blob/develop"
+
 class CustomFormatter(logging.Formatter):
     """Logging colored formatter, adapted from https://stackoverflow.com/a/56944256/3638629"""
 
@@ -227,28 +229,136 @@ class GUI(GUI_Object):
         self.add_tab(Tab("2. Data Dictionary",self.generate_tab_data_dictionary()))
         self.add_tab(Tab("3. Study Files",self.generate_tab_study_files()))
         self.add_tab(Tab("Logging",self.generate_tab_logging()))
+        self.add_tab(Tab("Help",self.generate_tab_help()))
         self.log(message="GUI generated", level="info")
         self.flush_log()
         return self.widget
     
+    def generate_tab_help(self):
+        self.objects["html_documentation_user_guide"] = HTML(html_text=f"<H1><a href='{documentation_base_url}/documentation/README.md'>User Guide</a></h1><p>A step-by-step guide on using this tool.</p>",description="")
+
+        tab = widgets.VBox([
+            self.objects["html_documentation_user_guide"].get()
+        ])
+
+        return tab
+
     def generate_tab_study_info(self):
         """Generate the study info tab"""
+        #TODO Add fields to get study ID and workspace ID if no TAB file is provided.
+
         self.objects["toggle_current_immport_study"] = ToggleButtons(description="Is this a current Immport study?", options=[('Yes',1),('No',0)], value=1, tooltip='Has this study been registered in ImmPort?', style=dict(description_width='initial'))
         self.objects["dropdown_study_visit_list"] = Dropdown(options=[''], description='<b>Study Visits:</b>', tooltip='View the loaded study visits')
         self.objects["filechooser_study_tab_file"] = File_Chooser(name="filechooser_study_tab_file", title='<b>Select the ImmPort Study Tab zip file</b>', tooltip='Load a study tab file',multiple=False,filter_pattern=['SDY*-DR*_Tab.zip'], style=dict(description_width='initial'))
         self.objects["filechooser_study_tab_file"].set_onclick(self, callback_function=on_select_study_tab_file2, callback_data = {"gui":self, "fc_name":"filechooser_study_tab_file"})
 
-        box_immport_study_yes = widgets.VBox([self.objects["filechooser_study_tab_file"].get()])
-        box_immport_study_no = widgets.VBox([])
+        self.objects["filechooser_planned_visits"] = File_Chooser(name="filechooser_planned_visits", title='<b>Select the ImmPort Planned Visit file</b>', tooltip='Load a planned visit file',multiple=False,filter_pattern=['*.csv'], style=dict(description_width='initial'))
+        self.objects["filechooser_planned_visits"].set_onclick(self, callback_function=self.load_planned_visit_file, callback_data = {})
+
+        self.objects["filechooser_study_files"] = File_Chooser(name="filechooser_study_files", title='<b>Select the ImmPort Study Files file</b>', tooltip='Load a study files file',multiple=False,filter_pattern=['*.csv'], style=dict(description_width='initial'))
+        self.objects["filechooser_study_files"].set_onclick(self, callback_function=self.load_study_file, callback_data = {})
+
+        self.objects["html_non_Immport"] = HTML(html_text='',description="<b>Please load the following files downloadable from ImmPort</b>")
+
+        box_immport_study_yes = VBox(name="box_immport_study_yes")
+        box_immport_study_no = VBox(name="box_immport_study_no")
+
+        box_immport_study_no.toggle_display()
+
+        box_planned_visits = VBox(name='box_planned_visits')
+        box_planned_visits.set_children([self.objects['filechooser_planned_visits'].get()])
+        box_planned_visits.toggle_display()
+
+        #TODO need toggle to load study files file
+        box_study_files = VBox(name='box_study_files')
+        box_study_files.set_children([self.objects['filechooser_study_files'].get()])
+        box_study_files.toggle_display()
+
+        self.objects["toggle_non_tab_files"] = ToggleButtons(description="Amend Tab file with new planned visits and/or study files?", options=[('Yes',1),('No',0)], value=0, tooltip='', style=dict(description_width='initial'))
+
+        box_immport_study_yes.set_children([self.objects["filechooser_study_tab_file"].get(),self.objects["toggle_non_tab_files"].get()])
+        box_immport_study_no.set_children([self.objects["html_non_Immport"].get()])
+
         tab = widgets.VBox([
             self.objects["toggle_current_immport_study"].get(), 
-            box_immport_study_yes, 
-            box_immport_study_no,
+            box_immport_study_yes.get(), 
+            box_immport_study_no.get(),
+            box_planned_visits.get(),
+            box_study_files.get(),
             self.objects["dropdown_study_visit_list"].get()
         ])
 
-        self.objects["toggle_current_immport_study"].set_observe(callback_function=self.toggle_show_hide, callback_data={"toggle":{1:[box_immport_study_yes], 0:[box_immport_study_no]}})
+        self.objects["toggle_current_immport_study"].set_observe(callback_function=self.toggle_show_hide, callback_data={
+            "toggle":{
+                1:[box_immport_study_yes], 
+                0:[box_immport_study_no,box_planned_visits,box_study_files]
+                }
+            })
+
+        self.objects["toggle_non_tab_files"].set_observe(callback_function=self.toggle_show_hide, callback_data={
+            "toggle":{
+                1:[box_planned_visits,box_study_files], 
+                0:[]
+                }
+            })
         return tab
+
+    def load_study_file(self, value):
+        if value.description == "Change":
+            filename = self.objects["filechooser_study_files"].get_filepath()
+            with open(filename, 'r') as pv:
+                if filename.endswith(".csv"):
+                    sep = ","
+                else:
+                    sep = "\t"
+
+                self.data["study_files"] = pd.read_csv(pv, sep=sep)
+
+                rename_map={
+                    "Study File Accession":"STUDY_FILE_ACCESSION",
+                    "Study File Type":"STUDY_FILE_TYPE",
+                    "File Name":"FILE_NAME",
+                    "Description":"DESCRIPTION"
+                }
+
+                for col in list(rename_map.keys()):
+                    if col not in self.data["study_files"].columns:
+                        del rename_map[col]
+                self.data["study_files"].rename(columns=rename_map, inplace=True)
+
+    def load_planned_visit_file(self, value):
+        if value.description == "Change":
+            planned_visit_filename = self.objects["filechooser_planned_visits"].get_filepath()
+            with open(planned_visit_filename, 'r') as pv:
+                if planned_visit_filename.endswith(".csv"):
+                    sep = ","
+                else:
+                    sep = "\t"
+
+                self.data["planned_visit"] = pd.read_csv(pv, sep=sep)
+
+                rename_map={
+                    "PV Accession":"PLANNED_VISIT_ACCESSION",
+                    "Name":"NAME",
+                    "Min Start Day":"MIN_START_DAY",
+                    "Max Start Day":"MAX_START_DAY",
+                    "Start Rule":"START_RULE",
+                    "End Rule":"END_RULE",
+                    "Order Number":"ORDER_NUMBER",
+                    "Test Delete":"Not Present"
+                }
+
+                for col in list(rename_map.keys()):
+                    if col not in self.data["planned_visit"].columns:
+                        del rename_map[col]
+                self.data["planned_visit"].rename(columns=rename_map, inplace=True)
+
+        
+            visit_names = get_planned_visits2(self.data["planned_visit"],nameonly=True, returnType="list")
+            # # unique_logging_buffer_load(level="debug",message=f"visit names: {', '.join(visit_names)}")
+            
+            # ## TODO
+            self.objects["dropdown_study_visit_list"].set_options(visit_names)
 
     def load_data_dictionary(self,gui):
         self.objects["button_filechooser_data_dictionary_load"].button_change(button=self.objects["button_filechooser_data_dictionary_load"], style='warning', text='Loading',tooltip='The data dictionary file is being loaded',disabled=False, icon='spinner')
@@ -414,6 +524,18 @@ class GUI(GUI_Object):
             visit_names = self.get_planned_visits(nameonly=True, returnType="list")
             set_visit_dropdown(visit_names)
 
+    def set_study_id(self, study_id):
+        if "study" not in self.data:
+            self.data["study"]={"STUDY_ACCESSION":[study_id]}
+            return
+        self.data["study"]["STUDY_ACCESSION"]=[study_id]
+
+    def set_workspace_id(self, workspace_id):
+        if "study" not in self.data:
+            self.data["study"]={"WORKSPACE_ID":[workspace_id]}
+            return
+        self.data["study"]["WORKSPACE_ID"]=[workspace_id]
+
     def get_study_id(self):
         return self.data["study"]["STUDY_ACCESSION"][0]
 
@@ -460,6 +582,8 @@ class GUI(GUI_Object):
         return
 
     def generate_tab_data_dictionary(self):
+        self.objects["html_documentation_curated_dd"] = HTML(html_text=f"<h2><a title='Information on creating a curated data dictionary' href='{documentation_base_url}/documentation/Curated_Data_Dictionary.md'>Curated Data Dictionary User Guide</a></h2>",description="")
+
         """Generate the data dictionary tab"""
         self.objects["filechooser_data_dictionary"] = File_Chooser(name="filechooser_data_dictionary", title='<b>Select the curated data dictionary</b>', tooltip='Load a curated data dictionary file',multiple=False,filter_pattern=['*.csv','*.txt',"*.tsv"], style=dict(description_width='initial'))
         
@@ -473,7 +597,11 @@ class GUI(GUI_Object):
         self.objects["tab_row_dd_form_row"] = widgets.HBox([self.objects["dropdown_table_form_column"].get(),self.objects["button_form_column_confirm"].get()])
         self.hide_row("tab_row_dd_form_row")
 
-        tab = widgets.VBox([self.objects["tab_row_dd_row"],self.objects["tab_row_dd_form_row"]])
+        tab = widgets.VBox([
+            self.objects["html_documentation_curated_dd"].get(),
+            self.objects["tab_row_dd_row"],
+            self.objects["tab_row_dd_form_row"]
+        ])
 
         return tab
     
