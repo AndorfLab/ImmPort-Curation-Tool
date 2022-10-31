@@ -282,7 +282,7 @@ class GUI(GUI_Object):
         """Generate the study info tab"""
         #TODO Add fields to get study ID and workspace ID if no TAB file is provided.
 
-        self.objects["toggle_current_immport_study"] = ToggleButtons(description="Is this a current Immport study?", options=[('Yes',1),('No',0)], value=1, tooltip='Has this study been registered in ImmPort?', style=dict(description_width='initial'))
+        self.objects["toggle_current_immport_study"] = ToggleButtons(description="How do you want to start?", options=[('Use ImmPort TAB file',1),('Download information from ImmPort',0)], value=1, tooltip='Has this study been registered in ImmPort?', style=dict(description_width='initial',button_width='auto'))
         self.objects["dropdown_study_visit_list"] = Dropdown(options=[''], description='<b>Study Visits:</b>', tooltip='View the loaded study visits')
         self.objects["filechooser_study_tab_file"] = File_Chooser(name="filechooser_study_tab_file", title='<b>Select the ImmPort Study Tab zip file</b>', tooltip='Load a study tab file',multiple=False,filter_pattern=['SDY*-DR*_Tab.zip'], style=dict(description_width='initial'))
         self.objects["filechooser_study_tab_file"].set_onclick(self, callback_function=on_select_study_tab_file2, callback_data = {"gui":self, "fc_name":"filechooser_study_tab_file"})
@@ -293,7 +293,13 @@ class GUI(GUI_Object):
         self.objects["filechooser_study_files"] = File_Chooser(name="filechooser_study_files", title='<b>Select the ImmPort Study Files file</b>', tooltip='Load a study files file',multiple=False,filter_pattern=['*.csv'], style=dict(description_width='initial'))
         self.objects["filechooser_study_files"].set_onclick(self, callback_function=self.load_study_file, callback_data = {})
 
-        self.objects["html_non_Immport"] = HTML(html_text='',description="<b>Please load the following files downloadable from ImmPort</b>")
+        self.objects["html_non_Immport"] = HTML(html_text='',description=f"<b>Please load the following files <a href='{documentation_base_url}/documentation/Load_files_from_immport.md'>downloadable from ImmPort</a></b>")
+
+        self.objects["text_study_id"] = TextField(placeholder="SDY9999",description="Study ID", regex="SDY\d+")
+        self.objects["text_workspace_id"] = TextField(placeholder="9999",description="Workspace ID", regex="\d+")
+
+        self.objects["text_study_id"].set_observe(callback_function=self.set_study_id_from_textfield, callback_data = {})
+        self.objects["text_workspace_id"].set_observe(callback_function=self.set_workspace_id_from_textfield, callback_data = {})
 
         box_immport_study_yes = VBox(name="box_immport_study_yes")
         box_immport_study_no = VBox(name="box_immport_study_no")
@@ -309,10 +315,10 @@ class GUI(GUI_Object):
         box_study_files.set_children([self.objects['filechooser_study_files'].get()])
         box_study_files.toggle_display()
 
-        self.objects["toggle_non_tab_files"] = ToggleButtons(description="Amend Tab file with new planned visits and/or study files?", options=[('Yes',1),('No',0)], value=0, tooltip='', style=dict(description_width='initial'))
+        self.objects["toggle_non_tab_files"] = ToggleButtons(description="Amend Tab file with new planned visits and/or study files?", options=[('Yes',1),('No',0)], value=0, tooltip='', style=dict(description_width='initial',button_width='auto'))
 
         box_immport_study_yes.set_children([self.objects["filechooser_study_tab_file"].get(),self.objects["toggle_non_tab_files"].get()])
-        box_immport_study_no.set_children([self.objects["html_non_Immport"].get()])
+        box_immport_study_no.set_children([self.objects["text_workspace_id"].get(), self.objects["text_study_id"].get(), self.objects["html_non_Immport"].get()])
 
         tab = widgets.VBox([
             self.objects["toggle_current_immport_study"].get(), 
@@ -558,6 +564,14 @@ class GUI(GUI_Object):
             
             visit_names = self.get_planned_visits(nameonly=True, returnType="list")
             set_visit_dropdown(visit_names)
+
+    def set_study_id_from_textfield(self,value):
+        if value.type == 'change':
+            self.set_study_id(value["new"])
+
+    def set_workspace_id_from_textfield(self,value):
+        if value.type == 'change':
+            self.set_workspace_id(value["new"])
 
     def set_study_id(self, study_id):
         if "study" not in self.data:
