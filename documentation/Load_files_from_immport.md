@@ -4,7 +4,8 @@
 <img src='images/study_search.png' width=350px alt='Search Page' style='display:block; margin:10px 0px 30px 10px'/>
 2. In the "Study Accession" dropdown field, select the ImmPort Study you are working with.
 3. Click "Search" to narrow the Study Results Table to the study that you have selected. Alternatively, you can find the Study in the Study Results Table, or you can enter the ImmPort Study ID (i.e. SDY0000) in the "Study Accession" field in the header of the Study Search Results table. 
-4. Find the row in the Study Search Results table for the ImmPort Study, and click the link in the "Study Title" column. ![Search Page Results](images/study_search_results.png)
+4. Find the row in the Study Search Results table for the ImmPort Study, and click the link in the "Study Title" column.
+![Search Page Results](images/study_search_results.png)
 
 ## Planned Visits
 To download the current study files table with ImmPort accession numbers, after following the [steps above](./Load_files_from_immport.md#load-study-data-from-immport):
