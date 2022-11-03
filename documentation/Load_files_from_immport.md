@@ -10,14 +10,11 @@
 ## Planned Visits
 To download the current study files table with ImmPort accession numbers, after following the [steps above](./Load_files_from_immport.md#load-study-data-from-immport):
 
-1. Click on the "Design" tab.
-![Study Details: Design tab](images/study_details_design.png)
+1. Click on the "Design" tab. ![Study Details: Design tab](images/study_details_design.png)
 2. Scroll down to the "Planned Visits" table
-3. Click on the "Options" button in the top-right of the table.
-![Planned Visits table](images/planned_visits_table.png)
+3. Click on the "Options" button in the top-right of the table. ![Planned Visits table](images/planned_visits_table.png)
 4. Click on "Export all data as csv"
-5. Use this file with the Planned Visits file selector. 
-![Select Planned Visits Filechooser](images/select_planned_visits.png)
+5. Use this file with the Planned Visits file selector. ![Select Planned Visits Filechooser](images/select_planned_visits.png)
 
 
 ## Study Files
