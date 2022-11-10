@@ -5,6 +5,7 @@ import json
 from modules import curationFunctions as cf
 from modules import immport_gui as ig
 from pathlib import Path
+import platform
 
 json_schema_template_path   = "templates/json-templates"
 txt_template_path           = "templates/txt-templates"
@@ -33,19 +34,36 @@ def validate_data(data, schema_name=None):
     try: 
         schema_store 
     except:
+        ig.main_logger.write(
+            level="error",
+            message=f"Schema store not found", flush=True
+        )
         raise NotImplementedError("Schemas have not been loaded")
     
     if schema_name is None:
+        ig.main_logger.write(
+            level="error",
+            message=f"No schema name provided", flush=True
+        )
         raise ValueError("Schema name not provided")
+
     if not schema_name.endswith(".json"):
         schema_name+=".json"
     
     schema = schema_store.get(schema_name)
     if schema is None:
+        ig.main_logger.write(
+            level="error",
+            message=f"schema is none for {schema_name}", flush=True
+        )
         raise NotImplementedError("Missing Schema for '%s'" % schema_name)
 
     ref_resolver_path = os.path.abspath(os.path.join(os.getcwd(),json_schema_template_path,schema_name))
-    resolver = jsonschema.RefResolver("file://%s" % ref_resolver_path, schema, store=schema_store)
+    if platform.system() == 'Windows':
+        resolver = jsonschema.RefResolver(ref_resolver_path, schema, store=schema_store)
+    else:
+        resolver = jsonschema.RefResolver("file://%s" % ref_resolver_path, schema, store=schema_store)
+
     try:
         jsonschema.Draft4Validator(schema, resolver=resolver).validate(data)
         return True
@@ -55,19 +73,47 @@ def validate_data(data, schema_name=None):
                 level="warn",
                 message=f"\tNon-Preferred Unit of '{error.instance}'"
             )
-            # print("Error is with Result Unit Reported")
+            return True
+        elif("properties/data/items/properties/resultData/items/properties/plannedVisitId/type" == "/".join(list(error.schema_path))):
+            if error.cause is None:
+                last_error=error
+                ig.main_logger.write(
+                    level="error",
+                    message=f"Planned Visit is missing"
+                )
             return True
         else:
             last_error=error
             ig.main_logger.write(
                 level="error",
-                message=f"{error}",
+                message=f"Some other Validation Error... {error}",
+                flush=True
+            )
+            ig.main_logger.write(
+                level="debug",
+                message=f"Message: {error.__dict__}",
                 flush=True
             )
         return f"ValidationError: {error}"
-    except jsonschema.SchemaError as error:
+    except jsonschema.exceptions.SchemaError as error:
+        
+        ig.main_logger.write(
+            level="error",
+            message=f"Schema Error {NameError}"
+        )
         return f"SchemaError: {error}"
-    
+    except Exception as error:
+        
+        ig.main_logger.write(
+            level="error",
+            message=f"Exception of {type(error)}:{error}",
+            flush=True
+        )
+        ig.main_logger.write(
+            level="error",
+            message=f"error:{error.__dict__}",
+            flush=True
+        )
     return False
 
 def is_same_type(value, field_type):
@@ -307,7 +353,9 @@ class Assessment(ImmPort_Data):
             print('Please do not delete or edit this column', file=fh)
 
             most_result_data = max(list(map(lambda x: len(x["resultData"]), self.data)))
-            print(*Assessment.panel_header_columns,'Result Separator Column', (*Assessment.component_header_columns * most_result_data), sep=separator, file=fh)
+            # TODO: Check if removing () still works or if this throws an error.
+            print(*Assessment.panel_header_columns,'Result Separator Column', *Assessment.component_header_columns * most_result_data, sep=separator, file=fh)
+            # print(*Assessment.panel_header_columns,'Result Separator Column', (*Assessment.component_header_columns * most_result_data), sep=separator, file=fh)
 
             for datum in self.data:
                 row_data = [''] # For Column Name

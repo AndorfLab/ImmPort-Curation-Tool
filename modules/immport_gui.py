@@ -1,5 +1,6 @@
 import pandas as pd
 import os
+import re
 import shutil
 
 from modules import processRedCapFiles as rc
@@ -16,6 +17,42 @@ import logging
 logging_buffer_data = {}
 main_logger=""
 output2 = widgets.Output(layout=widgets.Layout(max_height="425px", overflow_y="auto"))
+
+documentation_base_url = "https://github.com/JoshuaFortriede/ImmPort-Curation-Tool/blob/develop"
+
+import asyncio
+
+class Timer:
+    def __init__(self, timeout, callback):
+        self._timeout = timeout
+        self._callback = callback
+
+    async def _job(self):
+        await asyncio.sleep(self._timeout)
+        self._callback()
+
+    def start(self):
+        self._task = asyncio.ensure_future(self._job())
+
+    def cancel(self):
+        self._task.cancel()
+
+def debounce(wait):
+    """ Decorator that will postpone a function's
+        execution until after `wait` seconds
+        have elapsed since the last time it was invoked. """
+    def decorator(fn):
+        timer = None
+        def debounced(*args, **kwargs):
+            nonlocal timer
+            def call_it():
+                fn(*args, **kwargs)
+            if timer is not None:
+                timer.cancel()
+            timer = Timer(wait, call_it)
+            timer.start()
+        return debounced
+    return decorator
 
 class CustomFormatter(logging.Formatter):
     """Logging colored formatter, adapted from https://stackoverflow.com/a/56944256/3638629"""
@@ -79,17 +116,17 @@ class log_viewer(logging.Handler):
 
         # setFormatter function is derived from logging.Handler
         for key, value in kwargs.items():
-            # print(f"{key}:{value}")
             if "{}".format(key) == "format":
                 self.setFormatter(value)
 
         if "output" in kwargs:
             self.output = kwargs["output"]
+            # print("use provided output")
         else:
             self.output = output2
 
         # make the logger send data to this class
-        self.logger_instance.addHandler(self)
+        # self.logger_instance.addHandler(self)  #DO we need this???
         self.setFormatter(CustomFormatter(self.fmt))
 
     def emit(self, record):
@@ -97,8 +134,19 @@ class log_viewer(logging.Handler):
         formatted_record = self.format(record)
         print_html2 = HTML(html_text = f"<font color='blue' style='white-space: pre; font-size=16px'>{formatted_record}")
 
+
+        # print(print_html2.widget.__dict__)
+        # self.output.outputs = (print_html2.widget.value, ) + self.output.outputs 
+        # self.show_logs()
+
+    # def show_logs(self):
+    #     with self.output:
+    #         display(print_html2.widget)
+
+        # self.output.append_stdout(print_html2.widget.value)
         with self.output:
             display(print_html2.widget)
+            # display(print_html2.widget)
 
 class GUI_Object():
     """Class to hold GUI object methods"""
@@ -112,7 +160,7 @@ class GUI_Object():
     
     def display(self):
         """Display the widget"""
-        return self.widget
+        return self.get()
     
     def set_observe(self, callback_function, callback_data):
         self.widget.observe(functools.partial(callback_function, **callback_data), names='value')
@@ -227,28 +275,142 @@ class GUI(GUI_Object):
         self.add_tab(Tab("2. Data Dictionary",self.generate_tab_data_dictionary()))
         self.add_tab(Tab("3. Study Files",self.generate_tab_study_files()))
         self.add_tab(Tab("Logging",self.generate_tab_logging()))
+        self.add_tab(Tab("Help",self.generate_tab_help()))
         self.log(message="GUI generated", level="info")
         self.flush_log()
         return self.widget
     
+    def generate_tab_help(self):
+        self.objects["html_documentation_user_guide"] = HTML(html_text=f"<H1><a href='{documentation_base_url}/documentation/README.md'>User Guide</a></h1><p>A step-by-step guide on using this tool.</p>",description="")
+
+        tab = widgets.VBox([
+            self.objects["html_documentation_user_guide"].get()
+        ])
+
+        return tab
+
     def generate_tab_study_info(self):
         """Generate the study info tab"""
-        self.objects["toggle_current_immport_study"] = ToggleButtons(description="Is this a current Immport study?", options=[('Yes',1),('No',0)], value=1, tooltip='Has this study been registered in ImmPort?', style=dict(description_width='initial'))
+        #TODO Add fields to get study ID and workspace ID if no TAB file is provided.
+
+        self.objects["toggle_current_immport_study"] = ToggleButtons(description="How do you want to start?", options=[('Use ImmPort TAB file',1),('Download information from ImmPort',0)], value=1, tooltip='Has this study been registered in ImmPort?', style=dict(description_width='initial',button_width='auto'))
         self.objects["dropdown_study_visit_list"] = Dropdown(options=[''], description='<b>Study Visits:</b>', tooltip='View the loaded study visits')
         self.objects["filechooser_study_tab_file"] = File_Chooser(name="filechooser_study_tab_file", title='<b>Select the ImmPort Study Tab zip file</b>', tooltip='Load a study tab file',multiple=False,filter_pattern=['SDY*-DR*_Tab.zip'], style=dict(description_width='initial'))
         self.objects["filechooser_study_tab_file"].set_onclick(self, callback_function=on_select_study_tab_file2, callback_data = {"gui":self, "fc_name":"filechooser_study_tab_file"})
 
-        box_immport_study_yes = widgets.VBox([self.objects["filechooser_study_tab_file"].get()])
-        box_immport_study_no = widgets.VBox([])
+        self.objects["filechooser_planned_visits"] = File_Chooser(name="filechooser_planned_visits", title='<b>Select the ImmPort Planned Visit file</b>', tooltip='Load a planned visit file',multiple=False,filter_pattern=['*.csv'], style=dict(description_width='initial'))
+        self.objects["filechooser_planned_visits"].set_onclick(self, callback_function=self.load_planned_visit_file, callback_data = {})
+
+        self.objects["filechooser_study_files"] = File_Chooser(name="filechooser_study_files", title='<b>Select the ImmPort Study Files file</b>', tooltip='Load a study files file',multiple=False,filter_pattern=['*.csv'], style=dict(description_width='initial'))
+        self.objects["filechooser_study_files"].set_onclick(self, callback_function=self.load_study_file, callback_data = {})
+
+        self.objects["html_non_Immport"] = HTML(html_text='',description=f"<b>Please load the following files <a href='{documentation_base_url}/documentation/Load_files_from_immport.md'>downloadable from ImmPort</a></b>")
+
+        self.objects["text_study_id"] = TextField(placeholder="SDY9999",description="Study ID", regex="SDY\d+")
+        self.objects["text_workspace_id"] = TextField(placeholder="9999",description="Workspace ID", regex="\d+")
+
+        self.objects["text_study_id"].set_observe(callback_function=self.set_study_id_from_textfield, callback_data = {})
+        self.objects["text_workspace_id"].set_observe(callback_function=self.set_workspace_id_from_textfield, callback_data = {})
+
+        box_immport_study_yes = VBox(name="box_immport_study_yes")
+        box_immport_study_no = VBox(name="box_immport_study_no")
+
+        box_immport_study_no.toggle_display()
+
+        box_planned_visits = VBox(name='box_planned_visits')
+        box_planned_visits.set_children([self.objects['filechooser_planned_visits'].get()])
+        box_planned_visits.toggle_display()
+
+        #TODO need toggle to load study files file
+        box_study_files = VBox(name='box_study_files')
+        box_study_files.set_children([self.objects['filechooser_study_files'].get()])
+        box_study_files.toggle_display()
+
+        self.objects["toggle_non_tab_files"] = ToggleButtons(description="Amend Tab file with new planned visits and/or study files?", options=[('Yes',1),('No',0)], value=0, tooltip='', style=dict(description_width='initial',button_width='auto'))
+
+        box_immport_study_yes.set_children([self.objects["filechooser_study_tab_file"].get(),self.objects["toggle_non_tab_files"].get()])
+        box_immport_study_no.set_children([self.objects["text_workspace_id"].get(), self.objects["text_study_id"].get(), self.objects["html_non_Immport"].get()])
+
         tab = widgets.VBox([
             self.objects["toggle_current_immport_study"].get(), 
-            box_immport_study_yes, 
-            box_immport_study_no,
+            box_immport_study_yes.get(), 
+            box_immport_study_no.get(),
+            box_planned_visits.get(),
+            box_study_files.get(),
             self.objects["dropdown_study_visit_list"].get()
         ])
 
-        self.objects["toggle_current_immport_study"].set_observe(callback_function=self.toggle_show_hide, callback_data={"toggle":{1:[box_immport_study_yes], 0:[box_immport_study_no]}})
+        self.objects["toggle_current_immport_study"].set_observe(callback_function=self.toggle_show_hide, callback_data={
+            "toggle":{
+                1:[box_immport_study_yes], 
+                0:[box_immport_study_no,box_planned_visits,box_study_files]
+                }
+            })
+
+        self.objects["toggle_non_tab_files"].set_observe(callback_function=self.toggle_show_hide, callback_data={
+            "toggle":{
+                1:[box_planned_visits,box_study_files], 
+                0:[]
+                }
+            })
         return tab
+
+    def load_study_file(self, value):
+        if value.description == "Change":
+            filename = self.objects["filechooser_study_files"].get_filepath()
+            with open(filename, 'r') as pv:
+                if filename.endswith(".csv"):
+                    sep = ","
+                else:
+                    sep = "\t"
+
+                self.data["study_files"] = pd.read_csv(pv, sep=sep)
+
+                rename_map={
+                    "Study File Accession":"STUDY_FILE_ACCESSION",
+                    "Study File Type":"STUDY_FILE_TYPE",
+                    "File Name":"FILE_NAME",
+                    "Description":"DESCRIPTION"
+                }
+
+                for col in list(rename_map.keys()):
+                    if col not in self.data["study_files"].columns:
+                        del rename_map[col]
+                self.data["study_files"].rename(columns=rename_map, inplace=True)
+
+    def load_planned_visit_file(self, value):
+        if value.description == "Change":
+            planned_visit_filename = self.objects["filechooser_planned_visits"].get_filepath()
+            with open(planned_visit_filename, 'r') as pv:
+                if planned_visit_filename.endswith(".csv"):
+                    sep = ","
+                else:
+                    sep = "\t"
+
+                self.data["planned_visit"] = pd.read_csv(pv, sep=sep)
+
+                rename_map={
+                    "PV Accession":"PLANNED_VISIT_ACCESSION",
+                    "Name":"NAME",
+                    "Min Start Day":"MIN_START_DAY",
+                    "Max Start Day":"MAX_START_DAY",
+                    "Start Rule":"START_RULE",
+                    "End Rule":"END_RULE",
+                    "Order Number":"ORDER_NUMBER",
+                    "Test Delete":"Not Present"
+                }
+
+                for col in list(rename_map.keys()):
+                    if col not in self.data["planned_visit"].columns:
+                        del rename_map[col]
+                self.data["planned_visit"].rename(columns=rename_map, inplace=True)
+
+        
+            visit_names = get_planned_visits2(self.data["planned_visit"],nameonly=True, returnType="list")
+            # # unique_logging_buffer_load(level="debug",message=f"visit names: {', '.join(visit_names)}")
+            
+            # ## TODO
+            self.objects["dropdown_study_visit_list"].set_options(visit_names)
 
     def load_data_dictionary(self,gui):
         self.objects["button_filechooser_data_dictionary_load"].button_change(button=self.objects["button_filechooser_data_dictionary_load"], style='warning', text='Loading',tooltip='The data dictionary file is being loaded',disabled=False, icon='spinner')
@@ -336,7 +498,7 @@ class GUI(GUI_Object):
                 except Exception as err:
                     self.log(message=f"Error processing {table_code} - {err}", level='error', flush=True)
                     pass
-        self.objects["button_generate_files"].button_change(button=self.objects["button_generate_files"], style='success', text='Files Generated',tooltip='Files have been generated in the Results folder. Click to re-generate files.',disabled=False, icon='')
+        self.objects["button_generate_files"].button_change(button=self.objects["button_generate_files"], style='success', text='Files Generated - Click to Re-Generate',tooltip='Files have been generated in the Results folder. Click to re-generate files.',disabled=False, icon='')
         # return fh_zip_file
 
     def generate_tab_logging(self):
@@ -414,6 +576,26 @@ class GUI(GUI_Object):
             visit_names = self.get_planned_visits(nameonly=True, returnType="list")
             set_visit_dropdown(visit_names)
 
+    def set_study_id_from_textfield(self,value):
+        if value.type == 'change':
+            self.set_study_id(value["new"])
+
+    def set_workspace_id_from_textfield(self,value):
+        if value.type == 'change':
+            self.set_workspace_id(value["new"])
+
+    def set_study_id(self, study_id):
+        if "study" not in self.data:
+            self.data["study"]={"STUDY_ACCESSION":[study_id]}
+            return
+        self.data["study"]["STUDY_ACCESSION"]=[study_id]
+
+    def set_workspace_id(self, workspace_id):
+        if "study" not in self.data:
+            self.data["study"]={"WORKSPACE_ID":[workspace_id]}
+            return
+        self.data["study"]["WORKSPACE_ID"]=[workspace_id]
+
     def get_study_id(self):
         return self.data["study"]["STUDY_ACCESSION"][0]
 
@@ -460,6 +642,8 @@ class GUI(GUI_Object):
         return
 
     def generate_tab_data_dictionary(self):
+        self.objects["html_documentation_curated_dd"] = HTML(html_text=f"<h2><a title='Information on creating a curated data dictionary' href='{documentation_base_url}/documentation/Curated_Data_Dictionary.md'>Curated Data Dictionary User Guide</a></h2>",description="")
+
         """Generate the data dictionary tab"""
         self.objects["filechooser_data_dictionary"] = File_Chooser(name="filechooser_data_dictionary", title='<b>Select the curated data dictionary</b>', tooltip='Load a curated data dictionary file',multiple=False,filter_pattern=['*.csv','*.txt',"*.tsv"], style=dict(description_width='initial'))
         
@@ -473,7 +657,11 @@ class GUI(GUI_Object):
         self.objects["tab_row_dd_form_row"] = widgets.HBox([self.objects["dropdown_table_form_column"].get(),self.objects["button_form_column_confirm"].get()])
         self.hide_row("tab_row_dd_form_row")
 
-        tab = widgets.VBox([self.objects["tab_row_dd_row"],self.objects["tab_row_dd_form_row"]])
+        tab = widgets.VBox([
+            self.objects["html_documentation_curated_dd"].get(),
+            self.objects["tab_row_dd_row"],
+            self.objects["tab_row_dd_form_row"]
+        ])
 
         return tab
     
@@ -490,13 +678,14 @@ class GUI(GUI_Object):
 
     def toggle_show_hide(self, value, toggle):
         """Toggle the study immport tab"""
+        ## Need to cycle through all elements in all keys to hide if not present.
         for (key, element_list) in toggle.items():
             if key == value["new"]:
                 for element in element_list:
-                    self.show_hide_element(element, '')
+                    element.show_hide_element('')
             else:
                 for element in element_list:
-                    self.show_hide_element(element, 'none')
+                    element.show_hide_element('none')
 
     def hide_row(self, row):
         """Hide a row"""
@@ -606,7 +795,44 @@ class ToggleButtons(GUI_Object):
                 style=style
             )
         )
+
+class TextField(GUI_Object):
+    counter = 0
+    def __init__(self, **kwargs):
+        super().__init__(
+            widgets.Text(
+                value=kwargs.get("text",""),
+                placeholder=kwargs.get("placeholder",""),
+                description=kwargs.get("description",""),
+                disabled=False
+            )
+        )
+
+        self.name = kwargs.get("name","undefined_textfield_"+str(TextField.counter))
+        TextField.counter+=1
+
+        if "regex" in kwargs:
+            self.widget.observe(self.check_value, names='value')
+            self.regex = kwargs["regex"]
+            self.helper = HTML(html_text=f"<span style='color:red'>Invalid Value! Please use a value that matches the format of {self.regex}</span>")
+            self.helper.toggle_display()
     
+    def get(self):
+        """Return the widget"""
+        if hasattr(self, "helper"):
+            return widgets.HBox([self.widget,self.helper.get()])
+        return self.widget
+
+
+
+    @debounce(1)    #Wait 1 second
+    def check_value(self, value):
+        if value["type"]=="change":
+            if re.fullmatch(self.regex, self.widget.value.upper()) is None:
+                self.helper.show_hide_element(display='')
+                return
+            self.helper.show_hide_element(display='none')
+
 class File_Chooser(GUI_Object):
     """FileChooser class"""
     def __init__(self, name, **kwargs):
