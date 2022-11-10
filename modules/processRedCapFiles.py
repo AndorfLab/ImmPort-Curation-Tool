@@ -1,7 +1,5 @@
 import csv
 import regex
-import sys
-import logging
 
 # TODO
 # Reports
@@ -10,7 +8,8 @@ import logging
         # Conviently there are other fields that have the same name that are in the
         # study file. 
 
-
+#TODO Create Class DataDictionary
+#TODO Create Class DataFile
 
 def parseCodeListValues(valueString):
     #regex : split on ", " where the next characters are either digits or a "word" followed by a =
@@ -74,6 +73,3 @@ def parseDataDictionary(filename):
             parseDictionaryRow(row, dictionary)
 
     return dictionary
-
-def helloWorld():
-    return "2"
