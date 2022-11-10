@@ -116,17 +116,17 @@ class log_viewer(logging.Handler):
 
         # setFormatter function is derived from logging.Handler
         for key, value in kwargs.items():
-            # print(f"{key}:{value}")
             if "{}".format(key) == "format":
                 self.setFormatter(value)
 
         if "output" in kwargs:
             self.output = kwargs["output"]
+            # print("use provided output")
         else:
             self.output = output2
 
         # make the logger send data to this class
-        self.logger_instance.addHandler(self)
+        # self.logger_instance.addHandler(self)  #DO we need this???
         self.setFormatter(CustomFormatter(self.fmt))
 
     def emit(self, record):
@@ -134,8 +134,19 @@ class log_viewer(logging.Handler):
         formatted_record = self.format(record)
         print_html2 = HTML(html_text = f"<font color='blue' style='white-space: pre; font-size=16px'>{formatted_record}")
 
+
+        # print(print_html2.widget.__dict__)
+        # self.output.outputs = (print_html2.widget.value, ) + self.output.outputs 
+        # self.show_logs()
+
+    # def show_logs(self):
+    #     with self.output:
+    #         display(print_html2.widget)
+
+        # self.output.append_stdout(print_html2.widget.value)
         with self.output:
             display(print_html2.widget)
+            # display(print_html2.widget)
 
 class GUI_Object():
     """Class to hold GUI object methods"""
@@ -487,7 +498,7 @@ class GUI(GUI_Object):
                 except Exception as err:
                     self.log(message=f"Error processing {table_code} - {err}", level='error', flush=True)
                     pass
-        self.objects["button_generate_files"].button_change(button=self.objects["button_generate_files"], style='success', text='Files Generated',tooltip='Files have been generated in the Results folder. Click to re-generate files.',disabled=False, icon='')
+        self.objects["button_generate_files"].button_change(button=self.objects["button_generate_files"], style='success', text='Files Generated - Click to Re-Generate',tooltip='Files have been generated in the Results folder. Click to re-generate files.',disabled=False, icon='')
         # return fh_zip_file
 
     def generate_tab_logging(self):
