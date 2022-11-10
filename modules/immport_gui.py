@@ -14,6 +14,8 @@ import functools
 import logging
 import asyncio
 
+#TODO need to eventually change this to master branch when fully complete and merged
+#TODO potentially move to external file
 documentation_base_url = "https://github.com/JoshuaFortriede/ImmPort-Curation-Tool/blob/develop"
 
 class Timer:
