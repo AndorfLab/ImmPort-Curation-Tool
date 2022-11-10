@@ -1,11 +1,9 @@
 import pandas as pd
 import os
 import re
-import shutil
 
 from modules import processRedCapFiles as rc
 from modules import curationFunctions as cf
-from modules import analysisFunctions as af
 from modules import schemaFunctions as sf
 
 import zipfile
@@ -14,12 +12,9 @@ from ipyfilechooser import FileChooser
 
 import functools
 import logging
-
-logging_buffer_data = {}
+import asyncio
 
 documentation_base_url = "https://github.com/JoshuaFortriede/ImmPort-Curation-Tool/blob/develop"
-
-import asyncio
 
 class Timer:
     def __init__(self, timeout, callback):
