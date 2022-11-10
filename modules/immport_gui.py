@@ -14,9 +14,8 @@ from ipyfilechooser import FileChooser
 
 import functools
 import logging
+
 logging_buffer_data = {}
-main_logger=""
-output2 = widgets.Output(layout=widgets.Layout(max_height="425px", overflow_y="auto"))
 
 documentation_base_url = "https://github.com/JoshuaFortriede/ImmPort-Curation-Tool/blob/develop"
 
@@ -115,7 +114,7 @@ class log_viewer(logging.Handler):
         if "output" in kwargs:
             self.output = kwargs["output"]
         else:
-            self.output = output2
+            self.output = widgets.Output(layout=widgets.Layout(max_height="425px", overflow_y="auto"))
 
         self.setFormatter(CustomFormatter(self.fmt))
 
@@ -467,13 +466,11 @@ class GUI(GUI_Object):
 
     def generate_tab_logging(self):
         """Generate the logging tab"""
-        global main_logger
         self.loggers["output_logger"] = Log_Output(name="output_logger")
         
         self.objects["button_clear_main_logger"] = self.loggers["output_logger"].add_clear_button(description="Clear", tooltip="Clear the main logger")
 
         self.main_logger=self.loggers["output_logger"]
-        main_logger = self.loggers["output_logger"]
 
         tab = widgets.VBox([self.objects["button_clear_main_logger"].get(), self.loggers["output_logger"].get()])
 
