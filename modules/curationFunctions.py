@@ -4,15 +4,11 @@ import os
 import subprocess
 import re
 import traceback
-import logging
-import sys
-import csv
 import json
 import numpy as np
 from io import StringIO
 from zipfile import ZipFile
 from modules import immport_gui as ig
-
 
 pd.options.display.max_columns = 400
 pd.options.display.max_rows = 200
@@ -29,7 +25,6 @@ def writePanelComponentTemplate(panel, component,header, filepath):
 
     #Need separator as | as it is not in string and allows correct output of data.
     header.to_csv(filepath, sep="|",index=False, encoding='utf-8')
-
 
     df_temp.to_csv(filepath, sep="\t", mode='a',header=False, index=False)
 
@@ -60,12 +55,6 @@ def readFileFromZip(dir,zip,file):
     except:
         raise NotImplementedError("Zip extract went wrong")
 
-def getColumnNumber(df,col_name):  #legacy?
-    try:
-        return df.columns.get_loc(col_name)
-    except:
-        return False
-
 def get_studyfile_line_count(directory):
     result = pd.read_csv(StringIO(subprocess.getoutput(f"wc --lines {directory}/*.txt")),encoding='utf8',header=None,names=["wc result"])
 
@@ -84,7 +73,6 @@ def addVisitAccessionFromName(planned_visits, table, visit_col,dictionary,file_t
     dict_visits=dict(zip(planned_visits["NAME"],planned_visits["PLANNED_VISIT_ACCESSION"]))
     
     if(table_column is None):
-        # ig.unique_logging_buffer_load(level="debug",message=f"No visit column in table, using default: {default_visit}", flush=True)
         if(default_visit is not None):
             table["PLANNED_VISIT_ID"]=dict_visits.get(default_visit,"")
             table_visit = pd.DataFrame(data={'plannedVisit':['']})
@@ -112,7 +100,7 @@ def addVisitAccessionFromName(planned_visits, table, visit_col,dictionary,file_t
                 table_visits.loc[index,"plannedVisit"]=dict_visits[key]
             elif(~row[table_column][0:1].isnumeric() & row[table_column][1:].isnumeric() & ("Visit "+row[table_column][1:] in key)):
                 table_visits.loc[index,"plannedVisit"]=dict_visits[key]
-            # else:
+            # else: #TODO write to log
             #     logging.warn(f"Cannot find planned visit for {key}")
             #     ig.unique_logging_buffer_load(level="warn", message=f"Cannot find planned visit for {key}")
     
@@ -130,9 +118,6 @@ def addVisitAccessionFromName(planned_visits, table, visit_col,dictionary,file_t
     if(len(missingVisits)>0):
         ig.main_logger.write(level="error",message=f"Missing Visits\n{'|'.join(list(missingVisits.keys()))}")
         ig.main_logger.write(level="error",message=f"Available Visits\n{'|'.join(list(dict_visits2.keys()))}")
-        # missingVisits_all[file_table]=list(missingVisits.keys())
-
-        # logging.info(missingVisits_all)
 
     table["PLANNED_VISIT_ID"]=table[table_column].apply(lambda v: dict_visits2[v])
 
@@ -173,8 +158,6 @@ def readStudyFile(filepath, table, dictionary, sep="\t"):
 
     #Rename columns with the description that is in the data dictionary
     datafile.rename(columns=lambda c: dictionary["tables"][table]["fields"][c]["description"] if c in dictionary["tables"][table]["fields"] else c, inplace=True)
-
-
     return datafile
 
 def getAssessmentPanelByID(panel_ID,assessment_panel_df):
@@ -220,7 +203,6 @@ def datafileToComponents(datafile,dictionary,table_name_array,assessment_compone
         for col in datacolumns:
             df_slim = datafile[set_columns].copy()
             # This is processing entire rows of data files, it is not iterating over each cell
-            # if property, need to 
             # Need to check to see if this is an actual question or a property (Age of Onset, Location, Date, etc) of another question.
             col_name= dictionary["tables"][table_name]["fields"][col]["description"]
             if col_name in datafile:
@@ -291,37 +273,6 @@ def datafileToComponents(datafile,dictionary,table_name_array,assessment_compone
         
     return assessment_components_template
 
-
-# def datafileToComponents(datafile,startCol,panel_id,assessment_components_template,workspace_id=9999,col_mappings={},col_units={}):
-def datafileToComponents_old(datafile,dictionary,table_name,panel_id,assessment_components_template,workspace_id=9999,col_units={}):
-    #Remove any records of this table already loaded into the components table.
-    assessment_components_template.drop(assessment_components_template[assessment_components_template["ASSESSMENT_PANEL_ACCESSION"] == panel_id].index, inplace=True)
-    col_mappings = createColumnMappingDict(dictionary,table_name)
-
-    question_id = 0
-    datafile.rename(columns=col_mappings,inplace=True)
-    datacolumns = datafile.columns[startCol:]
-    set_columns = list(col_mappings.values())
-
-    df_slim = datafile[set_columns].copy()
-
-    for col in datacolumns:
-        question_id = question_id + 1
-        component_id = f"{panel_id}_{question_id}"
-        
-        df_slim["component_group_id"]=component_id
-        df_slim["Name Reported"]=col
-        df_slim["Result Value Reported"]=datafile[col]
-        df_slim["ASSESSMENT_PANEL_ACCESSION"]=panel_id
-        df_slim["WORKSPACE_ID"]=workspace_id
-        
-        df_slim["Result Unit Reported"] = dictionary["tables"][table_name]["fields"][col]["unit"]
-        df_slim["Verbatim Question"] = dictionary["tables"][table_name]["fields"][col]["unit"]
-
-        assessment_components_template=assessment_components_template.append(df_slim, ignore_index=True)
-    
-    return assessment_components_template
-
 def getColumnMapping(dictionary,table_name,mapping):
     if(mapping in dictionary["tables"][table_name]["mappings"]):
         return dictionary["tables"][table_name]["mappings"][mapping]
@@ -384,7 +335,7 @@ def getAssessmentPanelID(crf_Files,study_files,assessment_panel_df,study_id,asse
     
     if(panelCount == 0):
         #We need to create a new panel
-        print(f"Create new panel for files: {filename_string}")
+        print(f"Create new panel for files: {filename_string}") #TODO change to logging as debug
         new_data={'Assessment Panel ID':f'CCHMC_{dataframe_rows+1}','Study ID':study_id, 'Name Reported':name_reported, 'CRF File Names':filename_string, 'Assessment Type': assessment_type}
         assessment_panel_df=assessment_panel_df.append(new_data, ignore_index=True)
     

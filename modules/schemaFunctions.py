@@ -1,5 +1,4 @@
 import os
-from attr import field
 import jsonschema
 import json
 from modules import curationFunctions as cf
@@ -11,7 +10,6 @@ json_schema_template_path   = "templates/json-templates"
 txt_template_path           = "templates/txt-templates"
 
 last_error =""
-
 
 def check_directory_exists(path):
     directory_path = os.path.dirname(path)
@@ -176,6 +174,7 @@ def load_data_fields(validator):
         json_data = json.load(fh_json_file)
         return json_data['properties']
 class ImmPort_Data: 
+    #TODO Read in from file
     schemaVersion = "3.36"
     #Stored in schemas as properties.schemaVersion.enum[0]
     #It would be good to read this in rather than hard-coding
@@ -187,7 +186,6 @@ class ImmPort_Data:
                 continue
             print_data[attr]=self[attr]
         return print_data
-
 
     def validate(self):
         self.obj_to_data()
@@ -217,7 +215,6 @@ class ImmPort_Data:
         if "maxLength" in key_properties:
             truncated_value = check_data_length(value, key_properties["maxLength"], truncate=type(self).truncate_long_fields, key=key)
             if truncated_value is not None:
-                # ig.main_logger(message=f"\tTruncated {key} from {len(value)} to {len(truncated_value)}", level='warn')
                 self.set_data(key, truncated_value)
                 return
 
@@ -242,8 +239,6 @@ class Assessment(ImmPort_Data):
         self.records=[]
 
     def add_record(self, record):
-        #Should this store the actual class or the contents?
-        # self.data.append(record.__dict__)
         self.records.append(record)
 
     def get_obj(self):
@@ -266,7 +261,6 @@ class Assessment(ImmPort_Data):
         
         
     def process_study_file(self, study_file_info=None, study_file_directory=None, data_dictionary=None, planned_visits=None, study_id=None, workspace_id=None, name_reported=None):
-        # return
         filename = study_file_info.get("Filename")
         table_code = study_file_info.get("Table Code")
         assessment_name = study_file_info.get("Assessment Name")
@@ -308,27 +302,18 @@ class Assessment(ImmPort_Data):
     def load_df(self, dataframe, panel, crfFileNames=None, studyId=None):
         assessment_data = {}
 
-        # new_assessment = Assessment()
         for index, row in dataframe.iterrows():
             field_data = self.convert_result_columns_to_fields(row.to_dict())
             userID = field_data.get('userDefinedId')
-            # ig.main_logger.write(message="Processing userDefinedId:", level='debug', flush=True)
-            # ig.main_logger.write(message=userID, level='debug', flush=True)
             
             if userID not in assessment_data:
                 assessment_data[userID] = Assessment_Datum(assessment_panel=panel, subject_id=userID)
-            # ig.main_logger.write(message="datum added, going to result data", level='debug', flush=True)
-            # ig.main_logger.write(message=f"{studyId} - {crfFileNames}", level='debug', flush=True)
             
             result_data_obj = Assessment_ResultData(studyId=studyId, crfFileNames=crfFileNames ,**field_data)
-            # ig.main_logger.write(message="Done - result data", level='debug', flush=True)
             assessment_data[userID].add_result_data(result_data_obj)
-            # ig.main_logger.write(message="Done - result data - Added", level='debug', flush=True)
-
 
         for record in assessment_data.values():
             self.add_record(record)
-
 
     # TODO: Look about moving to ImmPort_Data Class
     def export_to_json(self, filename=None):
@@ -353,9 +338,7 @@ class Assessment(ImmPort_Data):
             print('Please do not delete or edit this column', file=fh)
 
             most_result_data = max(list(map(lambda x: len(x["resultData"]), self.data)))
-            # TODO: Check if removing () still works or if this throws an error.
             print(*Assessment.panel_header_columns,'Result Separator Column', *Assessment.component_header_columns * most_result_data, sep=separator, file=fh)
-            # print(*Assessment.panel_header_columns,'Result Separator Column', (*Assessment.component_header_columns * most_result_data), sep=separator, file=fh)
 
             for datum in self.data:
                 row_data = [''] # For Column Name
@@ -431,11 +414,9 @@ class Assessment_Datum(ImmPort_Data):
     
     def set_metadata(self, metadata_obj):
         self.metaData = metadata_obj
-        # self.metaData = metadata_obj.get_data()
 
     def add_result_data(self, result_data_obj):
         self.resultData.append(result_data_obj)
-        # self.resultData.append(result_data_obj.get_data())
 
     def print_obj(self):
         return self.__dict__
@@ -475,7 +456,6 @@ class Assessment_Panel(ImmPort_Data):
 
         self.data={}
         self.set_data_value("assessmentPanelId", f"{studyId}_{filename_string}_Panel{Assessment_Panel.iterable_counter}")
-        # self.set_data_value("assessmentPanelId", "Panel%s" % Assessment_Panel.iterable_counter)
         self.set_data_value("nameReported", nameReported)
         self.set_data_value("assessmentType", assessmentType)
         self.set_data_value("studyId", studyId)
@@ -582,7 +562,3 @@ class Assessment_ResultData(ImmPort_Data):
 
 
 schema_store = get_schema_store(json_schema_template_path)
-
-
-
-
