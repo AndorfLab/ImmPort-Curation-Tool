@@ -26,3 +26,5 @@ The purpose of the Immport Curation Tool is to easily transform study data files
 
 
 ## Setup Jupyter Notebooks in VS Code
+- Install jupyter extension: jupyter nbextension install --user --py widgetsnbextension
+- Enable juypter extesion: jupyter nbextension enable --py widgetsnbextension
