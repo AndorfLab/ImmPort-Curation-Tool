@@ -287,6 +287,11 @@ class GUI(GUI_Object):
 
         box_immport_study_no.toggle_display()
 
+        box_immport_download_instructions = VBox(name='box_immport_download_instructions')
+        box_immport_download_instructions.set_children([self.objects['html_non_Immport'].get()])
+        box_immport_download_instructions.toggle_display()
+
+
         box_planned_visits = VBox(name='box_planned_visits')
         box_planned_visits.set_children([self.objects['filechooser_planned_visits'].get()])
         box_planned_visits.toggle_display()
@@ -298,12 +303,13 @@ class GUI(GUI_Object):
         self.objects["toggle_non_tab_files"] = ToggleButtons(description="Amend Tab file with new planned visits and/or study files?", options=[('Yes',1),('No',0)], value=0, tooltip='', style=dict(description_width='initial',button_width='auto'))
 
         box_immport_study_yes.set_children([self.objects["filechooser_study_tab_file"].get(),self.objects["toggle_non_tab_files"].get()])
-        box_immport_study_no.set_children([self.objects["text_workspace_id"].get(), self.objects["text_study_id"].get(), self.objects["html_non_Immport"].get()])
+        box_immport_study_no.set_children([self.objects["text_workspace_id"].get(), self.objects["text_study_id"].get()])
 
         tab = widgets.VBox([
             self.objects["toggle_current_immport_study"].get(), 
             box_immport_study_yes.get(), 
             box_immport_study_no.get(),
+            box_immport_download_instructions.get(),
             box_planned_visits.get(),
             box_study_files.get(),
             self.objects["dropdown_study_visit_list"].get()
@@ -312,13 +318,13 @@ class GUI(GUI_Object):
         self.objects["toggle_current_immport_study"].set_observe(callback_function=self.toggle_show_hide, callback_data={
             "toggle":{
                 1:[box_immport_study_yes], 
-                0:[box_immport_study_no,box_planned_visits,box_study_files]
+                0:[box_immport_study_no,box_planned_visits,box_study_files,box_immport_download_instructions]
                 }
             })
 
         self.objects["toggle_non_tab_files"].set_observe(callback_function=self.toggle_show_hide, callback_data={
             "toggle":{
-                1:[box_planned_visits,box_study_files], 
+                1:[box_planned_visits,box_study_files,box_immport_download_instructions], 
                 0:[]
                 }
             })
