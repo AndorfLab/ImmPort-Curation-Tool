@@ -7,4 +7,13 @@ data/
 results/SDY1433/SDY1433_NULO.json
 results/SDY1433/SDY1433_NULO.txt
 
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
 .devcontainer/
