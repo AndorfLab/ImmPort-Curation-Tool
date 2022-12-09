@@ -14,6 +14,8 @@ import functools
 import logging
 import asyncio
 
+main_logger=''
+
 #TODO need to eventually change this to master branch when fully complete and merged
 #TODO potentially move to external file
 documentation_base_url = "https://github.com/JoshuaFortriede/ImmPort-Curation-Tool/blob/develop"
@@ -263,7 +265,7 @@ class GUI(GUI_Object):
         """Generate the study info tab"""
         #TODO Add fields to get study ID and workspace ID if no TAB file is provided.
 
-        self.objects["toggle_current_immport_study"] = ToggleButtons(description="How do you want to start?", options=[('Use ImmPort TAB file',1),('Download information from ImmPort',0)], value=1, tooltip='Has this study been registered in ImmPort?', style=dict(description_width='initial',button_width='auto'))
+        self.objects["toggle_current_immport_study"] = ToggleButtons(description="How do you want to start?", options=[('Use ImmPort TAB file',1),('Download information from ImmPort',0)], value=1, tooltips=['Downloaded from the public area of ImmPort','Downloaded from the private area of ImmPort'], style=dict(description_width='initial',button_width='auto'))
         self.objects["dropdown_study_visit_list"] = Dropdown(options=[''], description='<b>Study Visits:</b>', tooltip='View the loaded study visits')
         self.objects["filechooser_study_tab_file"] = File_Chooser(name="filechooser_study_tab_file", title='<b>Select the ImmPort Study Tab zip file</b>', tooltip='Load a study tab file',multiple=False,filter_pattern=['SDY*-DR*_Tab.zip'], style=dict(description_width='initial'))
         self.objects["filechooser_study_tab_file"].set_onclick(self, callback_function=on_select_study_tab_file, callback_data = {"gui":self, "fc_name":"filechooser_study_tab_file"})
@@ -300,7 +302,7 @@ class GUI(GUI_Object):
         box_study_files.set_children([self.objects['filechooser_study_files'].get()])
         box_study_files.toggle_display()
 
-        self.objects["toggle_non_tab_files"] = ToggleButtons(description="Amend Tab file with new planned visits and/or study files?", options=[('Yes',1),('No',0)], value=0, tooltip='', style=dict(description_width='initial',button_width='auto'))
+        self.objects["toggle_non_tab_files"] = ToggleButtons(description="Amend Tab file with new planned visits and/or study files?", options=[('Yes',1),('No',0)], value=0, tooltips=[], style=dict(description_width='initial',button_width='auto'))
 
         box_immport_study_yes.set_children([self.objects["filechooser_study_tab_file"].get(),self.objects["toggle_non_tab_files"].get()])
         box_immport_study_no.set_children([self.objects["text_workspace_id"].get(), self.objects["text_study_id"].get()])
@@ -469,11 +471,14 @@ class GUI(GUI_Object):
 
     def generate_tab_logging(self):
         """Generate the logging tab"""
+        global main_logger  #Hack until fixed properly
         self.loggers["output_logger"] = Log_Output(name="output_logger")
         
         self.objects["button_clear_main_logger"] = self.loggers["output_logger"].add_clear_button(description="Clear", tooltip="Clear the main logger")
 
+
         self.main_logger=self.loggers["output_logger"]
+        main_logger=self.main_logger
 
         tab = widgets.VBox([self.objects["button_clear_main_logger"].get(), self.loggers["output_logger"].get()])
 
@@ -729,13 +734,13 @@ class Button(GUI_Object):
 
 class ToggleButtons(GUI_Object):
     """ToggleButtons class"""
-    def __init__(self, options, value=None, description="", tooltip="", style=None):
+    def __init__(self, options, value=None, description="", tooltips=[], style=None):
         super().__init__(
             widgets.ToggleButtons(
                 options=options,
                 value=value,
                 description=description,
-                tooltip=tooltip,
+                tooltips=tooltips,
                 layout=widgets.Layout(width="auto"),
                 style=style
             )
