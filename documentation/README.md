@@ -5,54 +5,55 @@ The purpose of this user guide is to explain how to use the ImmPort Curation Too
 ## Other documentation
 * [Installation Instructions](../README.md#installation-instructions)
 * [Purpose of the tool](../README.md#purpose-of-this-tool)
+
+## Before You Start
+Before you start using this tool, you will need to:
+- [Install the tool](../README.md#installation-instructions)
+- Have the study files you want to convert in a single directory
+- Curate the data dictionary (TODO: Link Needed)
+
+
 ## General Overview of Steps
-0. Run the notebook cell to initiate the tool
-1. Specify the ImmPort study you are working on
-2. Specify the [curated Data Dictionary](./Curated_Data_Dictionary.md) for this study.
-3. Specify the directory containing the study files.
-4. Curate the generated table with necessary data
-5. Generate filled template files
-6. You're now done with the tool, use the outputs on the ImmPort site
-7. Login to Immport and try to validate them
-8. If validation comes back OK, goto the upload
+1. [Start Tool](#step-1:-start-tool)
+2. Specify Study Metadata
+3. Select Data Dictionary
+4. Select Directory containing Study Files
+5. Specify Study File metadata
+6. Generate completed ImmPort Template
 
-## List of Necessary files and the steps that require them
-1. zipped study tab file (Step 1)
-    (only relevant if this is curation upon a previously submitted dataset)
-2. study visits file (Step 1)
-3. ImmPort Study Files (Step 1)
+## Step 1: Start Tool
+Open up the jupyter notebook: forms.ipynb
 
-Run the notebook cell to initiate the tool
+Run the first notebook cell to initiate the tool.
 
-## 1. Study
-Here is an image of the study tab as it first appears. 
+You should not see an output that looks like this.
 
 ![Study1](images/001_Study_Tab.png)
 
-The application needs a source of study data which can be one of two things:
-
-### 1. a zipped TAB file already present in your directories (default)...
-    here's documentation about how to get the tab file _____
-
-### 2. if the data is not already submitted and published fully, a tab file is not availaable, and you will certainly the accessed by specifying it's location in ImmPort
-    if b) you'll need your workspace name: This can be found by  ______ 
+## Step 2. Specify Study Metadata
+There are 2 methods to specify study metadata, specified by clicking the buttons next to the text "How do you want to start?".
+### Method 1: Use ImmPort TAB file
+A valid ImmPort TAB file can be downloaded from the [ImmPort Data Browser](https://www.immport.org/browser). Search for the Study ID that you are looking for, click to open the study folder, and download the _Tab.zip file.  
 
 Select your file by browsing under the select button
 ![Study3](images/002_Select_Tab.png)
 ![Study4](images/006_study_select_with_hands.png)
 
-First, download the study visits file with the instructions here: [More Instructions](https://github.com/JoshuaFortriede/ImmPort-Curation-Tool/blob/develop/documentation/Load_files_from_immport.md)
+> Note: The ImmPort TAB file includes study metadata as well as information for the planned visits and study files. If you need to update these, [follow these instructions](./Load_files_from_immport.md).
 
-Modify the visits table then select it from the appropriate location
-(this may require communication with the ImmPort DB admins to create the visit entity)
+### Method 2: Download information from ImmPort
+If you cannot get a valid TAB file (perhaps this is the intial upload of the study and its not present), then the process is a little more manual.
 
-Download ImmPort Study Files file using the same instructions [More Instructions](https://github.com/JoshuaFortriede/ImmPort-Curation-Tool/blob/develop/documentation/Load_files_from_immport.md) and select the correct file
+First, specify the workspace ID and the study ID.
 
-____ josh the above two files weren't in it when I worked with this before
+Next provide a valid ImmPort Planned Visit file and a valid ImmPort Study Files file. Instructions for obtaining these files are provided in the tool, as well as [here](./Load_files_from_immport.md)
+
+[Image of Study tab, Download information from ImmPort option]
+
 
 Now switch to the Data Dictionary Tab
 ![Dd1](images/007_Data_Dictionary_with_hand.png)
-## 2 Data Dictionary
+## Step 3. Select Data Dictionary
 First, curate the data dictionary according to [these instructions](https://github.com/JoshuaFortriede/ImmPort-Curation-Tool/blob/develop/documentation/Curated_Data_Dictionary.md) ______ and save it to your directory
 
 Then click select, browse to the correct file and re-click select
@@ -63,8 +64,9 @@ Click through, then specify which column in DD holds the table name code
 ![dd4](images/009-1_click.png)
 ![dd6](images/009-3_clicks.png)
 
-## 3 Specify Directory
+## Step 4. Select Directory containing Study Files
 Switch to the Study Files Tab and select the folder that contains the study files.
+> Note: This is selecting a folder, not individual files. you should not see any files in this selector.
 ![study](images/010_StudyFiles_clicks.png)
 ![study12](images/012_pick_study_folder_clicks.png)
 Once you've selected the correct folder, make sure to click the Load Study Files Directory
@@ -76,20 +78,23 @@ Incorrect:
 
 Correct: 
 ![study14](images/014_study_directory_loaded.png)
-## 4 Fill out the table. 
-Use the resulting table to perform these annotations
-1. Assign table codes from the Data Dictionary to the files containing the data for each
-2. Add an assessment name such as Medical History or Demographics relevant for each table
-3. Select the ImmPort Template to which the tool should munge the files. Currently this tool only supports Assessments so pick that for each file to translate
-4. Select the default visit for each table
 
-### 1 Assign table codes from the Data Dictionary to the files containing the data for each
+
+
+## Step 5. Specify Study File metadata
+The generated table includes every file in the selected "Study Files" directory. For each file that you want to process:
+1. Assign the table code the coorelates this study file with the entries in the Data Dictionary
+2. Add an assessment name such as Medical History or Demographics. This assessment name should be a high-level, broad description.
+3. Select the ImmPort Template to which the tool should munge the files. Currently this tool only supports Assessments so pick that for each file to translate
+4. If the data dictionary does not specific a visit field for this study file, specify the default visit. This default visit will be applied to every record in this study file.
+
+### 1 Assign the table code the coorelates this study file with the entries in the Data Dictionary
 ![study15](images/015_start_picking_table_files.png)
 
-### 2 Add an assessment name such as Medical History or Demographics relevant for each table
+### 2 Add an assessment name such as Medical History or Demographics
 This will become the assessment type in the ImmPort Data Model
 
-### 3 Select the ImmPort Template to which the tool should munge the files. Currently this tool only supports Assessments so pick that for each file to translate
+### 3 Select the ImmPort Template to which the tool should munge the files
 ![study16](images/016_call_them_something_then_select_assessment.png)
 
 ### 4 Select the default visit for each table
