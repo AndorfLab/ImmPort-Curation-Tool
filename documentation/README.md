@@ -110,20 +110,3 @@ It is recommended to use the ImmPort validator on at least one study file and te
 
 
 
-
-Further Edits and questions
-____ kevin needs to smudge out his children's ID
-
-
-I don't think it will benefit the user, but the documenter really wants "clear" functionality akin to a "back" button. once you click something it's really hard to screen cap
-
-
-are the assessment type text, visit type etc. required?
-s
-Check for any critical errors in the logging tab
-
-Check that these files have been created _______
-
-
-
-I still think the default visit column header doesn't make a lot of sense
