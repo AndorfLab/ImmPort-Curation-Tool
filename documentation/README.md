@@ -44,11 +44,11 @@ Select your file by browsing under the select button
 ### Method 2: Download information from ImmPort
 If you cannot get a valid TAB file (perhaps this is the intial upload of the study and its not present), then the process is a little more manual.
 
+![dd0](images/005_Select_Study_from_Immport_raw.png)
 First, specify the workspace ID and the study ID.
 
 Next provide a valid ImmPort Planned Visit file and a valid ImmPort Study Files file. Instructions for obtaining these files are provided in the tool, as well as [here](./Load_files_from_immport.md)
 
-TODO [Image of Study tab, Download information from ImmPort option]
 
 Now switch to the Data Dictionary Tab
 
