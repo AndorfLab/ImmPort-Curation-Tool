@@ -10,7 +10,7 @@ The purpose of this user guide is to explain how to use the ImmPort Curation Too
 Before you start using this tool, you will need to:
 - [Install the tool](../README.md#installation-instructions)
 - Have the study files you want to convert in a single directory
-- Curate the data dictionary (TODO: Link Needed)
+- [Curate the data dictionary](./Curated_Data_Dictionary.md)
 
 
 ## General Overview of Steps
