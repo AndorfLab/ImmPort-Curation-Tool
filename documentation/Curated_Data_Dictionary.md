@@ -35,17 +35,17 @@ Currently, the curated data dictionary should be a csv file with at least the co
 A data dictionary validator is scheduled for future work.
 
 ## Example Data Dictionary
-|Table Name|Field Name|Field Description|Code List Values|Unit|Map To Visit|Column Mappings|Verbatim Question|Who is Assessed|Study Day|Age At Onset Reported|Age At Onset Unit Reported|Location|
+|<sub>Table Name</sub>|<sub>Field Name</sub>|<sub>Field Description</sub>|<sub>Code List Values</sub>|<sub>Unit</sub>|<sub>Map To Visit</sub>|<sub>Column Mappings</sub>|<sub>Verbatim Question</sub>|<sub>Who is Assessed</sub>|<sub>Study Day</sub>|<sub>Age At Onset Reported</sub>|<sub>Age At Onset Unit Reported</sub>|<sub>Location</sub>|
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
-|DEM|HINC01|Household income|0=$0 - $24,999, 1=$25,000 - $49,999, 2=$50,000 - $74,999, 3=$75,000 - $99,999, 4=$100,000+, 5=Declined||||[Same]||||||
-|DEM|HNO|Number in household|||||Number living in the household?||||||
-|DEM|PATID|Participant ID||||User Defined ID|||||||
-|DEM|SITE|Center|BS=Boston,SD=San Diego,SE=Seattle|||[NA]|||||||
-|MD|PATID|Participant ID||||User Defined ID|||||||
-|MD|VISIT|Visit|0=Visit 0, 1=Visit 6, 2=Visit 12||{"Visit 0" : "Baseline", "Visit 6" : "Week 6", "Visit 12" : "Week 12"}|[Visit]|||||||
-|MD|HEIGHTCM|Height (cm)||cm|||[Same]||||||
-|MD|PREG|Pregnant|0=No, 1=Yes, 9=Unknown, 99=Not Applicable||||Is the patient pregnant?||||||
-|MD|ALEGG|Egg Allergy|0=No, 1=Yes, 9=Unknown||||Is the patient allergic to: Egg|||ALEGGAGE|years||
-|MD|DATE|Date||||Study Day|||||||
-|MD|ALEGGAGE|Egg Allergy Onset|||||||||||
-|MD|PATALL|Paternal Allergy|0=No, 1=Yes, 9=Unknown||||Does the father have allergies|Father|||||
+|<sub>DEM</sub>|<sub>HINC01</sub>|<sub>Household income</sub>|<sub>0=$0 - $49,999, 1=$50,000 - $99,999, 2=$100,000+, 3=Declined</sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub>[Same]</sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub></sub>|
+|<sub>DEM</sub>|<sub>HNO</sub>|<sub>Number in household</sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub>Number living in the household?</sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub></sub>|
+|<sub>DEM</sub>|<sub>PATID</sub>|<sub>Participant ID</sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub>User Defined ID</sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub></sub>|
+|<sub>DEM</sub>|<sub>SITE</sub>|<sub>Center</sub>|<sub>BS=Boston,SD=San Diego,SE=Seattle</sub>|<sub></sub>|<sub></sub>|<sub>[NA]</sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub></sub>|
+|<sub>MD</sub>|<sub>PATID</sub>|<sub>Participant ID</sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub>User Defined ID</sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub></sub>|
+|<sub>MD</sub>|<sub>VISIT</sub>|<sub>Visit</sub>|<sub>0=Visit 0, 1=Visit 6, 2=Visit 12</sub>|<sub></sub>|<sub>{"Visit 0" : "Baseline", "Visit 6" : "Week 6", "Visit 12" : "Week 12"}</sub>|<sub>[Visit]</sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub></sub>|
+|<sub>MD</sub>|<sub>HEIGHTCM</sub>|<sub>Height (cm)</sub>|<sub></sub>|<sub>cm</sub>|<sub></sub>|<sub></sub>|<sub>[Same]</sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub></sub>|
+|<sub>MD</sub>|<sub>PREG</sub>|<sub>Pregnant</sub>|<sub>0=No, 1=Yes, 9=Unknown, 99=Not Applicable</sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub>Is the patient pregnant?</sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub></sub>|
+|<sub>MD</sub>|<sub>ALEGG</sub>|<sub>Egg Allergy</sub>|<sub>0=No, 1=Yes, 9=Unknown</sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub>Is the patient allergic to: Egg</sub>|<sub></sub>|<sub></sub>|<sub>ALEGGAGE</sub>|<sub>years</sub>|<sub></sub>|
+|<sub>MD</sub>|<sub>DATE</sub>|<sub>Date</sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub>Study Day</sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub></sub>|
+|<sub>MD</sub>|<sub>ALEGGAGE</sub>|<sub>Egg Allergy Onset</sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub></sub>|
+|<sub>MD</sub>|<sub>PATALL</sub>|<sub>Paternal Allergy</sub>|<sub>0=No, 1=Yes, 9=Unknown</sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub>Does the father have allergies</sub>|<sub>Father</sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub></sub>|
