@@ -43,16 +43,9 @@ A data dictionary validator is scheduled for future work.
 |DEM|SITE|Center|BS=Boston,SD=San Diego,SE=Seattle|||[NA]|||||||
 |MD|PATID|Participant ID||||User Defined ID|||||||
 |MD|VISIT|Visit|0=Visit 0, 1=Visit 6, 2=Visit 12||{"Visit 0" : "Baseline", "Visit 6" : "Week 6", "Visit 12" : "Week 12"}|[Visit]|||||||
-|MD|GENDER|Gender|0=Male, 1=Female||||[Same]||||||
 |MD|HEIGHTCM|Height (cm)||cm|||[Same]||||||
-|MD|WEIGHTKG|Weight (kg)||kg|||[Same]||||||
 |MD|PREG|Pregnant|0=No, 1=Yes, 9=Unknown, 99=Not Applicable||||Is the patient pregnant?||||||
 |MD|ALEGG|Egg Allergy|0=No, 1=Yes, 9=Unknown||||Is the patient allergic to: Egg|||ALEGGAGE|years||
-|MD|ALMILK|Milk Allergy|0=No, 1=Yes, 9=Unknown||||Is the patient allergic to: Milk|||ALMILKAGE|years||
-|MD|ALLATEX|Latex Allergy|0=No, 1=Yes, 9=Unknown||||Is the patient allergic to: Latex|||ALLATEXAGE|years||
 |MD|DATE|Date||||Study Day|||||||
 |MD|ALEGGAGE|Egg Allergy Onset|||||||||||
-|MD|ALMILKAGE|Milk Allergy Onset|||||||||||
-|MD|ALLATEXAGE|Latex Allergy Onset|||||||||||
 |MD|PATALL|Paternal Allergy|0=No, 1=Yes, 9=Unknown||||Does the father have allergies|Father|||||
-|MD|MATALL|Maternal Allergy|0=No, 1=Yes, 9=Unknown||||Does the mother have allergies|Mother|||||
