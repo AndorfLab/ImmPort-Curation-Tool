@@ -48,8 +48,7 @@ First, specify the workspace ID and the study ID.
 
 Next provide a valid ImmPort Planned Visit file and a valid ImmPort Study Files file. Instructions for obtaining these files are provided in the tool, as well as [here](./Load_files_from_immport.md)
 
-[Image of Study tab, Download information from ImmPort option]
-
+TODO [Image of Study tab, Download information from ImmPort option]
 
 Now switch to the Data Dictionary Tab
 
@@ -70,8 +69,10 @@ Switch to the Study Files Tab and select the folder that contains the study file
 > Note: This is selecting a folder, not individual files. you should not see any files in this selector.
 ![study](images/010_StudyFiles_clicks.png)
 ![study12](images/012_pick_study_folder_clicks.png)
+
 Once you've selected the correct folder, make sure to click the Load Study Files Directory
 ![study13](images/013_pick_study_folder_make_sure_to_push_button_click.png)
+
 The list of tables was already specified in and interpretted throuh the curated data dictionary file previously loaded. The list of tables from the data dictionary will display automatically, but a list of files to curate with those specified table names will only appear if you've selected the correct directory. Below are examples of incorrect and correct directory selections are below:
 
 Incorrect:
@@ -81,14 +82,17 @@ Correct:
 ![study14](images/014_study_directory_loaded.png)
 
 
-
 ## Step 5. Specify Study File metadata
 The generated table includes every file in the selected "Study Files" directory. For each file that you want to process:
+
 1. Assign the table code the coorelates this study file with the entries in the Data Dictionary
 ![study15](images/015_start_picking_table_files.png)
+
 2. Add an assessment name such as Medical History or Demographics. This assessment name should be a high-level, broad description. This will become the assessment type in the ImmPort Data Model
+
 3. Select the ImmPort Template to which the tool should munge the files. Currently this tool only supports Assessments so pick that for each file to translate
 ![study16](images/016_call_them_something_then_select_assessment.png)
+
 4. If the data dictionary does not specific a visit field for this study file, specify the default visit. This default visit will be applied to every record in this study file.
 ![study17](images/017_add_the_visit.png)
 
