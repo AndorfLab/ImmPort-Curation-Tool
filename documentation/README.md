@@ -52,6 +52,7 @@ Next provide a valid ImmPort Planned Visit file and a valid ImmPort Study Files 
 
 
 Now switch to the Data Dictionary Tab
+
 ![Dd1](images/007_Data_Dictionary_with_hand.png)
 ## Step 3. Select Data Dictionary
 First, curate the data dictionary according to [these instructions](./Curated_Data_Dictionary.md) and save it to your directory
