@@ -1,0 +1,36 @@
+{
+  "$schema":"http://json-schema.org/draft-04/schema",
+  "title":"subjectHumans.json template schema",
+  "description":"The subject human template defines and annotates key elements of study subjects including demographics and links subjects to an arm within a study.",
+  "type":"object",
+  "properties":{
+      "fileName":{
+	  "type":"string",
+	  "enum":["subjectHumans.json"]
+      },
+     "name":{
+	  "type":"string",
+	  "enum":["subjecthumans"]
+      },
+     "schemaVersion":{
+	  "type":"string",
+	  "enum":["3.36"]
+      },
+     "templateType":{
+	  "type":"string",
+	  "enum":["combined-result"]
+      },
+     "validationLevel":{
+	  "type":"string"
+      },
+     "data":{
+       "type":"array",
+       "items":{
+         "$ref":"subjectHumans.Datum.json#"
+       },
+       "minItems":1
+     }
+  },
+  "additionalProperties":false,
+  "required":["fileName","name","schemaVersion","templateType","data"]
+}

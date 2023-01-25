@@ -1,0 +1,4 @@
+genotyping_array	Schema Version 3.36
+Please do not delete or edit this column
+Column Name	Expsample ID	Biosample ID	Experiment ID	Reagent ID(s)	Treatment ID(s)	Repository Name	Repository Accession	Expsample Name	Expsample Description	Additional Result File Names	Study ID	Protocol ID(s)	Subject ID	Planned Visit ID	Type	Subtype	Biosample Name	Biosample Description	Study Time Collected	Study Time Collected Unit	Study Time T0 Event	Study Time T0 Event Specify	Experiment Name	Experiment Description	Measurement Technique
+																									

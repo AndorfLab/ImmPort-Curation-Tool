@@ -1,0 +1,66 @@
+{
+  "$schema":"http://json-schema.org/draft-04/schema",
+  "title":"study_design_edit.json template schema",
+  "description":"The optional study design edit template defines and annotates elements of a study that are optional when it is initially defined (e.g. weblinks, publications) and for which updates are available after the initial design is uploaded. Use the study_design_edit template to add additional information for a study after a study is defined in ImmPort. IF ANY OF THE FOLLOWING SECTIONS ARE NOT USED, THEY NEED TO BE DELETED FROM THE TEMPLATE PRIOR TO UPLOADING THE TEMPLATE: arm_2_subject, arm_or_cohort, inclusion_exclusion, planned_visit, study_2_condition_or_disease, study_2_protocol, study_categorization, study_data_release, study_file, study_image, study_link, study_personnel, or study_pubmed.",
+  "type":"object",
+  "properties":{
+      "fileName":{
+	  "type":"string",
+	  "enum":["study_design_edit.json"]
+      },
+     "name":{
+	  "type":"string",
+	  "enum":["study_design_edit"]
+      },
+     "schemaVersion":{
+	  "type":"string",
+	  "enum":["3.36"]
+      },
+     "templateType":{
+	  "type":"string",
+	  "enum":["compound"]
+      },
+     "validationLevel":{
+	  "type":"string"
+      },
+    "studyCategorization":{"$ref":"study_design_edit.studyCategorization.json#"
+    },
+    
+    "study2ConditionOrDisease":{"type":"array","items":{"$ref":"study_design_edit.study2ConditionOrDisease.json#"}, "minItems":1
+    },
+    
+    "studyDataRelease":{"type":"array","items":{"$ref":"study_design_edit.studyDataRelease.json#"}, "minItems":1
+    },
+    
+    "studyFile":{"type":"array","items":{"$ref":"study_design_edit.studyFile.json#"}, "minItems":1
+    },
+    
+    "studyImage":{"type":"array","items":{"$ref":"study_design_edit.studyImage.json#"}, "minItems":1
+    },
+    
+    "studyLink":{"type":"array","items":{"$ref":"study_design_edit.studyLink.json#"}, "minItems":1
+    },
+    
+    "studyPubmed":{"type":"array","items":{"$ref":"study_design_edit.studyPubmed.json#"}, "minItems":1
+    },
+    
+    "armOrCohort":{"type":"array","items":{"$ref":"study_design_edit.armOrCohort.json#"}, "minItems":1
+    },
+    
+    "arm2Subject":{"type":"array","items":{"$ref":"study_design_edit.arm2Subject.json#"}, "minItems":1
+    },
+    
+    "plannedVisit":{"type":"array","items":{"$ref":"study_design_edit.plannedVisit.json#"}, "minItems":1
+    },
+    
+    "studyPersonnel":{"type":"array","items":{"$ref":"study_design_edit.studyPersonnel.json#"}, "minItems":1
+    },
+    
+    "inclusionExclusion":{"type":"array","items":{"$ref":"study_design_edit.inclusionExclusion.json#"}, "minItems":1
+    },
+    "study2Protocol":{"type":"array","items":{"$ref":"study_design_edit.study2Protocol.json#"}, "minItems":1
+    }
+     },
+  "additionalProperties":false
+  
+}

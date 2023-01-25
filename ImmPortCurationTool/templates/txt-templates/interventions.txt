@@ -1,0 +1,4 @@
+interventions	Schema Version 3.36
+Please do not delete or edit this column
+Column Name	User Defined ID	Subject ID	Study ID	Name Reported	Compound Name Reported	Compound Role	Dose Reported	Start Day	End Day	Status	Reported Indication	Formulation	Dose	Dose Units	Dose Freq Per Interval	Route Of Admin Reported	Is Ongoing	Start Time	End Time	Duration	Duration Unit
+																					

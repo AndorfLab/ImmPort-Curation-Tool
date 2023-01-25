@@ -1,0 +1,30 @@
+{
+  "$schema":"http://json-schema.org/draft-04/schema",
+  "title":"RNA_SEQ_Results.json template schema",
+  "description":"The RNA sequencing Transcripts results experiment sample template defines and annotates the assay results for a sample by linking sample, experiment, and results together.",
+  "type":"object",
+  "properties":{
+    "expsampleId":{
+    "type":"string"
+    },
+    "referenceTranscriptId":{
+    "type":"string","maxLength":100
+    },
+    "repositoryName":{
+    "type":"string","enum":["ArrayExpress","Broad Single Cell Portal","dbGAP","ENA","Ensembl","FlowRepository","GenBank","GEO","GISAID","IEDB","ImmPort","MassIVE","MetaboLights","Metabolomics Workbench","MGnify","NCBI Gene","PRIDE","SRA","UniProt"]
+    },
+    "transcriptTypeReported":{
+    "type":"string","enum":["lincRNA","mRNA","snRNA"]
+    },
+    "resultUnitReported":{
+    "type":"string","enum":["FPKM","Not Specified","RPKM","TPM"]
+    },
+    "valueReported":{
+    "type":"number"
+    },
+    "comments":{
+    "type":"string","maxLength":500
+    }
+    },
+  "required":["expsampleId","referenceTranscriptId","repositoryName","transcriptTypeReported","resultUnitReported","valueReported"]
+}

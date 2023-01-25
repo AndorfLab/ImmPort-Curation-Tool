@@ -1,0 +1,36 @@
+{
+  "$schema":"http://json-schema.org/draft-04/schema",
+  "title":"experiments.json template schema",
+  "description": "The experiments template is a legacy template that defines and annotates the mechanistic assays performed on samples. The function of this template is also captured in the experiment samples template. This template will continue to be supported for the foreseeable future to support backward compatibility.",
+  "type":"object",
+  "properties":{
+      "fileName":{
+	  "type":"string",
+	  "enum":["experiments.json"]
+      },
+     "name":{
+	  "type":"string",
+	  "enum":["experiments"]
+      },
+     "schemaVersion":{
+	  "type":"string",
+	  "enum":["3.36"]
+      },
+     "templateType":{
+	  "type":"string",
+	  "enum":["single"]
+      },
+     "validationLevel":{
+	  "type":"string"
+      },
+     "data": {
+       "type":"array",
+       "items":{
+         "$ref":"experiments.Datum.json#"
+       },
+       "minItems":1
+     }
+  },
+  "additionalProperties":false,
+  "required":["fileName","name","schemaVersion","templateType","data"]
+}

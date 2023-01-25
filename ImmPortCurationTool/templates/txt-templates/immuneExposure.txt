@@ -1,0 +1,4 @@
+immuneexposure	Schema Version 3.36
+Please do not delete or edit this column
+Column Name	Subject ID	Arm Or Cohort ID	Exposure Process Reported	Exposure Material Reported	Exposure Material ID	Disease Reported	Disease Ontology ID	Disease Stage Reported
+								
