@@ -5,6 +5,7 @@ The purpose of this user guide is to explain how to use the ImmPort Curation Too
 ## Other documentation
 * [Installation Instructions](../README.md#installation-instructions)
 * [Purpose of the tool](../README.md#purpose-of-this-tool)
+* [Common logging errors](./Logging%20Errors.md)
 
 ## Before You Start
 Before you start using this tool, you will need to:
