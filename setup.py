@@ -36,6 +36,7 @@ setup(
     install_requires=get_required_packages(),
     packages=[package_name],
     data_files=[('ImmPortCurationTool/templates/json-templates',['ImmPortCurationTool/templates/json-templates/*'])],
+    include_package_data=True,
     python_requires=">=3.7",
     zip_safe=False,
     url=git_url,
