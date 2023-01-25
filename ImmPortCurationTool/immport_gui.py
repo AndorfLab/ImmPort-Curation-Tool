@@ -2,9 +2,9 @@ import pandas as pd
 import os
 import re
 
-from modules import processRedCapFiles as rc
-from modules import curationFunctions as cf
-from modules import schemaFunctions as sf
+import ImmPortCurationTool.processRedCapFiles as rc
+import ImmPortCurationTool.curationFunctions as cf
+import ImmPortCurationTool.schemaFunctions as sf
 
 import zipfile
 import ipywidgets as widgets

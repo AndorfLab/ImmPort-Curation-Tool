@@ -1,8 +1,8 @@
 import os
 import jsonschema
 import json
-from modules import curationFunctions as cf
-from modules import immport_gui as ig
+import ImmPortCurationTool.curationFunctions as cf
+import ImmPortCurationTool.immport_gui as ig
 from pathlib import Path
 import platform
 
