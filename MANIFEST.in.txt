@@ -1,1 +1,0 @@
-recursive-include ImmPortCurationTool/templates *.json *.txt *.xlsx
