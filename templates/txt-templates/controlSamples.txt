@@ -1,4 +1,0 @@
-controlsamples	Schema Version 3.36
-Please do not delete or edit this column
-Column Name	Control Sample ID	Experiment ID	Study ID	Protocol ID(s)	Source	Catalog ID	Dilution Factor	Assay ID	Assay Group ID	ImmPort Template?	Result File Name	Lot Number	Additional Result File Names	Name	Description	Measurement Technique
-																

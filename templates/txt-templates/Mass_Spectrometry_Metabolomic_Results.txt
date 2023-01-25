@@ -1,4 +1,0 @@
-mass_spec_metabolomic_results	Schema Version 3.36
-Please do not delete or edit this column
-Column Name	Expsample ID	Intensity	Retention Time	Retention Time Unit	M/Z Ratio	Z (Charge)	Database ID Reported	Metabolite Name	Comments
-									

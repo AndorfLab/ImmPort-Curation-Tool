@@ -1,4 +1,0 @@
-labtest_results	Schema Version 3.36
-Please do not delete or edit this column
-Column Name	User Defined ID	Lab Test Panel ID	Biosample ID	Name Reported	Result Value Reported	Result Unit Reported
-						

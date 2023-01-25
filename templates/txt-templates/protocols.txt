@@ -1,4 +1,0 @@
-protocols	Schema Version 3.36
-Please do not delete or edit this column
-Column Name	User Defined ID	File Name	Name	Description	Type
-					

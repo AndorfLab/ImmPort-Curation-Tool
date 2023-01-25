@@ -1,4 +1,0 @@
-treatments	Schema Version 3.36
-Please do not delete or edit this column
-Column Name	User Defined ID	Name	Use Treatment?	Amount Value	Amount Unit	Duration Value	Duration Unit	Temperature Value	Temperature Unit	Comments
-										

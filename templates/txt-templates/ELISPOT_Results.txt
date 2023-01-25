@@ -1,4 +1,0 @@
-elispot_results	Schema Version 3.36
-Please do not delete or edit this column
-Column Name	Expsample ID	Analyte Reported	Spot Number Reported	Cell Number Reported	Comments
-					

@@ -1,4 +1,0 @@
-standardcurves	Schema Version 3.36
-Please do not delete or edit this column
-Column Name	Standard Curve ID	Experiment ID	Study ID	Protocol ID(s)	Formula	Analyte Reported	Assay ID	Assay Group ID	Lower Limit	Lower Limit Unit	Upper Limit	Upper Limit Unit	ImmPort Template?	Result File Name	Additional Result File Names	Name	Description	Measurement Technique
-																		
