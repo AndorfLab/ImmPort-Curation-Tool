@@ -1,0 +1,21 @@
+{
+  "$schema":"http://json-schema.org/draft-04/schema",
+  "title":" template schema",
+  "description":"",
+  "type":"object",
+  "properties":{
+    "studyId":{
+    "type":"string"
+    },
+    "imageFilename":{
+    "type":"string","maxLength":250
+    },
+    "name":{
+    "type":"string","maxLength":40
+    },
+    "description":{
+    "type":"string","maxLength":4000
+    }
+    },
+  "required":["studyId","imageFilename","name"]
+}

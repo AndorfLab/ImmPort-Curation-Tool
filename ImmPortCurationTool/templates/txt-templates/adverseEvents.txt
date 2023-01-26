@@ -1,0 +1,4 @@
+adverseevents	Schema Version 3.36
+Please do not delete or edit this column
+Column Name	User Defined ID	Subject ID	Study ID	Name Reported	Name Preferred	Severity Reported	Outcome Reported	Start Study Day	End Study Day	Relation To Study Treatment	Organ Or Body System Reported	Description	Location Of Reaction Reported	Study Treatment Action Taken	Relation To Nonstudy Treatment	Causality	Start Time	End Time
+																		

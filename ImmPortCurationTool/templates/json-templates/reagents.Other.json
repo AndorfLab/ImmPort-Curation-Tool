@@ -1,0 +1,36 @@
+{
+  "$schema":"http://json-schema.org/draft-04/schema",
+  "title":"reagents.Other.json template schema",
+  "description": "This reagent template is used to define and annotate reagents that are not described by other reagent templates.",
+  "type":"object",
+  "properties":{
+      "fileName":{
+	  "type":"string",
+	  "enum":["reagents.Other.json"]
+      },
+     "name":{
+	  "type":"string",
+	  "enum":["other_reagents"]
+      },
+     "schemaVersion":{
+	  "type":"string",
+	  "enum":["3.36"]
+      },
+     "templateType":{
+	  "type":"string",
+	  "enum":["multiple"]
+      },
+     "validationLevel":{
+	  "type":"string"
+      },
+     "data": {
+       "type":"array",
+       "items":{
+         "$ref":"reagents.Other.Datum.json#"
+       },
+       "minItems":1
+     }
+  },
+  "additionalProperties":false,
+  "required":["fileName","name","schemaVersion","templateType","data"]
+}

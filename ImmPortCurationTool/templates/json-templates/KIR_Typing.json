@@ -1,0 +1,36 @@
+{
+  "$schema":"http://json-schema.org/draft-04/schema",
+  "title":"KIR_Typing.json template schema",
+  "description": "The KIR experiment sample template defines and annotates the assay results for a sample by linking sample, experiment, and results together.",
+  "type":"object",
+  "properties":{
+      "fileName":{
+	  "type":"string",
+	  "enum":["KIR_Typing.json"]
+      },
+     "name":{
+	  "type":"string",
+	  "enum":["kir_typing"]
+      },
+     "schemaVersion":{
+	  "type":"string",
+	  "enum":["3.36"]
+      },
+     "templateType":{
+	  "type":"string",
+	  "enum":["multiple"]
+      },
+     "validationLevel":{
+	  "type":"string"
+      },
+     "data": {
+       "type":"array",
+       "items":{
+         "$ref":"KIR_Typing.Datum.json#"
+       },
+       "minItems":1
+     }
+  },
+  "additionalProperties":false,
+  "required":["fileName","name","schemaVersion","templateType","data"]
+}

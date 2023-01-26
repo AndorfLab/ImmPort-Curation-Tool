@@ -1,0 +1,18 @@
+{
+  "$schema":"http://json-schema.org/draft-04/schema",
+  "title":" template schema",
+  "description":"",
+  "type":"object",
+  "properties":{
+    "userDefinedId":{
+    "type":"string","maxLength":100
+    },
+    "criterion":{
+    "type":"string","maxLength":750
+    },
+    "criterionCategory":{
+    "type":"string","enum":["Exclusion","Inclusion"]
+    }
+    },
+  "required":["userDefinedId","criterion","criterionCategory"]
+}

@@ -1,0 +1,5 @@
+fcm_derived_data	Schema Version 3.36
+Please do not delete or edit this column
+Validation Level	Standard
+Column Name	Expsample ID	Population Name Reported	Gating Definition Reported	Parent Population Reported	Population Statistic (count, percentile, etc)	Population Stat Unit Reported	Workspace File	Comments
+								

@@ -1,0 +1,36 @@
+{
+  "$schema":"http://json-schema.org/draft-04/schema",
+  "title":"experimentSamples.Virus_Neutralization.json template schema",
+  "description":"The virus neutralization experiment sample template defines and annotates the assay results for a sample by linking sample, experiment, and results together. More than one analyte's results per assayed sample may be reported by copying the group of columns 'Virus Strain'and 'Titration Dilution Value' needed to describe each assay result.  The experiment samples template allows you to describe to ImmPort new experiments and biological samples or link experiments and biological samples stored in ImmPort with assay results. There is considerable flexibility in linking ImmPort content with new content in the templates and there are some general guidelines to remember. All of the experiment sample IDs in the template must always be unique in the template and must not already be stored in ImmPort. The biological sample and the experiment in the template may be new or they both may be new. If the biological sample or the experiment is new, then you must complete the required columns to describe them. When defining a new experiment or biological sample, it is only necessary to complete the required descriptive columns once per experiment or biological sample. The column header names in the templates indicate to what is being described and the '.xls' spreadsheet versions use color codes to indicate what is being described.",
+  "type":"object",
+  "properties":{
+      "fileName":{
+	  "type":"string",
+	  "enum":["experimentSamples.Virus_Neutralization.json"]
+      },
+     "name":{
+	  "type":"string",
+	  "enum":["virus_neutralization"]
+      },
+     "schemaVersion":{
+	  "type":"string",
+	  "enum":["3.36"]
+      },
+     "templateType":{
+	  "type":"string",
+	  "enum":["combined-result"]
+      },
+     "validationLevel":{
+	  "type":"string"
+      },
+     "data":{
+       "type":"array",
+       "items":{
+         "$ref":"experimentSamples.Virus_Neutralization.Datum.json#"
+       },
+       "minItems":1
+     }
+  },
+  "additionalProperties":false,
+  "required":["fileName","name","schemaVersion","templateType","data"]
+}

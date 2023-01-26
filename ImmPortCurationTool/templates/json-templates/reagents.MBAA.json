@@ -1,0 +1,36 @@
+{
+  "$schema":"http://json-schema.org/draft-04/schema",
+  "title":"reagents.MBAA.json template schema",
+  "description": "The MBAA reagent template defines and annotates the assay platforms for MBAA. This should include a row for each of the analytes assayed by the MBAA array.",
+  "type":"object",
+  "properties":{
+      "fileName":{
+	  "type":"string",
+	  "enum":["reagents.MBAA.json"]
+      },
+     "name":{
+	  "type":"string",
+	  "enum":["mbaa_reagents"]
+      },
+     "schemaVersion":{
+	  "type":"string",
+	  "enum":["3.36"]
+      },
+     "templateType":{
+	  "type":"string",
+	  "enum":["multiple"]
+      },
+     "validationLevel":{
+	  "type":"string"
+      },
+     "data": {
+       "type":"array",
+       "items":{
+         "$ref":"reagents.MBAA.Datum.json#"
+       },
+       "minItems":1
+     }
+  },
+  "additionalProperties":false,
+  "required":["fileName","name","schemaVersion","templateType","data"]
+}

@@ -1,0 +1,36 @@
+{
+  "$schema":"http://json-schema.org/draft-04/schema",
+  "title":"Reagent_Sets.json template schema",
+  "description": "The reagent set template defines and annotates the groups of reagents that are used together in assays such as flow cytometry panels, or multiplex ELISA assays. This template is optional.",
+  "type":"object",
+  "properties":{
+      "fileName":{
+	  "type":"string",
+	  "enum":["Reagent_Sets.json"]
+      },
+     "name":{
+	  "type":"string",
+	  "enum":["reagent_sets"]
+      },
+     "schemaVersion":{
+	  "type":"string",
+	  "enum":["3.36"]
+      },
+     "templateType":{
+	  "type":"string",
+	  "enum":["single"]
+      },
+     "validationLevel":{
+	  "type":"string"
+      },
+     "data": {
+       "type":"array",
+       "items":{
+         "$ref":"Reagent_Sets.Datum.json#"
+       },
+       "minItems":1
+     }
+  },
+  "additionalProperties":false,
+  "required":["fileName","name","schemaVersion","templateType","data"]
+}

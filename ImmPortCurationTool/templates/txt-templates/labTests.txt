@@ -1,0 +1,4 @@
+labtests	Schema Version 3.36
+Please do not delete or edit this column
+Column Name	Biosample ID	Lab Test Panel ID	Study ID	Protocol ID(s)	Subject ID	Planned Visit ID	Type	Subtype	Name	Description	Study Time Collected	Study Time Collected Unit	Study Time T0 Event	Study Time T0 Event Specify	Name Reported	Result Separator Column	User Defined ID	Name Reported	Result Value Reported	Result Unit Reported
+																				

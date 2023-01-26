@@ -1,0 +1,36 @@
+{
+  "$schema":"http://json-schema.org/draft-04/schema",
+  "title":"immuneExposure.json template schema",
+  "description": "The subjectHuman and subjectAnimals templates define and annotate the subjects in studies with respect to immune exposure. The Immune Exposure template updates the subjects previously defined in studies with respect to immune exposure.",
+  "type":"object",
+  "properties":{
+      "fileName":{
+	  "type":"string",
+	  "enum":["immuneExposure.json"]
+      },
+     "name":{
+	  "type":"string",
+	  "enum":["immuneexposure"]
+      },
+     "schemaVersion":{
+	  "type":"string",
+	  "enum":["3.36"]
+      },
+     "templateType":{
+	  "type":"string",
+	  "enum":["single"]
+      },
+     "validationLevel":{
+	  "type":"string"
+      },
+     "data": {
+       "type":"array",
+       "items":{
+         "$ref":"immuneExposure.Datum.json#"
+       },
+       "minItems":1
+     }
+  },
+  "additionalProperties":false,
+  "required":["fileName","name","schemaVersion","templateType","data"]
+}

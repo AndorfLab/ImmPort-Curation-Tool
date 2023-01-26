@@ -1,0 +1,36 @@
+{
+  "$schema":"http://json-schema.org/draft-04/schema",
+  "title":"ELISPOT_Results.json template schema",
+  "description": "The ELISPOT experiment sample template defines and annotates the assay results for a sample by linking sample, experiment, and results together. More than one analyte's results per assayed sample may be reported by copying the group of columns 'Analyte', 'Number Of Spots Per Well', and 'Cell number per well Value', 'Cell number per well Unit' needed to describe each assay result.",
+  "type":"object",
+  "properties":{
+      "fileName":{
+	  "type":"string",
+	  "enum":["ELISPOT_Results.json"]
+      },
+     "name":{
+	  "type":"string",
+	  "enum":["elispot_results"]
+      },
+     "schemaVersion":{
+	  "type":"string",
+	  "enum":["3.36"]
+      },
+     "templateType":{
+	  "type":"string",
+	  "enum":["multiple"]
+      },
+     "validationLevel":{
+	  "type":"string"
+      },
+     "data": {
+       "type":"array",
+       "items":{
+         "$ref":"ELISPOT_Results.Datum.json#"
+       },
+       "minItems":1
+     }
+  },
+  "additionalProperties":false,
+  "required":["fileName","name","schemaVersion","templateType","data"]
+}

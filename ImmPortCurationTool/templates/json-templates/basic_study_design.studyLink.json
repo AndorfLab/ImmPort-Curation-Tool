@@ -1,0 +1,15 @@
+{
+  "$schema":"http://json-schema.org/draft-04/schema",
+  "title":" template schema",
+  "description":"",
+  "type":"object",
+  "properties":{
+    "name":{
+    "type":"string","maxLength":500
+    },
+    "value":{
+    "type":"string","maxLength":2000
+    }
+    },
+  "required":["name","value"]
+}
