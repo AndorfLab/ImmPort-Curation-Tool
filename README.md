@@ -21,7 +21,7 @@ Depending on your environment, you might need to setup a virtual environment to 
 
 To install, run the following command
 
-`pip install git+ssh://git@github.com/JoshuaFortriede/ImmPort-Curation-Tool.git@setup_tools`
+`pip install git+http://git@github.com/JoshuaFortriede/ImmPort-Curation-Tool.git`
 
 
 ## Setup instructions
