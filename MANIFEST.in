@@ -1,0 +1,4 @@
+include ImmPortCurationTool/templates/json-templates/*.json
+include ImmPortCurationTool/templates/excel-templates/*.xlsx
+include ImmPortCurationTool/templates/txt-templates/*.txt
+

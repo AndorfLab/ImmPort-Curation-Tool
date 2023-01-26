@@ -1,13 +1,16 @@
 import os
 import jsonschema
 import json
-from modules import curationFunctions as cf
-from modules import immport_gui as ig
+import ImmPortCurationTool.curationFunctions as cf
+import ImmPortCurationTool.immport_gui as ig
 from pathlib import Path
 import platform
 
 json_schema_template_path   = "templates/json-templates"
 txt_template_path           = "templates/txt-templates"
+
+json_schema_template_path_full = os.path.join(os.path.dirname(cf.__file__), json_schema_template_path)
+txt_template_path_full = os.path.join(os.path.dirname(cf.__file__), txt_template_path)
 
 last_error =""
 
@@ -56,7 +59,8 @@ def validate_data(data, schema_name=None):
         )
         raise NotImplementedError("Missing Schema for '%s'" % schema_name)
 
-    ref_resolver_path = os.path.abspath(os.path.join(os.getcwd(),json_schema_template_path,schema_name))
+    # ref_resolver_path = os.path.abspath(os.path.join(os.getcwd(),json_schema_template_path,schema_name))
+    ref_resolver_path = os.path.abspath(os.path.join(json_schema_template_path_full,schema_name))
     if platform.system() == 'Windows':
         resolver = jsonschema.RefResolver(ref_resolver_path, schema, store=schema_store)
     else:
@@ -170,7 +174,9 @@ def check_data_length(value, maxLength, truncate=False, key=None):
     raise ValueError("Value exceeds max length of {maxLength} for field {key}: {maxLength[0:25]}...")
 
 def load_data_fields(validator):
-    with open(os.path.abspath(os.path.join(json_schema_template_path,validator+".json"))) as fh_json_file:
+    path = os.path.dirname(cf.__file__)
+    # with open(os.path.abspath(os.path.join(json_schema_template_path,validator+".json"))) as fh_json_file:
+    with open(os.path.abspath(os.path.join(json_schema_template_path_full,validator+".json"))) as fh_json_file:
         json_data = json.load(fh_json_file)
         return json_data['properties']
 class ImmPort_Data: 
@@ -288,7 +294,7 @@ class Assessment(ImmPort_Data):
 
         datafile = cf.readAndModifyStudyFile(study_file_path, table_data, data_dictionary, planned_visits)
         #Read Templates
-        [assessment_panel_template,assessment_components_template,assessment_template_header] = cf.readTemplate(template, template_path=txt_template_path)  # self.text_template_path??
+        [assessment_panel_template,assessment_components_template,assessment_template_header] = cf.readTemplate(template, template_path=txt_template_path_full)  # self.text_template_path??
         assessment_components_template["ASSESSMENT_PANEL_ACCESSION"]=''
         assessment_components_template=cf.datafileToComponents(datafile,data_dictionary,[table_code],assessment_components_template,workspace_id)
         
@@ -561,4 +567,4 @@ class Assessment_ResultData(ImmPort_Data):
             self.set_data_value(key, value)
 
 
-schema_store = get_schema_store(json_schema_template_path)
+schema_store = get_schema_store(json_schema_template_path_full)
