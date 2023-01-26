@@ -8,7 +8,7 @@ import json
 import numpy as np
 from io import StringIO
 from zipfile import ZipFile
-from modules import immport_gui as ig
+import ImmPortCurationTool.immport_gui as ig
 
 pd.options.display.max_columns = 400
 pd.options.display.max_rows = 200
