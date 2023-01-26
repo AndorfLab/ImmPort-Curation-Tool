@@ -25,7 +25,10 @@ To install, run the following command
 
 
 ## Setup instructions
-Once the module has been installed, run the following command in a terminal to create a notebook with a cell to run the Curation GUI
+Once the module has been installed, run the following command in a terminal to create a notebook with a cell to run the Curation GUI.
 
 `ImmPortCurationTool notebook`
 
+The above command will create a Jupyter Notebook filed called "notebook.ipynb". If you want to create the notebook with a specified name, run:
+
+`ImmPortCurationTool notebook --notebook 'my_curation_notebook'`
