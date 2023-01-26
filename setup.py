@@ -49,5 +49,10 @@ setup(
         "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
         "Topic :: Software Development",
         "Programming Language :: Python :: 3",
-    ]
+    ],
+        entry_points={
+        'console_scripts': [
+            'ImmPortCurationTool = ImmPortCurationTool.cli:cli'
+        ]
+    }
 )
