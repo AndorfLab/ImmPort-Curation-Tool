@@ -1,5 +1,9 @@
 # Logging Tab
-The Logging tab provides helpful information regarding different errors that might occur while using this tool. Common errors are explained below.
+The Logging tab provides helpful information regarding different errors that might occur while using this tool. Common errors are explained below and fall under three categories:
+
+* [Critical](#critical)
+* [Error](#errors)
+* [Warning](#warnings)
 
 ## Critical
 Critical problems indicate a problem with the data and should be addressed. 
