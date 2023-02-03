@@ -80,33 +80,30 @@ def addVisitAccessionFromName(planned_visits, table, visit_col,dictionary,file_t
         else:
             raise ValueError(f"No default visit has been defiled for {file_table}")
 
-    table_visits = table.groupby([table_column], as_index=False).agg('nunique')
+    table_visits = table.groupby([visit_col], as_index=False).agg('nunique')
 
-    table_visits.drop(table_visits.columns.difference([table_column]),1, inplace=True)
+    table_visits.drop(table_visits.columns.difference([visit_col]),1, inplace=True)
     table_visits["plannedVisit"] = ""
-    #table_visits has values from visit column and empty "plannedVisit" column
-
     for index, row in table_visits.iterrows():
         for key in dict_visits.keys():
-            if(key.startswith(row[table_column])):
+            if(key.startswith(row[visit_col])):
                 table_visits.loc[index,"plannedVisit"]=dict_visits[key]
-            elif(row[table_column].isnumeric() & ("Visit "+row[table_column] in key)):
+            elif(row[visit_col].isnumeric() & ("Visit "+row[visit_col] in key)):
                 table_visits.loc[index,"plannedVisit"]=dict_visits[key]
-            elif(row[table_column].isnumeric() & ("Visit 0"+row[table_column] in key)):
+            elif(row[visit_col].isnumeric() & ("Visit 0"+row[visit_col] in key)):
                 table_visits.loc[index,"plannedVisit"]=dict_visits[key]
-            elif(row[table_column][0:-1].isnumeric() & ("Visit "+row[table_column][0:-1] in key)):
+            elif(row[visit_col][0:-1].isnumeric() & ("Visit "+row[visit_col][0:-1] in key)):
                 table_visits.loc[index,"plannedVisit"]=dict_visits[key]
-            elif(row[table_column][0:-2].isnumeric() & ("Visit "+row[table_column][0:-2] in key)):
+            elif(row[visit_col][0:-2].isnumeric() & ("Visit "+row[visit_col][0:-2] in key)):
                 table_visits.loc[index,"plannedVisit"]=dict_visits[key]
-            elif(~row[table_column][0:1].isnumeric() & row[table_column][1:].isnumeric() & ("Visit "+row[table_column][1:] in key)):
+            elif(~row[visit_col][0:1].isnumeric() & row[visit_col][1:].isnumeric() & ("Visit "+row[visit_col][1:] in key)):
                 table_visits.loc[index,"plannedVisit"]=dict_visits[key]
             # else: #TODO write to log
             #     logging.warn(f"Cannot find planned visit for {key}")
             #     ig.unique_logging_buffer_load(level="warn", message=f"Cannot find planned visit for {key}")
     
-        dict_visits2=dict(zip(table_visits[table_column],table_visits["plannedVisit"]))
+        dict_visits2=dict(zip(table_visits[visit_col],table_visits["plannedVisit"]))
     ig.main_logger.flush()
-
     if len(dictionary["tables"][file_table]["fields"][visit_col]["map_to_visit"])>0:
         visit_map_dict = json.loads(dictionary["tables"][file_table]["fields"][visit_col]["map_to_visit"])
         #create dictionary of visit_mappings to planned visit IDs
@@ -119,7 +116,7 @@ def addVisitAccessionFromName(planned_visits, table, visit_col,dictionary,file_t
         ig.main_logger.write(level="error",message=f"Missing Visits\n{'|'.join(list(missingVisits.keys()))}")
         ig.main_logger.write(level="error",message=f"Available Visits\n{'|'.join(list(dict_visits2.keys()))}")
 
-    table["PLANNED_VISIT_ID"]=table[table_column].apply(lambda v: dict_visits2[v])
+    table["PLANNED_VISIT_ID"]=table[visit_col].apply(lambda v: dict_visits2[v])
 
     return table_visits
 
@@ -157,7 +154,7 @@ def readStudyFile(filepath, table, dictionary, sep="\t"):
             datafile.loc[subset, column]= value
 
     #Rename columns with the description that is in the data dictionary
-    datafile.rename(columns=lambda c: dictionary["tables"][table]["fields"][c]["description"] if c in dictionary["tables"][table]["fields"] else c, inplace=True)
+    # datafile.rename(columns=lambda c: dictionary["tables"][table]["fields"][c]["description"] if c in dictionary["tables"][table]["fields"] else c, inplace=True)
     return datafile
 
 def getAssessmentPanelByID(panel_ID,assessment_panel_df):
@@ -181,8 +178,8 @@ def createColumnMappingDict(dictionary,table_name):
     for mapping, col in dictionary["tables"][table_name]["mappings"].items():
         if(mapping == "[NA]" or mapping == "[Visit]"):
             continue
-        col_description = dictionary["tables"][table_name]["fields"][col]["description"]
-        mappings[col_description]=mapping
+
+        mappings[col]=mapping
     return mappings
 
 def datafileToComponents(datafile,dictionary,table_name_array,assessment_components_template,panel_id=-1,workspace_id=9999,col_units={}):
@@ -199,20 +196,19 @@ def datafileToComponents(datafile,dictionary,table_name_array,assessment_compone
         set_columns = list(col_mappings.values())
 
         datacolumns = question_cols.keys()
-
         for col in datacolumns:
             df_slim = datafile[set_columns].copy()
             # This is processing entire rows of data files, it is not iterating over each cell
             # Need to check to see if this is an actual question or a property (Age of Onset, Location, Date, etc) of another question.
             col_name= dictionary["tables"][table_name]["fields"][col]["description"]
-            if col_name in datafile:
+            if col in datafile:
                 question_id = question_id + 1
                 component_id = f"{panel_id}_{question_id}"
 
                 try:
                     df_slim["component_group_id"]=component_id
                     df_slim["Name Reported"]=col_name
-                    df_slim["Result Value Reported"]=datafile[col_name]
+                    df_slim["Result Value Reported"]=datafile[col]
                     df_slim["ASSESSMENT_PANEL_ACCESSION"]=panel_id
                     df_slim["WORKSPACE_ID"]=workspace_id
                 except Exception as e:
@@ -236,7 +232,7 @@ def datafileToComponents(datafile,dictionary,table_name_array,assessment_compone
                         lookup_col = dictionary["tables"][table_name]["fields"][col]["unit"][1:-1]  #remove '[' and ']'
                         lookup_col_name = dictionary["tables"][table_name]["fields"][lookup_col]["description"]
     
-                        df_slim["Result Unit Reported"]= datafile[lookup_col_name]
+                        df_slim["Result Unit Reported"]= datafile[lookup_col]
 
                     else:
                         # Need to see if the value is "[Split]"
@@ -251,7 +247,7 @@ def datafileToComponents(datafile,dictionary,table_name_array,assessment_compone
                     lookup_col = dictionary["tables"][table_name]["fields"][col]["age_onset"]
                     lookup_col_name = dictionary["tables"][table_name]["fields"][lookup_col]["description"]
 
-                    df_slim["Age At Onset Reported"]= datafile[lookup_col_name]
+                    df_slim["Age At Onset Reported"]= datafile[lookup_col]
                     df_slim.loc[~df_slim["Age At Onset Reported"].isna(), "Age At Onset Unit Reported"] = dictionary["tables"][table_name]["fields"][col]["age_onset_unit"]
 
                 
@@ -263,7 +259,7 @@ def datafileToComponents(datafile,dictionary,table_name_array,assessment_compone
                         lookup_col = col
                     lookup_col_name = dictionary["tables"][table_name]["fields"][lookup_col]["description"]
 
-                    df_slim["Study Day"]= datafile[lookup_col_name]
+                    df_slim["Study Day"]= datafile[lookup_col]
                 #Need to take df_slim and remove rows that have no actual data. 
         
                 assessment_components_template=assessment_components_template.append(df_slim[~df_slim["Result Value Reported"].isnull()], ignore_index=True)
@@ -311,12 +307,6 @@ def readAndModifyStudyFile(filepath,file_tables,dictionary,planned_visits):
         datafile=datafile.drop(columns=["PLANNED_VISIT_ID"])
         datafile.insert(loc=3, column="PLANNED_VISIT_ID",value=planned_visit_data)
 
-        dd_ID = getColumnMapping(dictionary,file_table,"User Defined ID")
-        dd_ID_col = getColumnName(dictionary, file_table,dd_ID)
-
-        if(dd_ID_col not in datafile.columns):
-            if("Accession" in datafile.columns):
-                datafile.rename(columns={"Accession":dd_ID_col},inplace=True)
         full_datafile = full_datafile.append(datafile)
         
     return full_datafile
