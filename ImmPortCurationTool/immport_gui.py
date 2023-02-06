@@ -16,9 +16,8 @@ import asyncio
 
 main_logger=''
 
-#TODO need to eventually change this to master branch when fully complete and merged
 #TODO potentially move to external file
-documentation_base_url = "https://github.com/JoshuaFortriede/ImmPort-Curation-Tool/blob/develop"
+documentation_base_url = "https://github.com/JoshuaFortriede/ImmPort-Curation-Tool/blob/master"
 
 class Timer:
     def __init__(self, timeout, callback):
@@ -253,7 +252,7 @@ class GUI(GUI_Object):
         return self.widget
     
     def generate_tab_help(self):
-        self.objects["html_documentation_user_guide"] = HTML(html_text=f"<H1><a href='{documentation_base_url}/documentation/README.md'>User Guide</a></h1><p>A step-by-step guide on using this tool.</p>",description="")
+        self.objects["html_documentation_user_guide"] = HTML(html_text=f"<H1><a href='{documentation_base_url}/User_Guide.md'>User Guide</a></h1><p>A step-by-step guide on using this tool.</p>",description="")
 
         tab = widgets.VBox([
             self.objects["html_documentation_user_guide"].get()
@@ -263,7 +262,6 @@ class GUI(GUI_Object):
 
     def generate_tab_study_info(self):
         """Generate the study info tab"""
-        #TODO Add fields to get study ID and workspace ID if no TAB file is provided.
 
         self.objects["toggle_current_immport_study"] = ToggleButtons(description="How do you want to start?", options=[('Download information from ImmPort',0),('Use ImmPort TAB file',1)], value=0, tooltips=['Downloaded from the public area of ImmPort','Downloaded from the private area of ImmPort'], style=dict(description_width='initial',button_width='auto'))
         self.objects["dropdown_study_visit_list"] = Dropdown(options=[''], description='<b>Study Visits:</b>', tooltip='View the loaded study visits')
@@ -1052,7 +1050,6 @@ def on_select_study_tab_file(value, gui=None, fc_name=None):
 
         visit_names = get_planned_visits(gui.data["planned_visit"],nameonly=True, returnType="list")
         
-        # ## TODO
         gui.objects["dropdown_study_visit_list"].set_options(visit_names)
 
 
