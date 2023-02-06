@@ -14,6 +14,19 @@ This error happens when the dictionary specifies a field that is not present in 
 
 To fix, there are multiple solutions. If the field should not be processed, put the value "[NA]" in the "Column Mappings" column of the data dictionary for this field. If the field should be processed, ensure that the column is present in the study file, and the "Field Name" from the Data Dictionary matches the column heading in the study file. 
 
+### Truncated Value
+![Truncated Value](./images/logging/critical_truncated_value.png)
+
+This error happens when the study files are being processed. It indicates that a field exceeds the maximum limit of the ImmPort field, and that it has automatically been truncated to the allowed length, along with having the text "[Truncated]" prepended to the text to signify to data users that the field has been truncated.
+
+The error specifies the ImmPort field that is affected, the maximum length of that field, the beginning of the text that was truncated, and the length of the field prior to truncation. In this example:
+* ImmPort Field is "resultValueReported"
+* Maximum length of the field is 250
+* The beginning of the text was "1) PT's Almond PST was to Almond Butter"
+* The original field was 273 characters.
+
+The text is provided to help identify the invalid value, and allow for pre-processing of it, if necessary, to decrease the length of the value. This is not necessary as the value is automatically truncated, however the truncated data might be valuable, and other methods could be considered to reduce the length of the response while keeping the most important information.
+
 ## Errors
 Errors indicate something unexpected has happened and the corresponding function has not finished successfully. Errors need to be addressed, and the last user action should be redone. Most errors will occur when generating the template files. 
 
