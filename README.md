@@ -1,21 +1,28 @@
 # ImmPort-Curation-Tool
 
 ## Purpose of this tool
-The purpose of the Immport Curation Tool is to easily transform study data files into ImmPort templates for upload and integration into the ImmPort database. 
+The purpose of the ImmPort Curation Tool is to easily transform study data files into ImmPort templates for upload and integration into the [ImmPort database](https://immport.org/shared/home). 
 
-[TLDR for installation](#tldr-installationsetup) is at bottom.
+## User Guide
+The [User Guide](./User_Guide.md) outlines:
+
+1. [Start Tool](#step-1-start-tool)
+2. [Specify Study Metadata](#step-2-specify-study-metadata)
+3. [Select Data Dictionary](#step-3-select-data-dictionary)
+4. [Select Directory containing Study Files](#step-4-select-directory-containing-study-files)
+5. [Specify Study File metadata](#step-5-specify-study-file-metadata)
+6. [Generate completed ImmPort Template](#step-6-generate-completed-immPort-template)
+
 
 ## Features
 * Transform Study Files and Data Dictionary into completed ImmPort template files (Currently limited to Assessments)
 * Validate the files during generation
-  * Can suggest preferred units that are more consistent within ImmPort
+  * Suggests preferred units that are more consistent within ImmPort
+  * Truncates values that are too long. Alerts user of field and value that is truncated
 
 
-## Setup Jupyter Notebooks in VS Code
-- Install jupyter extension: jupyter nbextension install --user --py widgetsnbextension
-- Enable juypter extesion: jupyter nbextension enable --py widgetsnbextension
-
-
+# Installation Instructions
+[TLDR for installation](#tldr-installationsetup) is at bottom.
 ## Pre-install
 Depending on your environment, you might need to setup a virtual environment to install this module.
 
@@ -45,7 +52,7 @@ To activate the virtual environment on a Windows machine:
 
 ## Installation Instructions
 
-To install, run the following command. Note, if you are using a virtual environment, make sure you activate the virtual environment
+To install, run the following command. Note, if you are using a virtual environment, make sure you activate the virtual environment as described above.
 
 `pip install git+http://git@github.com/JoshuaFortriede/ImmPort-Curation-Tool.git`
 
@@ -58,6 +65,13 @@ Once the module has been installed, run the following command in a terminal to c
 The above command will create a Jupyter Notebook filed called "notebook.ipynb". If you want to create the notebook with a specified name, run:
 
 `ImmPortCurationTool notebook --notebook 'my_curation_notebook'`
+
+## Running Jupyter Notebooks in Visual Studio Code
+If you use VS Code to run the Jupyter Notebook, you need to install and enable the jupyter extension. To do this, open a terminal and type the following commands:
+
+`jupyter nbextension install --user --py widgetsnbextension`
+
+`jupyter nbextension enable --py widgetsnbextension`
 
 
 # TLDR: Installation/Setup
