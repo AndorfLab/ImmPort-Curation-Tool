@@ -265,7 +265,7 @@ class GUI(GUI_Object):
         """Generate the study info tab"""
         #TODO Add fields to get study ID and workspace ID if no TAB file is provided.
 
-        self.objects["toggle_current_immport_study"] = ToggleButtons(description="How do you want to start?", options=[('Use ImmPort TAB file',1),('Download information from ImmPort',0)], value=1, tooltips=['Downloaded from the public area of ImmPort','Downloaded from the private area of ImmPort'], style=dict(description_width='initial',button_width='auto'))
+        self.objects["toggle_current_immport_study"] = ToggleButtons(description="How do you want to start?", options=[('Download information from ImmPort',0),('Use ImmPort TAB file',1)], value=0, tooltips=['Downloaded from the public area of ImmPort','Downloaded from the private area of ImmPort'], style=dict(description_width='initial',button_width='auto'))
         self.objects["dropdown_study_visit_list"] = Dropdown(options=[''], description='<b>Study Visits:</b>', tooltip='View the loaded study visits')
         self.objects["filechooser_study_tab_file"] = File_Chooser(name="filechooser_study_tab_file", title='<b>Select the ImmPort Study Tab zip file</b>', tooltip='Load a study tab file',multiple=False,filter_pattern=['SDY*-DR*_Tab.zip'], style=dict(description_width='initial'))
         self.objects["filechooser_study_tab_file"].set_onclick(self, callback_function=on_select_study_tab_file, callback_data = {"gui":self, "fc_name":"filechooser_study_tab_file"})
@@ -287,7 +287,8 @@ class GUI(GUI_Object):
         box_immport_study_yes = VBox(name="box_immport_study_yes")
         box_immport_study_no = VBox(name="box_immport_study_no")
 
-        box_immport_study_no.toggle_display()
+        # box_immport_study_no.toggle_display()
+        box_immport_study_yes.toggle_display()
 
         box_immport_download_instructions = VBox(name='box_immport_download_instructions')
         box_immport_download_instructions.set_children([self.objects['html_non_Immport'].get()])
@@ -296,11 +297,11 @@ class GUI(GUI_Object):
 
         box_planned_visits = VBox(name='box_planned_visits')
         box_planned_visits.set_children([self.objects['filechooser_planned_visits'].get()])
-        box_planned_visits.toggle_display()
+        # box_planned_visits.toggle_display()
 
         box_study_files = VBox(name='box_study_files')
         box_study_files.set_children([self.objects['filechooser_study_files'].get()])
-        box_study_files.toggle_display()
+        # box_study_files.toggle_display()
 
         self.objects["toggle_non_tab_files"] = ToggleButtons(description="Amend Tab file with new planned visits and/or study files?", options=[('Yes',1),('No',0)], value=0, tooltips=[], style=dict(description_width='initial',button_width='auto'))
 
