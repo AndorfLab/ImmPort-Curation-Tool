@@ -38,6 +38,8 @@ def parseDictionaryRow(row, dictionary):
     if(verbatim_question.lower() == "[same]"):
         verbatim_question =row[dictionary["columns"]["Field Description"]]
     col_mapping = row[dictionary["columns"]["Column Mappings"]]
+    if col_mapping.upper() == "VISIT":
+        col_mapping = "[Visit]"
 
     dictionary["tables"][table_name]["fields"][field_name]={
         "key_field" : row[dictionary["columns"]["Key Field"]],
