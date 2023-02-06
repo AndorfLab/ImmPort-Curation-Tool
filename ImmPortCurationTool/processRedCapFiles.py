@@ -53,7 +53,7 @@ def parseDictionaryRow(row, dictionary):
         "age_onset_unit" : row[dictionary["columns"]["Age At Onset Unit Reported"]],
         "location" : row[dictionary["columns"]["Location"]],
         "study_day" : row[dictionary["columns"]["Study Day"]],
-        "map_to_visit" : row[dictionary["columns"]["Map To Visit"]]
+        "map_to_visit" : row[dictionary["columns"]["Map To Planned Visit"]]
     }
 
     if(col_mapping):
