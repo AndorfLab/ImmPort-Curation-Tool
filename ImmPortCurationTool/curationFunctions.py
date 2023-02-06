@@ -246,10 +246,23 @@ def datafileToComponents(datafile,dictionary,table_name_array,assessment_compone
                     
                     lookup_col = dictionary["tables"][table_name]["fields"][col]["age_onset"]
                     lookup_col_name = dictionary["tables"][table_name]["fields"][lookup_col]["description"]
+                    ig.main_logger.write(level='info', message=f"\tUsing field {lookup_col} for 'Age At Onset Reported' for {col} with unit: {dictionary['tables'][table_name]['fields'][col]['age_onset_unit']}")
 
                     df_slim["Age At Onset Reported"]= datafile[lookup_col]
                     df_slim.loc[~df_slim["Age At Onset Reported"].isna(), "Age At Onset Unit Reported"] = dictionary["tables"][table_name]["fields"][col]["age_onset_unit"]
 
+                #If location is not empty, and value is a column in the data/study file, then use the value from the corresponding field
+                if(dictionary["tables"][table_name]["fields"][col]["location"] != ""):
+                    # Need to create subset (iloc) where age_onset has value
+                    
+                    lookup_col = dictionary["tables"][table_name]["fields"][col]["location"]
+
+                    if lookup_col in datafile:
+                        ig.main_logger.write(level='info', message=f"\tUsing field {lookup_col} for 'Location of Finding Reported' for {col}")
+                        df_slim["Location Of Finding Reported"]= datafile[lookup_col]
+                    else:
+                        ig.main_logger.write(level='info', message=f"\tUsing value {lookup_col} for 'Location of Finding Reported' for {col}")
+                        df_slim["Location Of Finding Reported"]= lookup_col
                 
                 if( dictionary["tables"][table_name]["fields"][col]["study_day"] != ""):
                     # Need to create subset (iloc) where age_onset has value
@@ -258,6 +271,7 @@ def datafileToComponents(datafile,dictionary,table_name_array,assessment_compone
                     if lookup_col == "[Self]":
                         lookup_col = col
                     lookup_col_name = dictionary["tables"][table_name]["fields"][lookup_col]["description"]
+                    ig.main_logger.write(level='info', message=f"\tUsing field {lookup_col} for 'Study Day' value for {col}")
 
                     df_slim["Study Day"]= datafile[lookup_col]
                 #Need to take df_slim and remove rows that have no actual data. 
@@ -306,6 +320,13 @@ def readAndModifyStudyFile(filepath,file_tables,dictionary,planned_visits):
         planned_visit_data = datafile["PLANNED_VISIT_ID"]
         datafile=datafile.drop(columns=["PLANNED_VISIT_ID"])
         datafile.insert(loc=3, column="PLANNED_VISIT_ID",value=planned_visit_data)
+        
+        dd_ID = getColumnMapping(dictionary,file_table,"User Defined ID")
+        dd_ID_col = getColumnName(dictionary, file_table,dd_ID)
+        
+        if(dd_ID_col not in datafile.columns):
+            if("Accession" in datafile.columns):
+                datafile.rename(columns={"Accession":"User Defined ID"},inplace=True)
 
         full_datafile = full_datafile.append(datafile)
         
