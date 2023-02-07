@@ -1,0 +1,20 @@
+Table Name,Field Name,Field Description,Code List Values,Unit,Map To Planned Visit,Column Mappings,Verbatim Question,Who is Assessed,Override Study Day,Age At Onset Reported,Age At Onset Unit Reported,Location
+DEM,HNO,Number in household,,,,,Number living in the household?,,,,,
+DEM,HINC01,Household income,"0=$0 - $49,999, 1=$50,000 - $99,999, 2=$100,000+, 3=Declined",,,,[Same],,,,,
+DEM,VISIT,Visit,"0=Baseline, 1=Week 6",,,Visit,,,,,,
+DEM,PATID,Participant ID,,,,User Defined ID,,,,,,
+DEM,SITE,Center,"BS=Boston,SD=San Diego,SE=Seattle",,,[NA],,,,,,
+DEM,PHASE,Trial Phase,,,,[NA],,,,,,
+MD,PATID,Participant ID,,,,User Defined ID,,,,,,
+MD,VISIT,Visit,"0=Visit 0, 2=Visit 12",,"{""Visit 0"" : ""Baseline"", ""Visit 12"" : ""Week 12""}[6]",Visit,,,,,,
+MD,HEIGHTCM,Height (cm),,cm,,,[Same],,,,,
+MD,PREG,Pregnant,"0=No, 1=Yes, 99=NA",,,,Is the patient pregnant?,,,,,
+MD,ALEGG,Egg Allergy,"0=No, 1=Yes, 9=Unknown",,,,Is the patient allergic to: Egg,,,ALEGGAGE,years,
+MD,DATE,Date,,,,Study Day,,,,,,
+MD,HIVES,Hives,"0=0, 1=1, 2=2, 3=3, 4=4, 5=5, 6=6",USA Score,,,What was the score of your last hive episode?,,HIVESDT,,,HIVESLOC
+MD,HIVESLOC,Hives Location,,,,,,,,,,
+MD,HIVESDT,Hives Date,,,,,,,,,,
+MD,ALLTEST,Allergy Test,,,,,When was your last allergy test?,,ALLTESTDT,,,Back
+MD,ALLTESTDT,Allergy Test Date,,,,,,,,,,
+MD,ALEGGAGE,Egg Allergy Onset,,,,,,,,,,
+MD,PATALL,Paternal Allergy,"0=No, 1=Yes, 9=Unknown",,,,Does the father have allergies,Father,,,,

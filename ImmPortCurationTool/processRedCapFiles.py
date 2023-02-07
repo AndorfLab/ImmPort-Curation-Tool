@@ -37,7 +37,7 @@ def parseDictionaryRow(row, dictionary):
     verbatim_question = row[dictionary["columns"]["Verbatim Question"]]
     if(verbatim_question.lower() == "[same]"):
         verbatim_question =row[dictionary["columns"]["Field Description"]]
-    col_mapping = row[dictionary["columns"]["Column Mappings"]]
+
 
     dictionary["tables"][table_name]["fields"][field_name]={
         "key_field" : row[dictionary["columns"]["Key Field"]],
@@ -51,14 +51,20 @@ def parseDictionaryRow(row, dictionary):
         "age_onset_unit" : row[dictionary["columns"]["Age At Onset Unit Reported"]],
         "location" : row[dictionary["columns"]["Location"]],
         "study_day" : row[dictionary["columns"]["Study Day"]],
-        "map_to_visit" : row[dictionary["columns"]["Map To Visit"]]
+        "map_to_visit" : row[dictionary["columns"]["Map To Planned Visit"]],
+        "question":True
     }
+
+    col_mapping = row[dictionary["columns"]["Column Mappings"]]
+    if col_mapping.upper() == "VISIT":
+        col_mapping = "[Visit]"
 
     if(col_mapping):
         dictionary["tables"][table_name]["mappings"][col_mapping]=field_name
+        dictionary["tables"][table_name]["fields"][field_name]['question']=False
 
     if(len(values)>0):
-        dictionary["tables"][table_name]["fields"][field_name]["values"]=parseCodeListValues(values)     
+        dictionary["tables"][table_name]["fields"][field_name]["values"]=parseCodeListValues(values)
 
 def parseDataDictionary(filename):
     dictionary={"columns":{},"tables":{}}
@@ -71,5 +77,22 @@ def parseDataDictionary(filename):
             
         for row in reader:
             parseDictionaryRow(row, dictionary)
+
+        #Iterate through fields, and check if the field is used in other mappings:
+
+        for table_name in dictionary["tables"].keys():
+            for field in dictionary["tables"][table_name]["fields"].keys():
+                possible_fields = [
+                    dictionary["tables"][table_name]["fields"][field]['unit'],
+                    dictionary["tables"][table_name]["fields"][field]['who_is_assessed'],
+                    dictionary["tables"][table_name]["fields"][field]['age_onset'],
+                    dictionary["tables"][table_name]["fields"][field]['age_onset_unit'],
+                    dictionary["tables"][table_name]["fields"][field]['location'],
+                    dictionary["tables"][table_name]["fields"][field]['study_day']
+                ]
+                for pf in possible_fields:
+                    if pf in dictionary["tables"][table_name]["fields"]:
+                        dictionary["tables"][table_name]["fields"][pf]["question"]=False
+
 
     return dictionary
