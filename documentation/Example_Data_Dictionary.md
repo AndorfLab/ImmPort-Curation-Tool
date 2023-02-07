@@ -6,12 +6,12 @@ A copy of this curated data dictionary can be [downloaded here](./curated_data_d
 
 
 |<sub>Table Name</sub>|<sub>Field Name</sub>|<sub>Field Description</sub>|<sub>Code List Values</sub>|<sub>Unit</sub>|<sub>Map To Planned Visit</sub>|<sub>Column Mappings</sub>|<sub>Verbatim Question</sub>|<sub>Who is Assessed</sub>|<sub>Override Study Day</sub>|<sub>Age At Onset Reported</sub>|<sub>Age At Onset Unit Reported</sub>|<sub>Location</sub>|
-|----------|----------|-------------------|-------------------------------------------------------------------|---------|------------------------------------------------|---------------|--------------------------------------------------|---------------|------------------|---------------------|--------------------------|--------|
+|----|----|----|----|----|----|----|----|----|----|----|----|----|
 |<sub>DEM</sub>|<sub>HNO</sub>|<sub>Number in household</sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub>Number living in the household?[^1]</sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub></sub>|
 |<sub>DEM</sub>|<sub>HINC01</sub>|<sub>Household income</sub>|<sub>0=$0 - $49,999, 1=$50,000 - $99,999, 2=$100,000+, 3=Declined</sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub>[Same][^2]</sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub></sub>|
 |<sub>DEM</sub>|<sub>VISIT</sub>|<sub>Visit</sub>|<sub>0=Baseline, 1=Week 6</sub>|<sub></sub>|<sub></sub>|<sub>Visit[^3]</sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub></sub>|
 |<sub>DEM</sub>|<sub>PATID</sub>|<sub>Participant ID</sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub>User Defined ID[^4]</sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub></sub>|
-|<sub>DEM</sub>|<sub>SITE</sub>|<sub>Center</sub>|<sub>BS=Boston,SD=San Diego,SE=Seattle</sub>|<sub></sub>|<sub></sub>|<sub>[NA][^5]</sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub></sub>|
+|<sub>DEM</sub>|<sub>SITE</sub>|<sub>Center</sub>|<sub>BS=Boston, SD=San Diego, SE=Seattle</sub>|<sub></sub>|<sub></sub>|<sub>[NA][^5]</sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub></sub>|
 |<sub>DEM</sub>|<sub>PHASE</sub>|<sub>Trial Phase</sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub>[NA]</sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub></sub>|
 |<sub>MD</sub>|<sub>PATID</sub>|<sub>Participant ID</sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub>User Defined ID</sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub></sub>|
 |<sub>MD</sub>|<sub>VISIT</sub>|<sub>Visit</sub>|<sub>0=Visit 0, 2=Visit 12</sub>|<sub></sub>|<sub>{"Visit 0" : "Baseline", "Visit 12" : "Week 12"}[^6]</sub>|<sub>Visit</sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub></sub>|
