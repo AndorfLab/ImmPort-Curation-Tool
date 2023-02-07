@@ -2,7 +2,6 @@
 
 The ImmPort tool uses a curated data dictionary to transform study files into completed ImmPort Templates. The curated data dictionary provides context to the study files such as the verbatim question and units, as well as specifying which fields contain the Subject ID and Visit.
 
-
 Currently, the curated data dictionary should be a csv file with at least the columns specified in the table below. While additional columns are acceptable, the specified [Data Dictionary Columns](#data-dictionary-columns) below are required exactly as specified.
 
 ## [Example Curated Data Dictionary](./Example_Data_Dictionary.md)
@@ -10,6 +9,7 @@ An example of a curated data dictionary with explanations of its usage. The data
 
 ## Data Dictionary Columns
 If a value is not applicable for a row, such as "Unit", leave it blank.
+> **NOTE**: Fields will only be processed into records if they have a value in the Verbatim Question column. 
 
 
 | Column Name | Description | Acceptable Values | Example(s) |

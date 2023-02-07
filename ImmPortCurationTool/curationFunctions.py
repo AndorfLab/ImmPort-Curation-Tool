@@ -191,6 +191,7 @@ def datafileToComponents(datafile,dictionary,table_name_array,assessment_compone
         question_id = 0
         datafile.rename(columns=col_mappings,inplace=True)
     
+        #Only process fields that have a verbatim question from the data dictionary
         question_cols = (dict(filter(lambda col: col[1]["verbatim_question"] != "",dictionary["tables"][table_name]["fields"].items())))
         
         set_columns = list(col_mappings.values())
