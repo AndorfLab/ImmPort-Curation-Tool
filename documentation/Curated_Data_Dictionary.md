@@ -9,7 +9,9 @@ An example of a curated data dictionary with explanations of its usage. The data
 
 ## Data Dictionary Columns
 If a value is not applicable for a row, such as "Unit", leave it blank.
-> **NOTE**: Fields will only be processed into records if they have a value in the Verbatim Question column. 
+> **NOTE**: Fields will only be processed into records if they have a value in the Verbatim Question column. Additionally, fields can be excluded by placing the value "[NA]" in the "Column Mappings" column. 
+
+> **NOTE**: Study day is not a date, but a positive/negative integer based on a specific date or visit. For instance, a value of 7 could be 7 days past the baseline or screening visit. Further details can be found in the [Study File format documentation](Study_File_format.md#study-days)
 
 
 | Column Name | Description | Acceptable Values | Example(s) |
@@ -30,8 +32,8 @@ If a value is not applicable for a row, such as "Unit", leave it blank.
 
 [^1]: Unit [SPLIT]: This special code will split at the first space, placing everything before the space as the field/question value and everything after as the unit.
 
-[^2]: Map To Planned Visit: If the value for a visit, or it's decoded value from the code list values, does not exactly match the name of the visit from the planned visits file, a mapping can be given using a JSON dictionary format. The format is: {"[Study_file_visit_value]":"[Planned_visit_file_value]"}, where [Study_file_visit_value] is the value from the study file (or the decoded value if code list is used), and [Planned_visit_file_value] is the name of the analogous visit that is present in the planned visits file. 
+[^2]: Column Mappings: Often a form will contain a few questions that apply to every field. These include the participant ID (User Defined ID), specific visit (Visit), and study day (Study Day). Each of these values would apply to all questions on the form and are not themselves actual questions. By using these special designations, the values of these questions will be pivoted to the appropriate columns in the ImmPort Template. To ignore a question, "[NA]" can be used. This will skip the question when generating the completed templates and can be used for PHI or operational only fields such as Site Name or Completion Status.
 
-[^3]: Column Mappings: Often a form will contain a few questions that apply to every field. These include the participant ID (User Defined ID), specific visit (Visit), and study day (Study Day). Each of these values would apply to all questions on the form and are not themselves actual questions. By using these special designations, the values of these questions will be pivoted to the appropriate columns in the ImmPort Template. To ignore a question, "[NA]" can be used. This will skip the question when generating the completed templates and can be used for PHI or operational only fields such as Site Name or Completion Status.
+[^3]: Map To Planned Visit: If the value for a visit, or it's decoded value from the code list values, does not exactly match the name of the visit from the planned visits file, a mapping can be given using a JSON dictionary format. The format is: {"[Study_file_visit_value]":"[Planned_visit_file_value]"}, where [Study_file_visit_value] is the value from the study file (or the decoded value if code list is used), and [Planned_visit_file_value] is the name of the analogous visit that is present in the planned visits file. 
 
 [^4]: This will take precedence over using the value from the field with Study Day specified in the Column Mappings column. An instance of this would be a medical history form with two related questions: What was the severity of your last latex reaction. What was the date of the latex reaction. In this example, the second question provides the study day of the first question. 

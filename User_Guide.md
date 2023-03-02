@@ -12,7 +12,7 @@ Before you start using this tool, you will need to:
 - [Install the tool](./README.md#installation-instructions)
 - Have the study files you want to convert in a single directory
 - [Curate the data dictionary](./documentation/Curated_Data_Dictionary.md)
-
+- Replace dates in study files with Study Day
 
 ## General Overview of Steps
 1. [Start Tool](#step-1-start-tool)
@@ -37,7 +37,10 @@ This step specifies the ImmPort Workspace ID, Study ID, planned visit informatio
 There are 2 methods to specify this information, specified by clicking the buttons next to the text "How do you want to start?".
 
 ### Method 1: Download information from ImmPort
-For this method, you will need to download a planned visits file and study files file from ImmPort. Use this method if you have private access to the ImmPort study.
+
+If you are the submitter of this dataset, working with the submitter, or have access to the workspace within the [ImmPort Upload Data Portal](https://immport.niaid.nih.gov/upload/data/uploadDataMain#!/uploadData), you will want to use this method. If not, go to [Method 2](#method-2-use-immport-tab-file).
+
+For this method, you will need to download a planned visits file and Study Files file from ImmPort. Use this method if you have private access to the ImmPort study.
 
 1. First, specify the workspace ID and the study ID.
 
@@ -48,6 +51,7 @@ For this method, you will need to download a planned visits file and study files
 
 
 ### Method 2: Use ImmPort TAB file
+You can only use this method when a study is available in a public ImmPort Release. Additionally, if you do not have access to the workspace within the [ImmPort Upload Data Portal](https://immport.niaid.nih.gov/upload/data/uploadDataMain#!/uploadData), you will want to use this method. 
 
 For this method, you will need to download an ImmPort TAB file. The TAB file is a zip file that contains the current information about the ImmPort study such as study ID, workspace ID, planned visits, and study file information.
 
@@ -125,7 +129,7 @@ The generated table includes every file in the selected "Study Files" directory.
 
 2. Add an assessment name such as Medical History or Demographics. This assessment name should be a high-level, broad description. This will become the assessment type in the ImmPort Data Model
 
-3. Select the ImmPort Template to which the tool should munge the files. Currently this tool only supports Assessments so pick that for each file to translate
+3. Select the ImmPort Template to into which the data needs transformed. Currently this tool only supports Assessments so pick that for each file to translate
 
 ![study16](documentation/images/016_call_them_something_then_select_assessment.png)
 

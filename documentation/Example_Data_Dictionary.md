@@ -20,12 +20,12 @@ A copy of this curated data dictionary can be [downloaded here](./curated_data_d
 |<sub>MD</sub>|<sub>ALEGG</sub>|<sub>Egg Allergy</sub>|<sub>0=No, 1=Yes, 9=Unknown</sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub>Is the patient allergic to: Egg</sub>|<sub></sub>|<sub></sub>|<sub>ALEGGAGE[^8]</sub>|<sub>years[^9]</sub>|<sub></sub>|
 |<sub>MD</sub>|<sub>DATE</sub>|<sub>Date</sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub>Study Day[^10]</sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub></sub>|
 |<sub>MD</sub>|<sub>HIVES</sub>|<sub>Hives</sub>|<sub>0=0, 1=1, 2=2, 3=3, 4=4, 5=5, 6=6</sub>|<sub>USA Score</sub>|<sub></sub>|<sub></sub>|<sub>What was the score of your last hive episode?</sub>|<sub></sub>|<sub>HIVESDT[^11]</sub>|<sub></sub>|<sub></sub>|<sub>HIVESLOC[^12]</sub>|
-|<sub>MD</sub>|<sub>HIVESLOC</sub>|<sub>Hives Location</sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub></sub>|
+|<sub>MD</sub>|<sub>HIVESLOC[^13]</sub>|<sub>Hives Location</sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub></sub>|
 |<sub>MD</sub>|<sub>HIVESDT</sub>|<sub>Hives Date</sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub></sub>|
-|<sub>MD</sub>|<sub>ALLTEST</sub>|<sub>Allergy Test</sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub>When was your last allergy test?</sub>|<sub></sub>|<sub>ALLTESTDT</sub>|<sub></sub>|<sub></sub>|<sub>Back[^13]</sub>|
+|<sub>MD</sub>|<sub>ALLTEST</sub>|<sub>Allergy Test</sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub>When was your last allergy test?</sub>|<sub></sub>|<sub>ALLTESTDT</sub>|<sub></sub>|<sub></sub>|<sub>Back[^14]</sub>|
 |<sub>MD</sub>|<sub>ALLTESTDT </sub>|<sub>Allergy Test Date</sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub></sub>|
 |<sub>MD</sub>|<sub>ALEGGAGE</sub>|<sub>Egg Allergy Onset</sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub></sub>|
-|<sub>MD</sub>|<sub>PATALL</sub>|<sub>Paternal Allergy</sub>|<sub>0=No, 1=Yes, 9=Unknown</sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub>Does the father have allergies</sub>|<sub>Father[^14]</sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub></sub>|
+|<sub>MD</sub>|<sub>PATALL</sub>|<sub>Paternal Allergy</sub>|<sub>0=No, 1=Yes, 9=Unknown</sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub>Does the father have allergies</sub>|<sub>Father[^15]</sub>|<sub></sub>|<sub></sub>|<sub></sub>|<sub></sub>|
 
 
 Footnotes
@@ -47,15 +47,17 @@ Footnotes
 
 [^9]: Value of "years" in column "Age at Onset Unit Reported": This value specifies that "years" is the unit corresponding to the value given in the "Age at Onset Reported" column. The unit will only be used when there is a value in the corresponding field.
 
-[^10]: Value of "Study Day" in column "Column Mappings": This special text specifies that the field "DATE" in the MD study file specifies the study day value that should be applied to all questions in that study file.
+[^10]: Value of "Study Day" in column "Column Mappings": This special text specifies that the field "DATE" in the MD study file specifies the study day value that should be applied to all questions in that study file. Note: Values for "Study Day" columns should conform to specifications in the [Study File format documentation](Study_File_format.md#study-days)
 
 [^11]: Value of "HIVESDT" value in column "Override Study Day": This value specifies that the field "HIVESDT" contains the value that should be used for the study day for question "HIVES". 
 
 [^12]: Value of "HIVESLOC" value in column "Location": This value specifies that the field "HIVESLOC" contains the value that should be used for the "Location of Finding Reported" for question "HIVES".
 
-[^13]: Value of "Back" value in column "Location": This value specifies that all ALLTEST questions have a value of "Back" for the "Location of Finding Reported" column in the ImmPort Template.
+[^13]: Because this is field is used as the "location" of field "HIVES", no additional columns are necessary to fill out, such as the "Verbatim Question" column.
 
-[^14]: Value of "Father" value in column "Who is Assessed": This value specifies that for all PATALL questions, the value of "Father" is used for the "Who is Assessed" column in the ImmPort Template.
+[^14]: Value of "Back" value in column "Location": This value specifies that all ALLTEST questions have a value of "Back" for the "Location of Finding Reported" column in the ImmPort Template.
+
+[^15]: Value of "Father" value in column "Who is Assessed": This value specifies that for all PATALL questions, the value of "Father" is used for the "Who is Assessed" column in the ImmPort Template.
 
 
 
