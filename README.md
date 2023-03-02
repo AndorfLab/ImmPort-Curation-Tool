@@ -1,7 +1,8 @@
 # ImmPort-Curation-Tool
 
 ## Purpose of this tool
-The purpose of the ImmPort Curation Tool is to easily transform study data files into ImmPort templates for upload and integration into the [ImmPort database](https://immport.org/shared/home). 
+
+The purpose of the ImmPort Curation Tool is to easily transform data files/tables from the study (study files) into ImmPort templates for upload and integration into the [ImmPort database](https://immport.org/shared/home). 
 
 ## User Guide
 The [User Guide](./User_Guide.md) outlines:
@@ -36,7 +37,7 @@ By convention, most users will use "venv" or ".venv" as the "/path/to/new/virtua
 
 If you need this tool to be more broadly shared on your computer, you can choose some shared directory that multiple users can access.
 
-After creating the virtual environment, you need to activate it. This activate causes modules to be stalled in this virtual environment, and not the default python environment. Python programs run while using this virtual environment will utilize this set of installed modules.
+After creating the virtual environment, you need to activate it. This "activation" causes modules to be stalled in this virtual environment, and not the default python environment. Python programs run while using this virtual environment will utilize this set of installed modules.
 
 If the command you ran above looked like:
 
@@ -62,7 +63,7 @@ Once the module has been installed, run the following command in a terminal to c
 
 `ImmPortCurationTool notebook`
 
-The above command will create a Jupyter Notebook filed called "notebook.ipynb". If you want to create the notebook with a specified name, run:
+The above command will create a Jupyter Notebook file called "notebook.ipynb". If you want to create the notebook with a specified name, run:
 
 `ImmPortCurationTool notebook --notebook 'my_curation_notebook'`
 
