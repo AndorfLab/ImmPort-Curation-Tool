@@ -6,7 +6,7 @@ The Logging tab provides helpful information regarding different errors that mig
 * [Warning](#warnings)
 
 ## Critical
-Critical problems indicate a problem with the data and should be addressed. 
+Critical problems indicate a problem with the data and should be addressed. After fixing the issues, the tool should be re-run. 
 ### Table Field not found in file
 ![Table field missing](./images/logging/critical_missing_data_field.png)
 
@@ -41,7 +41,7 @@ To fix, check if there are any missing visits (specified below). If there are no
 ### Missing Visits
 ![Missing Visits](./images/logging/error_missing_visits.png)
 
-This error happens during data processing and identifies that the data contains planned visit values that are not specified in the data dictionary. 
+This error happens during data processing and identifies that the data contains planned visit values that are not specified in the planned visits table. 
 
 To fix, either update the "Code List Values" column in the data dictionary to include the extra visits, or use the "Map to Visit" column to specify the additional mappings. Information about using these fields can be found in [Instructions for Curating the Data Dictionary](./Curated_Data_Dictionary.md).
 
