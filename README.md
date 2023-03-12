@@ -75,6 +75,23 @@ If you use VS Code to run the Jupyter Notebook, you need to install and enable t
 `jupyter nbextension enable --py widgetsnbextension`
 
 
+## Jupyter Notebook Kernel Selection
+
+For the tool to run in the Jupyter Notebook, you need to specify the python environment where the tool is installed. This is referred to as the "Kernel".
+
+To do this:
+1. Click on "Select Kernel" in the upper right of the VS code window (red circle).
+2. If the python environment (or installation if you are not using an environment) is listed, click on it.
+3. If the "kernel" is not listed, click "Select Another Kernel..." and follow steps to select or create a new environment.
+
+> Note: Kernels are listed that are in the current PATH. As such, loading the folder that contains the python environment that you created usually works in populating the Kernel list with the environment.
+
+>Additional documentation can be found on the [VS Code Website](https://code.visualstudio.com/docs/datascience/jupyter-kernel-management#:~:text=You%20can%20open%20the%20kernel,Notebook%3A%20Select%20Notebook%20Kernel%20command.&text=Note%3A%20In%20the%20previous%20versions,all%20available%20kernels%20by%20default.)
+
+![select_kernel](./documentation/images/installation/kernel_selection.png)
+
+
+
 # TLDR: Installation/Setup
 
 For Unix:
