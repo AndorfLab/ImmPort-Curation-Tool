@@ -4,6 +4,8 @@
 
 The purpose of the ImmPort Curation Tool is to easily transform data files/tables from the study (study files) into ImmPort templates for upload and integration into the [ImmPort database](https://immport.org/shared/home). 
 
+Currently, this tool only works to transform study files into the Assessment Template. This template covers the [Assessment Panel](https://immport.org/shared/dataModelDocumentation?table=assessment_panel) and [Assessment Components](https://immport.org/shared/dataModelDocumentation?table=assessment_component).
+
 ## User Guide
 The [User Guide](./User_Guide.md) outlines:
 
