@@ -1,5 +1,43 @@
 # Frequently Asked Questions
 
+## What is the "Verbatim Question"?
+
+The verbatim question is designed to provide a more complete context to the question than just a 1 or 2 word name. There are several cases where the verbatim question is more than what is specifically listed for that question
+
+**Compound Questions** 
+
+ Many times there are compound questions on a collection form. For instance there might be a question of "Has the patient been treated with steroids before?" with a follow up question of "How many times?" The question "How many times?" looses context outside of the physical collection form. As such, the leading question of "Has the patient been treated with steroids before?" Should be prepended to the text "How many times?" for the verbatim question. 
+
+**Section Header**
+
+Sometimes a block of questions will have a section header that gives context to all the questions in the block. For instance, the header might say "What treatments were effective?". This would be followed by several questions, with a brief question text of "Oral Steroids", "Topical Steroids", "Food Elimination". In this case, the text "What treatments were effective?" should be prepended to the brief question text. 
+
+**Matrix/Table Fields**
+Sometimes questions are arranged in a matrix or table display to aid in the compactness and usability of the collection form. In this cases, the rows and columns normally contain headers that are important. For instance, there might be a table similar to the following:
+
+Does the participant have food allergies?
+<table>
+<tr>
+    <th></th><th>Skin Prick Test</th><th>Patch Test</th><th>Rash/Hives</th><th>Difficulty Breathing</th><th>Anaphylaxsis</th>
+</tr>
+<tr>
+    <th>Eggs</th><td>0=Negative<br>1=Positive</td><td>0=Negative<br>1=Positive</td><td><input type='checkbox'></td><td><input type='checkbox'></td><td><input type='checkbox'></td>
+</tr>
+<tr>
+    <th>Peanuts</th><td>0=Negative<br>1=Positive</td><td>0=Negative<br>1=Positive</td><td><input type='checkbox'></td><td><input type='checkbox'></td><td><input type='checkbox'></td>
+</tr>
+<tr>
+    <th>Wheat</th><td>0=Negative<br>1=Positive</td><td>0=Negative<br>1=Positive</td><td><input type='checkbox'></td><td><input type='checkbox'></td><td><input type='checkbox'></td>
+</tr>
+<tr>
+    <th>Soy</th><td>0=Negative<br>1=Positive</td><td>0=Negative<br>1=Positive</td><td><input type='checkbox'></td><td><input type='checkbox'></td><td><input type='checkbox'></td>
+</tr>
+</table>
+
+In this case, each cell of the body of the table is a separate question. The row and column headers help define the question, along with the sentence above the table. A good verbatim question for the first cell could be "Does the participant have food allergies? Eggs - Skin Prick Test". This includes the context that we are look at food allergies of the participant, that we are looking at the Egg allergen and that we are using the Skin Prick Test to do this.
+
+
+
 ## Study Day: What is the difference between using the "Study Day" value in "Column Mappings", using the "Study Day" column, and using the "Age at Onset Reported" columns?
 
 The Immport Assessment Template has two separate "Date" fields: Study Day, Age at Onset Reported/Age at Onset Unit. The Study Day field specifies the study day value for a given question. For most questions/values, this is the day of the study visit. In this case, you want to use the value of "Study Day" in the "Column Mapping" column of the data dictionary that corresponds to the question that holds the study day value. This will ensure that ALL fields from that form/instrument/panel use this value.
@@ -10,7 +48,7 @@ Finally, sometimes the questions are (DIABETES) "Do you have type II diabetes?" 
 
 
 
-## Mappings to ImmPort Template Columns
+## Where does the data that gets to ImmPort Template columns come from?
 
 | ImmPort Assessment Template Column| Where the value comes from | 
 | --------- | --------- | 

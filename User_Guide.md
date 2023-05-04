@@ -6,6 +6,7 @@ The purpose of this user guide is to explain how to use the ImmPort Curation Too
 * [Installation Instructions](./README.md#installation-instructions)
 * [Purpose of the tool](./README.md#purpose-of-this-tool)
 * [Common logging errors](./documentation/Logging%20Errors.md)
+* [FAQ](./documentation/FAQ.md)
 
 ## Before You Start
 Before you start using this tool, you will need to:
@@ -16,11 +17,11 @@ Before you start using this tool, you will need to:
 
 ## General Overview of Steps
 1. [Start Tool](#step-1-start-tool)
-2. [Specify Study Metadata](#step-2-specify-study-metadata)
+2. [Specify Study Information](#step-2-specify-study-information)
 3. [Select Data Dictionary](#step-3-select-data-dictionary)
 4. [Select Directory containing Study Files](#step-4-select-directory-containing-study-files)
-5. [Specify Study File metadata](#step-5-specify-study-file-metadata)
-6. [Generate completed ImmPort Template](#step-6-generate-completed-immPort-template)
+5. [Specify Study File Information](#step-5-specify-study-file-information)
+6. [Generate completed ImmPort Template](#step-6-generate-completed-immport-template)
 
 ## Step 1: Start Tool
 Open up the jupyter notebook: i.e. notebook.ipynb
