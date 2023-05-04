@@ -1,5 +1,16 @@
 # Frequently Asked Questions
 
+## Where do I find my ImmPort Workspace ID and study ID?
+The workspace ID can be found in the [ImmPort Study Registration Wizard](https://immport.niaid.nih.gov/wizard/home). This can be found by going to the [ImmPort Website](https://www.immport.org/home), clicking on "Upload" in the top menu, and then "Study Registration". 
+
+On this page, you will see the following section. 
+![Study Registration](images/study_registration.png)
+
+Click on the "Select a Workspace" and you will see a pop-up with the workspaces you have access to. The workspace ID will be the first set of digits, with the name of the workspace being the last part.
+![Study Registration Workspaces](images/study_registration-dropdown.png)
+
+The Study ID can be found by [searching the private data](https://immport.niaid.nih.gov/research/study/studysearchmain#!/studysearch) and then looking at the "Study Accession" column for the corresponding study. This can be found by going to the [ImmPort Website](https://www.immport.org/home), clicking on "Upload" in the top menu, and then "Search Private Data". 
+
 ## What is the "Verbatim Question"?
 
 The verbatim question is designed to provide a more complete context to the question than just a 1 or 2 word name. There are several cases where the verbatim question is more than what is specifically listed for that question

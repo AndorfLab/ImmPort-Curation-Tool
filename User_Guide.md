@@ -43,7 +43,7 @@ If you are the submitter of this dataset, working with the submitter, or have ac
 
 For this method, you will need to download a planned visits file and Study Files file from ImmPort. Use this method if you have private access to the ImmPort study.
 
-1. First, specify the workspace ID and the study ID.
+1. First, specify the workspace ID and the study ID. [Where do I find the workspace and study IDs](/documentation/FAQ.md#where-do-i-find-my-immport-workspace-id-and-study-id)
 
 2. Next provide a valid ImmPort Planned Visit file and a valid ImmPort Study Files file. Instructions for obtaining these files are provided in the tool, as well as [here](./documentation/Load_files_from_immport.md)
 
