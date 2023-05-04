@@ -965,7 +965,9 @@ class Log_Output(GUI_Object):
         button = Button(
             text=description,
             tooltip=tooltip,
-            callback=self.clear_output
+            callback=self.clear_output,
+            style="info",
+            icon="trash"
         )
         return button
 
