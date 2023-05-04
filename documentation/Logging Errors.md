@@ -38,8 +38,8 @@ This error occurs during data validation and specifies that there are record(s) 
 To fix, check if there are any missing visits (specified below). If there are no missing visits, it is possible that the source file has no value in the visit column. If the study file has no visit column, and all records in the study file should be from a single visit, use the directions specified in sub-step 4 of [Step 5: Specify Study File metadata](../User_Guide.md#step-5-specify-study-file-metadata).
 
 
-### Missing Visits
-![Missing Visits](./images/logging/error_missing_visits.png)
+### Unable to find planned visits for the following visit names
+![Missing Visits](./images/logging/error_missing_visits2.png)
 
 This error happens during data processing and identifies that the data contains planned visit values that are not specified in the planned visits table. 
 

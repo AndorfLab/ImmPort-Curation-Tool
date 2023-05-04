@@ -81,14 +81,14 @@ def validate_data(data, schema_name=None):
                 last_error=error
                 ig.main_logger.write(
                     level="error",
-                    message=f"Planned Visit is missing"
+                    message=f"Some records are missing a valid planned visit"
                 )
             return True
         else:
             last_error=error
             ig.main_logger.write(
                 level="error",
-                message=f"Some other Validation Error... {error}",
+                message=f"Some other Validation Error... {error}",      #TODO: Weird Error here. 
                 flush=True
             )
             ig.main_logger.write(
