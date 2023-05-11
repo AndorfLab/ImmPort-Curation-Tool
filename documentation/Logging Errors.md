@@ -1,3 +1,10 @@
+# Error Console
+The Error Console provides a quick view of errors of levels "Error" or "Critical". This error console is present no matter which tab you are on. This console can be cleared by clicking the button in the top-left of the screen. 
+
+This console is only present when there are errors of the specified levels. When new errors arise, this console will display again. Three lines of errors will be visible at a time. IF there are more lines of errors, a scroll bar will be present.
+
+![Error Console](./images/logging/conole_log_error.png)
+
 # Logging Tab
 The Logging tab provides helpful information regarding different errors that might occur while using this tool. Common errors are explained below and fall under three categories:
 

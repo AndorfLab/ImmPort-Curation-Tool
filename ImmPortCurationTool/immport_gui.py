@@ -491,7 +491,7 @@ class GUI(GUI_Object):
         self.objects["button_generate_files"].button_change(button=self.objects["button_generate_files"], style='success', text='Files Generated - Click to Re-Generate',tooltip='Files have been generated in the Results folder. Click to re-generate files.',disabled=False, icon='')
 
     def generate_console(self):
-        self.loggers['console'] = Log_Output(name="console", level=logging.WARNING, max_height="100px")
+        self.loggers['console'] = Log_Output(name="console", level=logging.ERROR, max_height="100px")
         self.loggers['output_logger'].logger.addHandler(self.loggers['console'].log_viewer)
 
         self.objects["button_clear_console"] = self.loggers["console"].add_clear_button(description="", icon="ban", style="", tooltip="Clear Console Logger")
@@ -1000,7 +1000,7 @@ class Log_Output(GUI_Object):
             highest_level = [levels[0] , sum(self.messages[levels[0]].values())]
         except Exception as e:
             pass
-        
+
         self.messages={}
         return highest_level
 
