@@ -109,6 +109,9 @@ class log_viewer(logging.Handler):
             if "{}".format(key) == "format":
                 self.setFormatter(value)
 
+        if "parent" in kwargs:
+            self.parent = kwargs["parent"]
+
         if "output" in kwargs:
             self.output = kwargs["output"]
         else:
@@ -117,6 +120,9 @@ class log_viewer(logging.Handler):
         self.setFormatter(CustomFormatter(self.fmt))
 
     def emit(self, record):
+        if hasattr(self, "parent"):
+            self.parent.clear_button.show_hide_element(display="")
+
         """ Overload of logging.Handler method """
         formatted_record = self.format(record)
         print_html2 = HTML(html_text = f"<font color='blue' style='white-space: pre; font-size=16px'>{formatted_record}")
@@ -136,6 +142,8 @@ class GUI_Object():
     
     def display(self):
         """Display the widget"""
+        if hasattr(self, "loggers") and "console" in self.loggers:
+            return widgets.VBox([widgets.HBox([self.objects["button_clear_console"].get(),self.loggers["console"].get()]),self.get()])
         return self.get()
     
     def set_observe(self, callback_function, callback_data):
@@ -186,6 +194,7 @@ class GUI(GUI_Object):
         self.objects={}
         self.dictionary={}
         self.loggers={}
+        # self.generate_console()
         self.generate_gui()
 
     def add_tab(self, tab):
@@ -211,12 +220,22 @@ class GUI(GUI_Object):
     def log(self, message, level="debug", flush=False):
         self.main_logger.write(message, level, flush)
         return
-    
+
     def flush_log(self):
-        self.main_logger.flush()
+        highest_level = self.main_logger.flush()
+        if highest_level is not None:
+            self.loggers['console'].write(level=highest_level[0], message=f"There are {highest_level[1]} level {highest_level[0]} messages.", flush=True)
         return
 
     def create_logger(self, name="main_logger",level="debug"):  #Not Used
+        levels={
+            "debug":logging.DEBUG,
+            "info":logging.INFO,
+            "warning":logging.WARNING,
+            "error":logging.ERROR,
+            "critical":logging.CRITICAL
+        }
+
         layout = {
             'width': '100%',
             'height': '550px',
@@ -224,7 +243,7 @@ class GUI(GUI_Object):
         }
 
         self.loggers[name] = logging.getLogger(name)
-        self.loggers[name].setLevel(logging.DEBUG)
+        self.loggers[name].setLevel(levels[level])
         self.loggers[name].widget = widgets.Output(layout=layout)
         handler = OutputWidgetHandler(self.loggers[name].widget)
         handler.setFormatter(logging.Formatter('%(asctime)s  - [%(levelname)s] %(message)s'))
@@ -241,16 +260,19 @@ class GUI(GUI_Object):
         """Generate the GUI"""
 
         # self.generate_error_header()
-
         self.add_tab(Tab("1. Study",self.generate_tab_study_info()))
         self.add_tab(Tab("2. Data Dictionary",self.generate_tab_data_dictionary()))
         self.add_tab(Tab("3. Study Files",self.generate_tab_study_files()))
         self.add_tab(Tab("Logging",self.generate_tab_logging()))
         self.add_tab(Tab("Help",self.generate_tab_help()))
+        self.generate_console()
         self.log(message="GUI generated", level="info")
         self.flush_log()
         return self.widget
     
+    def clear_console(self,b):
+        self.loggers['console'].widget.clear_output()
+
     def generate_tab_help(self):
         self.objects["html_documentation_user_guide"] = HTML(html_text=f"<H1><a href='{documentation_base_url}/User_Guide.md'>User Guide</a></h1><p>A step-by-step guide on using this tool.</p>",description="")
 
@@ -468,18 +490,24 @@ class GUI(GUI_Object):
                     pass
         self.objects["button_generate_files"].button_change(button=self.objects["button_generate_files"], style='success', text='Files Generated - Click to Re-Generate',tooltip='Files have been generated in the Results folder. Click to re-generate files.',disabled=False, icon='')
 
+    def generate_console(self):
+        self.loggers['console'] = Log_Output(name="console", level=logging.ERROR, max_height="100px")
+        self.loggers['output_logger'].logger.addHandler(self.loggers['console'].log_viewer)
+
+        self.objects["button_clear_console"] = self.loggers["console"].add_clear_button(description="", icon="ban", style="", tooltip="Clear Console Logger")
+        self.objects["button_clear_console"].show_hide_element(display='none')
+
     def generate_tab_logging(self):
         """Generate the logging tab"""
         global main_logger  #Hack until fixed properly
-        self.loggers["output_logger"] = Log_Output(name="output_logger")
-        
-        self.objects["button_clear_main_logger"] = self.loggers["output_logger"].add_clear_button(description="Clear", tooltip="Clear the main logger")
+        self.loggers["output_logger"] = Log_Output(name="output_logger", level=logging.INFO)
 
+        self.objects["button_clear_main_logger"] = self.loggers["output_logger"].add_clear_button(description="Clear", tooltip="Clear the main logger", width="75px")
 
         self.main_logger=self.loggers["output_logger"]
         main_logger=self.main_logger
 
-        tab = widgets.VBox([self.objects["button_clear_main_logger"].get(), self.loggers["output_logger"].get()])
+        tab = widgets.VBox([self.objects["button_clear_main_logger"].get(),self.loggers["output_logger"].get()])
 
         return tab
 
@@ -667,7 +695,7 @@ class GUI(GUI_Object):
 
 class Tab(GUI_Object):
     """Tab class"""
-    def __init__(self, name, contents=None):
+    def __init__(self, name, contents=None, callback=None):
         self.name = name
         box_layout = widgets.Layout(overflow='scroll hidden')
         if contents is not None:
@@ -677,16 +705,19 @@ class Tab(GUI_Object):
                 self.widget = widgets.Box(children=[contents], layout=box_layout)
         else:
             self.widget =widgets.Box(children=[], layout=box_layout)
+
+        # if callback is not None:
+        #     self.widget.on_click(callback)
         
 class Button(GUI_Object):
     """Button class"""
-    def __init__(self, text, style=None, icon="", tooltip="", state=False, callback=None, display=True):
+    def __init__(self, text, style=None, icon="", tooltip="", state=False, callback=None, display=True, width="auto"):
         super().__init__(
             widgets.Button(
                 description=text,
                 icon=icon,
                 tooltip=tooltip,
-                layout=widgets.Layout(width="auto"),
+                layout=widgets.Layout(width=width),
                 disabled = state
             )
         )
@@ -903,16 +934,21 @@ class Log_Output(GUI_Object):
 
     fmt = '%(name)s | %(levelname)8s | %(message)s'
 
-    def __init__(self, level=logging.DEBUG, name=__name__):
+    def __init__(self, level=logging.DEBUG, name=__name__, max_height="525px", handlers=[]):
         super().__init__(
-            widgets.Output(layout=widgets.Layout(max_height="525px", overflow_y="auto"))
+            widgets.Output(layout=widgets.Layout(max_height=max_height, overflow_y="auto"))
         )
         self.messages={}
         self.name = name
         self.logger = logging.getLogger(name)
-        self.logger.setLevel(level)
-        self.logger.addHandler(log_viewer(output=self.widget,name=name))
-        
+        self.logger.setLevel(logging.DEBUG)
+        self.log_viewer = log_viewer(output=self.widget,name=name, parent=self)
+        # self.log_viewer.parent = self
+        self.log_viewer.setLevel(level)
+        self.logger.addHandler(self.log_viewer)
+        for handler in handlers:
+            self.logger.addHandler(handler)
+
         self.log={
             "debug":self.logger.debug,
             "info":self.logger.info,
@@ -947,26 +983,43 @@ class Log_Output(GUI_Object):
             self.flush()
 
     def flush(self):
-
-        for level in sorted(self.messages, key=lambda x: self.log_levels[x], reverse=True):
+        if len(self.messages.keys())==0:
+            return None
+        # level_counts={}
+        levels = sorted(self.messages, key=lambda x: self.log_levels[x], reverse=True)
+        for level in levels:
+            # level_counts[level]=sum(self.messages[level].vlaues())
             for message, count in self.messages[level].items():
                 # return
                 if count == 1:
                     self.log[level](f"{message}")
                 else:
                     self.log[level](f"({count}) {message}")
+                    
+        try:
+            highest_level = [levels[0] , sum(self.messages[levels[0]].values())]
+        except Exception as e:
+            pass
 
         self.messages={}
+        return highest_level
 
     def clear_output(self,b):
         self.widget.clear_output()
+        print(self.clear_button)
+        self.clear_button.show_hide_element(display="none")
 
-    def add_clear_button(self, description="Clear Log", tooltip="Clear the main logger"):
+    def add_clear_button(self, description="Clear Log", tooltip="Clear the main logger", icon="trash", style="info", width="auto"):
         button = Button(
             text=description,
             tooltip=tooltip,
-            callback=self.clear_output
+            callback=self.clear_output,
+            style=style,
+            icon=icon,
+            width=width
         )
+
+        self.clear_button = button
         return button
 
 ########################################################################################################################
@@ -983,8 +1036,6 @@ class OutputWidgetHandler(logging.Handler):  #Archive
         self.out = output_widget #widgets.Output(layout=layout)
 
     def emit(self, record):
-        
-        
         """ Overload of logging.Handler method """
         formatted_record = self.format(record)
         with self.out:
@@ -1054,7 +1105,7 @@ def on_select_study_tab_file(value, gui=None, fc_name=None):
 
 
 def get_planned_visits(planned_visits, nameonly=False, returnType=None):
-    
+    #TODO move into gui and wrap try/except with logging
     if nameonly:
         names = planned_visits["NAME"]
         if returnType == 'list':

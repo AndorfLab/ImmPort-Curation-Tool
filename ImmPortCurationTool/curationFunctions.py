@@ -113,8 +113,9 @@ def addVisitAccessionFromName(planned_visits, table, visit_col,dictionary,file_t
     missingVisits = dict(filter(lambda visit: visit[1] == "", dict_visits2.items()))
 
     if(len(missingVisits)>0):
-        ig.main_logger.write(level="error",message=f"Missing Visits\n{'|'.join(list(missingVisits.keys()))}")
-        ig.main_logger.write(level="error",message=f"Available Visits\n{'|'.join(list(dict_visits2.keys()))}")
+        sep = "\n\t"
+        ig.main_logger.write(level="error",message=f"Unable to find planned visits for the following visit names{sep}{sep.join(list(missingVisits.keys()))}")
+        ig.main_logger.write(level="error",message=f"Available Visits{sep}{sep.join(list(dict_visits.keys()))}")
 
     table["PLANNED_VISIT_ID"]=table[visit_col].apply(lambda v: dict_visits2[v])
 
