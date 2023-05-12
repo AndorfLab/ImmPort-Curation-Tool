@@ -1006,7 +1006,6 @@ class Log_Output(GUI_Object):
 
     def clear_output(self,b):
         self.widget.clear_output()
-        print(self.clear_button)
         self.clear_button.show_hide_element(display="none")
 
     def add_clear_button(self, description="Clear Log", tooltip="Clear the main logger", icon="trash", style="info", width="auto"):
