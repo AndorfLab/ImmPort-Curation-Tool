@@ -416,16 +416,24 @@ class GUI(GUI_Object):
         }
 
         try:
-            self.dictionary = rc.parseDataDictionary(self.config['data_dictionary']['filepath'])
+            self.dictionary = rc.parseDataDictionary(self.config['data_dictionary']['filepath'], self)
             self.log(message="Dictionary Parsed",level='debug',flush=True)
             self.objects["button_filechooser_data_dictionary_load"].button_change(button=self.objects["button_filechooser_data_dictionary_load"], style='success', text='Dictionary Loaded',tooltip='The dictionary file has been loaded',disabled=True, icon='')
 
             self.objects["dropdown_table_form_column"].set_options(option_list=list(self.dictionary['columns'].items()))
             self.show_row("tab_row_dd_form_row")
+            return
 
+        except NotImplementedError as e:
+            pass
+        
         except Exception as e:
+            print(e)
+            print(type(e))
+            print(e.__dict__)
             self.log(message=f"Error loading data dictionary: {e}", level="error", flush=True)
-            self.objects["button_filechooser_data_dictionary_load"].button_change(button=self.objects["button_filechooser_data_dictionary_load"], style='danger', text='Load Failed',tooltip='Something went wrong while loading the Data Dictionary',disabled=False, icon='')
+            
+        self.objects["button_filechooser_data_dictionary_load"].button_change(button=self.objects["button_filechooser_data_dictionary_load"], style='danger', text='Load Failed',tooltip='Something went wrong while loading the Data Dictionary',disabled=False, icon='')
         
     def get_study_file_attribute(self, filename, attribute):
         """Get the study file attribute"""
