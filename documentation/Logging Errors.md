@@ -14,6 +14,13 @@ The Logging tab provides helpful information regarding different errors that mig
 
 ## Critical
 Critical problems indicate a problem with the data and should be addressed. After fixing the issues, the tool should be re-run. 
+
+### Error loading data dictionary
+![Data Dictionary Load](./images/logging/Critical_data_dictionary_missing_fields.png)
+
+This error happens when trying to load a data dictionary that does not meet the specifications outlined in [Instructions for Curating the Data Dictionary](./Curated_Data_Dictionary.md). The required fields that are missing are displayed.
+
+To fix, make sure you are 1) selecting a data dictionary, and 2) that the data dictionary is formatted as specified.
 ### Table Field not found in file
 ![Table field missing](./images/logging/critical_missing_data_field.png)
 
@@ -51,14 +58,6 @@ To fix, check if there are any missing visits (specified below). If there are no
 This error happens during data processing and identifies that the data contains planned visit values that are not specified in the planned visits table. 
 
 To fix, either update the "Code List Values" column in the data dictionary to include the extra visits, or use the "Map to Visit" column to specify the additional mappings. Information about using these fields can be found in [Instructions for Curating the Data Dictionary](./Curated_Data_Dictionary.md).
-
-
-### Error loading data dictionary
-![Data Dictionary Load](./images/logging/error_data_dictionary_load.png)
-
-This error happens when trying to load a data dictionary that does not meet the specifications outlined in [Instructions for Curating the Data Dictionary](./Curated_Data_Dictionary.md).
-
-To fix, make sure you are 1) selecting a data dictionary, and 2) that the data dictionary is formatted as specified.
 
 
 ### Error processing ...
