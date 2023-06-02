@@ -14,6 +14,9 @@ import functools
 import logging
 import asyncio
 
+from urllib.request import urlopen
+import json
+
 main_logger=''
 
 #TODO potentially move to external file
@@ -196,6 +199,7 @@ class GUI(GUI_Object):
         self.loggers={}
         # self.generate_console()
         self.generate_gui()
+        self.check_schema_version()
 
     def add_tab(self, tab):
         old_tabs_tuple = self.widget.children
@@ -700,6 +704,26 @@ class GUI(GUI_Object):
     def read_config(self):
         """Read the config file"""
         pass
+
+    def check_schema_version(self):
+        #Get current Schema version from ImmPort:
+        immport_protocol_schema_url = "https://downloads.immport.org/data/upload/templates/json-templates/protocols.json"
+        try:
+            response = urlopen(immport_protocol_schema_url)
+            schema_json = json.loads(response.read())
+            immport_schemaVersion = schema_json["properties"]['schemaVersion']['enum'][0]
+            tool_schemaVersion = sf.ImmPort_Data().schemaVersion
+            if  immport_schemaVersion == tool_schemaVersion:
+                return True
+            else:
+                github_issue_url = f"https://github.com/JoshuaFortriede/ImmPort-Curation-Tool/issues/new?template=request-schema-version-update.md&title=%5BSCHEMA%7D%3A+Update+schema+to+version+{immport_schemaVersion}"
+                self.log(level='Critical', flush=True, message=f"Current ImmPort version and Tool Version incompatible. \nImmPort is on schema {immport_schemaVersion}. This tool uses version {tool_schemaVersion}. \nClick <a href='{github_issue_url}''>here to create ticket</a>.")
+                return False
+        except Exception as e:
+            self.log(level='Critical', flush=True, message='Something went wrong when checking the Schema Versions.')
+            print(type(e))
+            print(e)
+            return False
 
 class Tab(GUI_Object):
     """Tab class"""
