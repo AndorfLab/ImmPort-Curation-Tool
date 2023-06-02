@@ -180,10 +180,9 @@ def load_data_fields(validator):
         json_data = json.load(fh_json_file)
         return json_data['properties']
 class ImmPort_Data: 
-    #TODO Read in from file
-    schemaVersion = "3.36"
-    #Stored in schemas as properties.schemaVersion.enum[0]
-    #It would be good to read this in rather than hard-coding
+
+    def __init__(self, schemaFile='protocols.json'):
+        self.set_schemaVersion(schemaFile)
 
     def print_obj(self):
         print_data = {}
@@ -231,6 +230,11 @@ class ImmPort_Data:
             return type(self).data_fields[key]
         raise AttributeError(f"{key} is not a data property of {(type(self))}" )
 
+    def set_schemaVersion(self, schemaFile):
+        with open(os.path.abspath(os.path.join(json_schema_template_path_full,schemaFile))) as fh:
+            protocols_schema = json.load(fh)
+            self.schemaVersion=protocols_schema['properties']['schemaVersion']['enum'][0]
+
 class Assessment(ImmPort_Data):
     filename="assessments.json"
     name="assessments"
@@ -243,6 +247,7 @@ class Assessment(ImmPort_Data):
     def __init__(self):
         self.data=[]
         self.records=[]
+        super().__init__(schemaFile=self.filename)
 
     def add_record(self, record):
         self.records.append(record)

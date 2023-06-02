@@ -13,3 +13,5 @@ __all__ = [
     # 'load',
     # 'loads',
 ]
+
+__version__ = VERSION
