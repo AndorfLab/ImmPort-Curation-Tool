@@ -104,7 +104,7 @@ def addVisitAccessionFromName(planned_visits, table, visit_col,dictionary,file_t
     
         dict_visits2=dict(zip(table_visits[visit_col],table_visits["plannedVisit"]))
     ig.main_logger.flush()
-    if len(dictionary["tables"][file_table]["fields"][visit_col]["map_to_visit"])>0:
+    if "map_to_visit" in dictionary["tables"][file_table]["fields"][visit_col] and len(dictionary["tables"][file_table]["fields"][visit_col]["map_to_visit"])>0:
         visit_map_dict = json.loads(dictionary["tables"][file_table]["fields"][visit_col]["map_to_visit"])
         #create dictionary of visit_mappings to planned visit IDs
         dict_visits_mapped = dict(map(lambda x: (x[0],dict_visits[x[1]]), visit_map_dict.items()))
