@@ -550,6 +550,7 @@ class GUI(GUI_Object):
 
                 self.log(message="Generating DF Table", level='debug',flush=True)
                 self.objects["study_file_table"] = self.generate_df_table(column_widths =  ["300px","250px","100px","150px","125px","175px"], readonly=["Filename","Description"])
+                #TODO Set width so it is not 100% wide
                 self.objects["button_generate_files"]= Button(text="Generate Filled Templates", tooltip='Generate filled ImmPort Templates for upload into ImmPort', callback=self.generate_filled_template_files) #, style=dict(description_width='initial'))
                 #generate_filled_template_files
                 self.objects["box_study_files_table"].set_children([ self.objects["button_generate_files"].get(), self.objects["study_file_table"]])

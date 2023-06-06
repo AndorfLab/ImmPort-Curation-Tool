@@ -37,14 +37,12 @@ def parseDictionaryRow(row, dictionary):
     if(table_name not in dictionary["tables"]):
         dictionary["tables"][table_name]={"fields":{},"mappings":{}}
     
-    dictionary["tables"][table_name]["fields"][field_name]={}
-
     verbatim_question = row[dictionary["columns"]["Verbatim Question"]]
     if(verbatim_question.lower() == "[same]"):
         verbatim_question =row[dictionary["columns"]["Field Description"]]
 
 
-    # dictionary["tables"][table_name]["fields"][field_name]={"question":True,"verbatim_question" : verbatim_question}
+    dictionary["tables"][table_name]["fields"][field_name]={"question":True,"verbatim_question" : verbatim_question}
     # dictionary["tables"][table_name]["fields"][field_name]={
     #     "key_field" : row[dictionary["columns"]["Key Field"]],
     #     "description": row[dictionary["columns"]["Field Description"]],
@@ -67,7 +65,7 @@ def parseDictionaryRow(row, dictionary):
 
     if "Map to Planned Visit" in dictionary["columns"]:
         dictionary_to_variable['map_to_visit']="Map To Planned Visit"
-    elif "Map to Visit" in dictionary["columns"]:
+    elif "Map To Visit" in dictionary["columns"]:
         dictionary_to_variable['map_to_visit']="Map To Visit"
 
     for key, label in dictionary_to_variable.items():
@@ -104,8 +102,8 @@ def parseDataDictionary(filename, gui_object):
             "Field Description",
             "Unit",
             "Who is Assessed",
-            "Age at Onset Reported",
-            "Age at Onset Unit Reported",
+            "Age At Onset Reported",
+            "Age At Onset Unit Reported",
             "Location",
             "Study Day"
         ]
