@@ -6,6 +6,8 @@ import ImmPortCurationTool.processRedCapFiles as rc
 import ImmPortCurationTool.curationFunctions as cf
 import ImmPortCurationTool.schemaFunctions as sf
 
+from ImmPortCurationTool.version import VERSION
+
 import zipfile
 import ipywidgets as widgets
 from ipyfilechooser import FileChooser
@@ -145,9 +147,15 @@ class GUI_Object():
     
     def display(self):
         """Display the widget"""
+        children=[self.get()]
         if hasattr(self, "loggers") and "console" in self.loggers:
-            return widgets.VBox([widgets.HBox([self.objects["button_clear_console"].get(),self.loggers["console"].get()]),self.get()])
-        return self.get()
+            children.insert(0,widgets.HBox([self.objects["button_clear_console"].get(),self.loggers["console"].get()]))
+            # return widgets.VBox([widgets.HBox([self.objects["button_clear_console"].get(),self.loggers["console"].get()]),self.get()])
+        # if "footer" in self.objects:
+        #     children.insert(0,self.objects['footer'].get())
+        if len(children)==1:
+            return self.get()
+        return widgets.VBox([*children])
     
     def set_observe(self, callback_function, callback_data):
         self.widget.observe(functools.partial(callback_function, **callback_data), names='value')
@@ -198,8 +206,12 @@ class GUI(GUI_Object):
         self.dictionary={}
         self.loggers={}
         # self.generate_console()
+        self.objects["version"]=HTML(html_text=f"<span style='font-size: 16px;'><b>Version:</b> {VERSION}</span>", )
         self.generate_gui()
         self.check_schema_version()
+
+
+
 
     def add_tab(self, tab):
         old_tabs_tuple = self.widget.children
@@ -278,10 +290,32 @@ class GUI(GUI_Object):
         self.loggers['console'].widget.clear_output()
 
     def generate_tab_help(self):
-        self.objects["html_documentation_user_guide"] = HTML(html_text=f"<H1><a href='{documentation_base_url}/User_Guide.md'>User Guide</a></h1><p>A step-by-step guide on using this tool.</p>",description="")
+
+        documentation = [
+            # {"label":"User Guide","text":"A step-by-step guide on using this tool.", "link":"User_Guide.md"},
+            {"label":"FAQ","text":"Commonly asked questions.", "link":"/documentation/FAQ.md"},
+            {"label":"Errors","text":"Documentation on common errors and how to solve them.", "link":"/documentation/Logging Errors.md"},
+            {"label":"Data Dictionary","text":"Documentation on how to curate the data dictionary.", "link":"/documentation/Curated_Data_Dictionary.md"},
+            {"label":"Study File","text":"Documentation on the format for study files.", "link":"/documentation/Study_File_format.md"},
+            {"label":"Load ImmPort Files","text":"Documentation on how to get files from ImmPort for this tool.", "link":"/documentation/Load_files_from_immport.md"}
+            ]
+
+        table = "<table style='font-size: 16px'>"
+        for md in documentation:
+            table += f"<tr><th><a href='{documentation_base_url}/{md['link']}'>{md['label']}</a></th><td align='left'>{md['text']}</td></tr>"
+        table += "</table>"
+
+        self.objects["html_documentation"]=HTML(html_text=f"<h1><a href='{documentation_base_url}/documentation/README.md'>Other Useful Documentation</a></h1>{table}", description="")
+
+        self.objects["html_documentation_user_guide"] = HTML(html_text=f"<H1><a href='{documentation_base_url}/User_Guide.md'>User Guide</a></H1><font style='font-size:16px'>A step-by-step guide on using this tool.</font>",description="")
+        # self.objects["html_documentation_FAQ"] = HTML(html_text=f"<H1><a href='{documentation_base_url}/documentation/FAQ.md'>FAQ</a></h1><p>Common Questions</p>",description="")
 
         tab = widgets.VBox([
-            self.objects["html_documentation_user_guide"].get()
+            self.objects["version"].get(),
+            self.objects["html_documentation_user_guide"].get(),
+            self.objects["html_documentation"].get()
+            # self.objects["html_documentation_FAQ"].get()
+            
         ])
 
         return tab
@@ -339,7 +373,7 @@ class GUI(GUI_Object):
             box_immport_download_instructions.get(),
             box_planned_visits.get(),
             box_study_files.get(),
-            self.objects["dropdown_study_visit_list"].get()
+            self.objects["dropdown_study_visit_list"].get(),
         ])
 
         self.objects["toggle_current_immport_study"].set_observe(callback_function=self.toggle_show_hide, callback_data={

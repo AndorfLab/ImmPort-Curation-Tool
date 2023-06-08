@@ -1,6 +1,8 @@
 import csv
 import regex
-
+import ImmPortCurationTool.immport_gui as ig
+import json
+import urllib.parse
 # TODO
 # Reports
 #   Compare columns in datafile with data dictionary
@@ -64,6 +66,8 @@ def parseDictionaryRow(row, dictionary):
     dictionary_to_variable = {"key_field":"Key Field", "description":"Field Description","expected":"Expected","unit":"Unit","note":"Note","who_is_assessed":"Who is Assessed","age_onset":"Age at Onset Reported","age_onset_unit":"Age At Onset Unit Reported","location":"Location","study_day":"Study Day"}
 
     if "Map to Planned Visit" in dictionary["columns"]:
+        dictionary_to_variable['map_to_visit']="Map to Planned Visit"
+    elif "Map To Planned Visit" in dictionary["columns"]:
         dictionary_to_variable['map_to_visit']="Map To Planned Visit"
     elif "Map To Visit" in dictionary["columns"]:
         dictionary_to_variable['map_to_visit']="Map To Visit"
@@ -126,7 +130,25 @@ def parseDataDictionary(filename, gui_object):
 
         #Iterate through fields, and check if the field is used in other mappings:
 
+# my_gui.dictionary['tables']['ADF']['mappings']['[Visit]']
+# my_gui.dictionary['tables']['ADF']['fields']['VISNO']['values']
+# my_gui.dictionary['tables']['ADF'].keys()
+
         for table_name in dictionary["tables"].keys():
+            if "[Visit]" in dictionary["tables"][table_name]["mappings"]:
+                visit_col = dictionary['tables'][table_name]['mappings']['[Visit]']
+                map_to_visit_str = dictionary["tables"][table_name]["fields"][visit_col]["map_to_visit"]
+                if map_to_visit_str != "":
+                    try:
+                        visit_map_dict = json.loads(map_to_visit_str)
+                        if not isinstance(visit_map_dict, dict):
+                            ig.main_logger.write(level="error", message=f"Map to Planned Visit column on table {table_name} for {visit_col} is not a JSON dictionary. Try using <a href='https://jsonlint.com?json={urllib.parse.quote(str(map_to_visit_str))}'>jsonlint.com</a> to find the errors.", flush=True)
+                    except Exception as e:
+                        ig.main_logger.write(level="error", message=f"Invalid JSON for Map to Planned Visit column on table {table_name} for {visit_col}. Try using <a href='https://jsonlint.com?json={urllib.parse.quote(str(map_to_visit_str))}'>jsonlint.com</a> to find the errors.", flush=True)
+            # else:
+            #     ig.main_logger.write(level="info", message=f"No map_to_visit on table {table_name}", flush=True)
+
+
             for field in dictionary["tables"][table_name]["fields"].keys():
                 possible_fields = []
                 for col in ["unit","who_is_assessed","age_onset","age_onset_unit","location","study_day"]:
