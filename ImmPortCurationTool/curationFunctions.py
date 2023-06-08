@@ -9,6 +9,7 @@ import numpy as np
 from io import StringIO
 from zipfile import ZipFile
 import ImmPortCurationTool.immport_gui as ig
+import urllib.parse
 
 pd.options.display.max_columns = 400
 pd.options.display.max_rows = 200
@@ -104,12 +105,19 @@ def addVisitAccessionFromName(planned_visits, table, visit_col,dictionary,file_t
     
         dict_visits2=dict(zip(table_visits[visit_col],table_visits["plannedVisit"]))
     ig.main_logger.flush()
+
     if "map_to_visit" in dictionary["tables"][file_table]["fields"][visit_col] and len(dictionary["tables"][file_table]["fields"][visit_col]["map_to_visit"])>0:
-        visit_map_dict = json.loads(dictionary["tables"][file_table]["fields"][visit_col]["map_to_visit"])
+        #TODO: possible look at this when reading in the dictionary. If the column is not blank, check if its valid JSON and a DICT.
+        try:
+            visit_map_dict = json.loads(dictionary["tables"][file_table]["fields"][visit_col]["map_to_visit"])
+        except Exception as e:
+            map_to_visit_str = dictionary["tables"][file_table]["fields"][visit_col]["map_to_visit"]
+            ig.main_logger.write(level="error", message=f"Invalid JSON for Map to Planned Visit column on table {table_column}. Try using <a href='https://jsonlint.com?json={urllib.parse.quote(map_to_visit_str)}'>jsonlint.com</a> to find the errors.", flush=True)
+            raise e
         #create dictionary of visit_mappings to planned visit IDs
         dict_visits_mapped = dict(map(lambda x: (x[0],dict_visits[x[1]]), visit_map_dict.items()))
         dict_visits2.update(dict_visits_mapped)
-  
+
     missingVisits = dict(filter(lambda visit: visit[1] == "", dict_visits2.items()))
 
     if(len(missingVisits)>0):
