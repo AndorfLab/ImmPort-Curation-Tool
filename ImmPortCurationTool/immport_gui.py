@@ -723,7 +723,7 @@ class GUI(GUI_Object):
         global main_logger  #Hack until fixed properly
         self.loggers["output_logger"] = Log_Output(name="output_logger", level=logging.INFO)
 
-        self.objects["button_clear_main_logger"] = self.loggers["output_logger"].add_clear_button(description="Clear", tooltip="Clear the main logger", width="75px")
+        self.objects["button_clear_main_logger"] = self.loggers["output_logger"].add_clear_button(description="Clear", tooltip="Clear the main logger", width="120px")
 
         self.main_logger=self.loggers["output_logger"]
         main_logger=self.main_logger
@@ -731,7 +731,7 @@ class GUI(GUI_Object):
         tab = widgets.VBox([self.objects["button_clear_main_logger"].get(),self.loggers["output_logger"].get()])
 
         return tab
-
+    
     def load_study_files(self, b): #HERE
         """Load the study files"""
 
