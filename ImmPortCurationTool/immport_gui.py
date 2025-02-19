@@ -640,15 +640,30 @@ class GUI(GUI_Object):
         return self.data["study_files"][self.data["study_files"]["FILE_NAME"]==filename][attribute].values[0]
 
     def generate_tab_study_files(self):
-        """Generate the study files tab"""
+
+        self.objects["filechooser_study_file_directory"] = File_Chooser(name="filechooser_study_file_directory", title='<b><span style="font-size:18px;">📁 Select the study files directory</span></b>', tooltip='Load the study files directory',multiple=False,filter_pattern=['*'], style=dict(description_width='initial'),show_only_dirs=True)
+        self.objects["button_filechooser_study_file_directory_load"] = self.objects["filechooser_study_file_directory"].add_load_button(description="Load study files directory", tooltip="Load the study files directory", callback=self.load_study_files)
+        self.objects["html_data_dictionary_tables"] = HTML(html_text='',description='<b><span style="font-size:18px;">Tables Listed in Dictionary:</span></b>')
         
-        self.objects["filechooser_study_file_directory"] = File_Chooser(name="filechooser_study_file_directory", title='<b>Select the Study Files Directory</b>', tooltip='Load the study files directory',multiple=False,filter_pattern=['*'], style=dict(description_width='initial'),show_only_dirs=True)
-        self.objects["button_filechooser_study_file_directory_load"] = self.objects["filechooser_study_file_directory"].add_load_button(description="Load Study Files Directory", tooltip="Load the study files directory", callback=self.load_study_files)
-        self.objects["html_data_dictionary_tables"] = HTML(html_text='',description="<b>Tables Listed in Dictionary:</b>")
+        self.objects["tables_section"] = widgets.VBox([
+            self.objects["html_data_dictionary_tables"].get()
+        ])
+
+        self.objects["tables_section"].layout.display = 'none'
+
         self.objects["tab_row_study_files_filechooser"] = widgets.HBox([self.objects["filechooser_study_file_directory"].get(), self.objects["button_filechooser_study_file_directory_load"].get()])
         self.objects["box_study_files_table"]=VBox(name="box_study_files_table")
 
-        tab = widgets.VBox([self.objects["tab_row_study_files_filechooser"], self.objects["html_data_dictionary_tables"].get(),self.objects["box_study_files_table"].get()])
+        spacer = widgets.HTML(value="<div style='height: 10px;'></div>")
+
+        tab = widgets.VBox([
+            spacer,
+            self.objects["tab_row_study_files_filechooser"], 
+            spacer, 
+            self.objects["tables_section"], 
+            spacer,
+            self.objects["box_study_files_table"].get(), 
+            spacer])
         return tab
 
     def generate_zip_file(self, fh_zip, files=[]):
