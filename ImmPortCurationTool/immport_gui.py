@@ -1129,6 +1129,8 @@ class File_Chooser(GUI_Object):
                 self.load_button.show_hide_element('')
                 self.load_button.widget.button_style='info'
                 self.load_button.widget.disabled=False
+            if hasattr(self, "on_file_change_callback"):
+                self.on_file_change_callback()
             else:
                 self.load_button.show_hide_element('none')
 
