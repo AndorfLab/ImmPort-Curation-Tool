@@ -439,23 +439,52 @@ class GUI(GUI_Object):
         return tab_content
 
     def generate_tab_study_info(self):
-        """Generate the study info tab"""
 
-        self.objects["toggle_current_immport_study"] = ToggleButtons(description="How do you want to start?", options=[('Download information from ImmPort',0),('Use ImmPort TAB file',1)], value=0, tooltips=['Downloaded from the public area of ImmPort','Downloaded from the private area of ImmPort'], style=dict(description_width='initial',button_width='auto'))
-        self.objects["dropdown_study_visit_list"] = Dropdown(options=[''], description='<b>Study Visits:</b>', tooltip='View the loaded study visits')
-        self.objects["filechooser_study_tab_file"] = File_Chooser(name="filechooser_study_tab_file", title='<b>Select the ImmPort Study Tab zip file</b>', tooltip='Load a study tab file',multiple=False,filter_pattern=['SDY*-DR*_Tab.zip'], style=dict(description_width='initial'))
+        self.objects["toggle_current_immport_study"] = ToggleButtons(description='<b><span style="font-size:18px;">🔘 Choose initial input type</span></b>', options=[('Download information from ImmPort',0),('Use ImmPort TAB file',1)], value=0, tooltips=['Downloaded from the public area of ImmPort','Downloaded from the private area of ImmPort'], style=dict(description_width='initial',button_width='auto'))
+        self.objects["filechooser_study_tab_file"] = File_Chooser(name="filechooser_study_tab_file", title='<b><span style="font-size:18px;">📁 Select the ImmPort study TAB ZIP file</span></b>', tooltip='Load a study tab file',multiple=False,filter_pattern=['SDY*-DR*_Tab.zip'], style=dict(description_width='initial'))
         self.objects["filechooser_study_tab_file"].set_onclick(self, callback_function=on_select_study_tab_file, callback_data = {"gui":self, "fc_name":"filechooser_study_tab_file"})
 
-        self.objects["filechooser_planned_visits"] = File_Chooser(name="filechooser_planned_visits", title='<b>Select the ImmPort Planned Visit file</b>', tooltip='Load a planned visit file',multiple=False,filter_pattern=['*.csv'], style=dict(description_width='initial'))
+        self.objects["filechooser_planned_visits"] = File_Chooser(name="filechooser_planned_visits", title='<b><span style="font-size:18px;">📁 Select the ImmPort planned visit file</span></b>', tooltip='Load a planned visit file',multiple=False,filter_pattern=['*.csv'], style=dict(description_width='initial'))
         self.objects["filechooser_planned_visits"].set_onclick(self, callback_function=self.load_planned_visit_file, callback_data = {})
 
-        self.objects["filechooser_study_files"] = File_Chooser(name="filechooser_study_files", title='<b>Select the ImmPort Study Files file</b>', tooltip='Load a study files file',multiple=False,filter_pattern=['*.csv'], style=dict(description_width='initial'))
+        self.objects["filechooser_study_files"] = File_Chooser(name="filechooser_study_files", title='<b><span style="font-size:18px;">📁 Select the ImmPort study file</span></b>', tooltip='Load a study files file',multiple=False,filter_pattern=['*.csv'], style=dict(description_width='initial'))
         self.objects["filechooser_study_files"].set_onclick(self, callback_function=self.load_study_file, callback_data = {})
 
-        self.objects["html_non_Immport"] = HTML(html_text='',description=f"<b>Please load the following files <a href='{documentation_base_url}/documentation/Load_files_from_immport.md'>downloadable from ImmPort</a></b>")
+        self.objects["html_non_Immport"] = HTML(
+            html_text=f"<h2><a title='Information on ImmPort downloads' href='{documentation_base_url}/documentation/Load_files_from_immport.md' style='font-size: 18px; text-decoration: none; color: #0077b6;'><b>Click for information on how to download data from ImmPort</b></a></h2>",description="")
 
-        self.objects["text_study_id"] = TextField(placeholder="SDY9999",description="Study ID", regex="SDY\d+")
-        self.objects["text_workspace_id"] = TextField(placeholder="9999",description="Workspace ID", regex="\d+")
+        self.objects["label_study_id"] = widgets.HTML(
+            "<b><span style='font-size:18px;'>🆔 Input the study ID</span></b>"
+        )
+
+        self.objects["text_study_id"] = TextField(placeholder="SDY9999", regex=r"SDY\d+", layout=widgets.Layout(width="350px"))
+    
+        study_id_section = widgets.VBox([
+        self.objects["label_study_id"],
+        self.objects["text_study_id"].get()
+        ])
+
+        self.objects["label_workspace_id"] = widgets.HTML(
+            "<b><span style='font-size:18px;'>🆔 Input the workspace ID</span></b>"
+        )
+        
+        self.objects["text_workspace_id"] = TextField(placeholder="9999", regex=r"\d+", layout=widgets.Layout(width="350px", description_width="200px") ) 
+
+        workspace_id_section = widgets.VBox([
+        self.objects["label_workspace_id"],
+        self.objects["text_workspace_id"].get()
+        ])
+
+        self.objects["label_study_visit_list"] = widgets.HTML(
+            "<b><span style='font-size:18px;'>🔍 View the loaded study visits</span></b>"
+        )
+        
+        self.objects["dropdown_study_visit_list"] = Dropdown(options=[''], tooltip='View the loaded study visits')
+   
+        study_visit_list_section = widgets.VBox([
+        self.objects["label_study_visit_list"],
+        self.objects["dropdown_study_visit_list"].get()
+        ])
 
         self.objects["text_study_id"].set_observe(callback_function=self.set_study_id_from_textfield, callback_data = {})
         self.objects["text_workspace_id"].set_observe(callback_function=self.set_workspace_id_from_textfield, callback_data = {})
@@ -463,35 +492,48 @@ class GUI(GUI_Object):
         box_immport_study_yes = VBox(name="box_immport_study_yes")
         box_immport_study_no = VBox(name="box_immport_study_no")
 
-        # box_immport_study_no.toggle_display()
         box_immport_study_yes.toggle_display()
 
         box_immport_download_instructions = VBox(name='box_immport_download_instructions')
         box_immport_download_instructions.set_children([self.objects['html_non_Immport'].get()])
-        box_immport_download_instructions.toggle_display()
-
 
         box_planned_visits = VBox(name='box_planned_visits')
         box_planned_visits.set_children([self.objects['filechooser_planned_visits'].get()])
-        # box_planned_visits.toggle_display()
 
         box_study_files = VBox(name='box_study_files')
         box_study_files.set_children([self.objects['filechooser_study_files'].get()])
-        # box_study_files.toggle_display()
 
-        self.objects["toggle_non_tab_files"] = ToggleButtons(description="Amend Tab file with new planned visits and/or study files?", options=[('Yes',1),('No',0)], value=0, tooltips=[], style=dict(description_width='initial',button_width='auto'))
+        self.objects["toggle_non_tab_files"] = ToggleButtons(description='<b><span style="font-size:18px;">Do you want to amend the TAB file with new planned visits and/or study files?</span></b>', options=[('Yes',1),('No',0)], value=0, tooltips=[], style=dict(description_width='initial',button_width='auto'))
 
-        box_immport_study_yes.set_children([self.objects["filechooser_study_tab_file"].get(),self.objects["toggle_non_tab_files"].get()])
-        box_immport_study_no.set_children([self.objects["text_workspace_id"].get(), self.objects["text_study_id"].get()])
+        spacer_before_toggle = widgets.HTML(value="<div style='height: 20px;'></div>")
+
+        toggle_with_spacing = widgets.VBox([
+            spacer_before_toggle,
+            self.objects["toggle_non_tab_files"].get()
+        ])
+
+        box_immport_study_yes.set_children([self.objects["filechooser_study_tab_file"].get(), toggle_with_spacing])
+
+        box_immport_study_no.set_children([workspace_id_section, study_id_section])
+
+        spacer = widgets.HTML(value="<div style='height: 10px;'></div>")
 
         tab = widgets.VBox([
+            spacer,
             self.objects["toggle_current_immport_study"].get(), 
+            spacer,
             box_immport_study_yes.get(), 
+            spacer,
             box_immport_study_no.get(),
-            box_immport_download_instructions.get(),
+            spacer,
             box_planned_visits.get(),
+            spacer,
             box_study_files.get(),
-            self.objects["dropdown_study_visit_list"].get(),
+            spacer,
+            study_visit_list_section,
+            spacer, 
+            box_immport_download_instructions.get(),
+            spacer
         ])
 
         self.objects["toggle_current_immport_study"].set_observe(callback_function=self.toggle_show_hide, callback_data={
