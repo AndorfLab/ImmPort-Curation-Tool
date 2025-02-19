@@ -286,8 +286,7 @@ def datafileToComponents(datafile,dictionary,table_name_array,assessment_compone
                     df_slim["Study Day"]= datafile[lookup_col]
                 #Need to take df_slim and remove rows that have no actual data. 
         
-                assessment_components_template=assessment_components_template.append(df_slim[~df_slim["Result Value Reported"].isnull()], ignore_index=True)
-                # assessment_components_template=assessment_components_template.append(df_slim, ignore_index=True)
+                assessment_components_template = pd.concat([assessment_components_template, df_slim[~df_slim["Result Value Reported"].isnull()]], ignore_index=True)
             else:
                 ig.main_logger.write(level='critical', message=f"Table Field not found in file: {col_name} in {table_name}", flush=True)
         
@@ -338,7 +337,7 @@ def readAndModifyStudyFile(filepath,file_tables,dictionary,planned_visits):
             if("Accession" in datafile.columns):
                 datafile.rename(columns={"Accession":"User Defined ID"},inplace=True)
 
-        full_datafile = full_datafile.append(datafile)
+        full_datafile = pd.concat([full_datafile, datafile], ignore_index=True)
         
     return full_datafile
 
@@ -358,6 +357,7 @@ def getAssessmentPanelID(crf_Files,study_files,assessment_panel_df,study_id,asse
         #We need to create a new panel
         print(f"Create new panel for files: {filename_string}") #TODO change to logging as debug
         new_data={'Assessment Panel ID':f'CCHMC_{dataframe_rows+1}','Study ID':study_id, 'Name Reported':name_reported, 'CRF File Names':filename_string, 'Assessment Type': assessment_type}
-        assessment_panel_df=assessment_panel_df.append(new_data, ignore_index=True)
-    
+        
+        assessment_panel_df = pd.concat([assessment_panel_df, new_data], ignore_index=True)
+
     return [assessment_panel_df, assessment_panel_df[assessment_panel_df["CRF File Names"].str.contains(filename_string)].iloc[0]["Assessment Panel ID"]]
