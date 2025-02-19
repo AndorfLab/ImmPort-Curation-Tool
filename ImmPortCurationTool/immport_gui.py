@@ -1296,6 +1296,9 @@ class Log_Output(GUI_Object):
             width=width
         )
 
+        if style == "":
+            button.widget.style.button_color = '#F5DAD2' 
+
         self.clear_button = button
         return button
 
