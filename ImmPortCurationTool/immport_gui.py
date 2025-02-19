@@ -644,8 +644,6 @@ class GUI(GUI_Object):
             icon='upload'  
         )
         
-        display(self.objects["button_filechooser_data_dictionary_load"].widget)
-
     def get_study_file_attribute(self, filename, attribute):
         """Get the study file attribute"""
         if attribute.upper() not in list(self.data["study_files"].columns):
@@ -1035,7 +1033,7 @@ class Button(GUI_Object):
 
         if disabled is not None:
             self.widget.disabled = disabled
-            
+
         if display is not None:
             self.widget.layout.display = display
 
