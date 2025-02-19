@@ -840,27 +840,33 @@ class GUI(GUI_Object):
         self.objects["html_data_dictionary_tables"].set_text(text=f"{', '.join(dictionary_tables)}")
         
         return
-
+    
     def generate_tab_data_dictionary(self):
-        self.objects["html_documentation_curated_dd"] = HTML(html_text=f"<h2><a title='Information on creating a curated data dictionary' href='{documentation_base_url}/documentation/Curated_Data_Dictionary.md'>Curated Data Dictionary User Guide</a></h2>",description="")
-
-        """Generate the data dictionary tab"""
-        self.objects["filechooser_data_dictionary"] = File_Chooser(name="filechooser_data_dictionary", title='<b>Select the curated data dictionary</b>', tooltip='Load a curated data dictionary file',multiple=False,filter_pattern=['*.csv','*.txt',"*.tsv"], style=dict(description_width='initial'))
+        self.objects["html_documentation_curated_dd"] = HTML(
+            html_text=f"<h2><a title='Information on creating a curated data dictionary' href='{documentation_base_url}/documentation/Curated_Data_Dictionary.md' style='font-size: 18px; text-decoration: none; color: #0077b6;'><b>Click for the curated data dictionary user guide</b></a></h2>",description="")
         
-        #TODO work on Callback function
+        self.objects["filechooser_data_dictionary"] = File_Chooser(name="filechooser_data_dictionary", title='<b><span style="font-size:18px;">📁 Select the curated data dictionary</span></b>', tooltip='Load a curated data dictionary file',multiple=False,filter_pattern=['*.csv','*.txt',"*.tsv"], style=dict(description_width='initial'))
+                
+        self.objects["filechooser_data_dictionary"].on_file_change_callback = self.on_file_change
+
         self.objects["button_filechooser_data_dictionary_load"]= self.objects["filechooser_data_dictionary"].add_load_button(description="Load Data Dictionary", tooltip="Load a curated data dictionary file", callback=self.load_data_dictionary)
         self.objects["button_form_column_confirm"]= Button(text="Confirm Form Columns", tooltip='Confirm that the selected column from the data dictionary contains the instrument/CRF/form codes', callback=self.load_data_dictionary_columns) #, style=dict(description_width='initial'))
 
-        self.objects["dropdown_table_form_column"] = Dropdown(options=[''], description='<b>Column specifying form/instrument:</b>', tooltip='Select the column from the data dictionary that contains the form codes', style=dict(description_width='initial'))
+        self.objects["dropdown_table_form_column"] = Dropdown(options=['No selection'], description='<b><span style="font-size:18px;">Select the column that specifies the form/instrument</span></b>', tooltip='Select the column from the data dictionary that contains the form codes', style={'description_width': 'initial'})
 
         self.objects["tab_row_dd_row"] = widgets.HBox([self.objects["filechooser_data_dictionary"].get(),self.objects["button_filechooser_data_dictionary_load"].get()])
         self.objects["tab_row_dd_form_row"] = widgets.HBox([self.objects["dropdown_table_form_column"].get(),self.objects["button_form_column_confirm"].get()])
         self.hide_row("tab_row_dd_form_row")
 
+        spacer = widgets.HTML(value="<div style='height: 10px;'></div>")
+
         tab = widgets.VBox([
-            self.objects["html_documentation_curated_dd"].get(),
+            spacer,
             self.objects["tab_row_dd_row"],
-            self.objects["tab_row_dd_form_row"]
+            spacer,
+            self.objects["tab_row_dd_form_row"],
+            spacer,
+            self.objects["html_documentation_curated_dd"].get()
         ])
 
         return tab
