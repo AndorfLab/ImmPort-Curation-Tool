@@ -19,6 +19,59 @@ import asyncio
 from urllib.request import urlopen
 import json
 
+from IPython.display import display, HTML
+
+
+custom_css = """
+<style>
+
+    .widget-button {
+        font-size: 18px !important;
+        font-weight: bold !important;
+        color: black !important;
+    }
+
+    .widget-container {
+        margin-top: 0px !important; /* Override any inherited margin */
+        padding: 0px !important; /* Remove extra space */
+    }
+
+    select {
+        font-size: 18px !important;  /* Change dropdown text size */
+    }
+
+    .file-upload-label {
+        font-size: 18px !important;
+        font-weight: bold !important;
+        color: #333 !important;
+        padding-left: 10px !important;
+    }
+
+    .widget-toggle-buttons {
+        display: flex !important;
+        flex-wrap: nowrap !important;  /* Prevent stacking */
+        gap: 10px !important;  /* Space between buttons */
+    }
+
+    .widget-toggle-buttons button {
+        font-size: 16px !important;
+        font-weight: bold !important;
+        padding: 10px 20px !important;
+        min-width: 200px !important;
+        min-height: 40px !important;
+        text-align: center !important;
+        align-items: center !important;
+        justify-content: center !important;
+
+        line-height: 25px !important;
+    }
+
+</style>
+"""
+
+display(HTML(custom_css))
+
+
 main_logger=''
 
 #TODO potentially move to external file
