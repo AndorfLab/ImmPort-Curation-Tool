@@ -225,7 +225,7 @@ def datafileToComponents(datafile,dictionary,table_name_array,assessment_compone
                     ig.main_logger.write(level="error",message=f"Error with column {col_name} in {table_name}- {str(e)}\n{traceback.format_exc()}", flush=True)
                     raise
 
-                df_slim.loc[(df_slim["Result Value Reported"] == "<NA>"), "Result Value Reported"] = np.NaN
+                df_slim.loc[(df_slim["Result Value Reported"] == "<NA>"), "Result Value Reported"] = np.nan
             
                 if dictionary["tables"][table_name]["fields"][col]["unit"] != "":
                     if dictionary["tables"][table_name]["fields"][col]["unit"].upper() == "[SPLIT]":
