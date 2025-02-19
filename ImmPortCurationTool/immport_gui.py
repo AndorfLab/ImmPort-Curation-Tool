@@ -982,8 +982,13 @@ class Button(GUI_Object):
                 disabled = state
             )
         )
+        
+        if style is None:
+            self.widget.style.button_color = "#F5DAD2"
+        
         if style is not None:
             self.widget.button_style = style
+
         if callback is not None:
             self.widget.on_click(callback)
 
@@ -1009,16 +1014,28 @@ class Button(GUI_Object):
         if self.widget is None:
             return
 
-        if style is not None:
+        if style == '':
+            self.widget.style.button_color = "#F5DAD2"
+        elif style == 'success':
+            self.widget.style.button_color = '#3E6962'
+        elif style == 'warning':
+            self.widget.style.button_color = '#F7F6BB'
+        else:
+            self.widget.style.button_color = None
             self.widget.button_style = style
+
         if text is not None:
             self.widget.description = text
+
         if tooltip is not None:
             self.widget.tooltip = tooltip
+
         if icon is not None:
             self.widget.icon = icon
+
         if disabled is not None:
             self.widget.disabled = disabled
+            
         if display is not None:
             self.widget.layout.display = display
 
