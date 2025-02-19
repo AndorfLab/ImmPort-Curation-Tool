@@ -633,16 +633,16 @@ class GUI(GUI_Object):
             
         self.objects["button_filechooser_data_dictionary_load"].button_change(button=self.objects["button_filechooser_data_dictionary_load"], style='danger', text='Load Failed',tooltip='Something went wrong while loading the Data Dictionary',disabled=False, icon='')
         
-    def on_file_change(self):
+    # def on_file_change(self):
 
-        self.objects["button_filechooser_data_dictionary_load"].button_change(
-            button=self.objects["button_filechooser_data_dictionary_load"], 
-            style='',  
-            text='Load Data Dictionary',  
-            tooltip='Load a curated data dictionary file', 
-            disabled=False,  
-            icon='upload'  
-        )
+    #     self.objects["button_filechooser_data_dictionary_load"].button_change(
+    #         button=self.objects["button_filechooser_data_dictionary_load"], 
+    #         style='',  
+    #         text='Load Data Dictionary',  
+    #         tooltip='Load a curated data dictionary file', 
+    #         disabled=False,  
+    #         icon='upload'  
+    #     )
         
     def get_study_file_attribute(self, filename, attribute):
         """Get the study file attribute"""
@@ -747,7 +747,8 @@ class GUI(GUI_Object):
         """Load the study files"""
 
         self.objects["button_filechooser_study_file_directory_load"].button_change(button=self.objects["button_filechooser_study_file_directory_load"], style='warning', text='Loading Study Files...',tooltip='The Study files are loading',disabled=False, icon='spinner')
-        self.objects["html_study_files_display_text"] = HTML(html_text='Generating Study File Table...')
+        self.objects["html_study_files_display_text"] = HTML(html_text='<p style="font-size:18px;">Generating Study File Table...</p>')
+
         self.objects["box_study_files_table"].set_children([self.objects["html_study_files_display_text"].get()])
         included_extensions = ['txt','csv', 'tsv']
         if os.path.isdir(self.objects["filechooser_study_file_directory"].get_dir()):
@@ -770,8 +771,8 @@ class GUI(GUI_Object):
 
                 self.log(message="Generating DF Table", level='debug',flush=True)
                 self.objects["study_file_table"] = self.generate_df_table(column_widths =  ["300px","250px","100px","150px","125px","175px"], readonly=["Filename","Description"])
-                #TODO Set width so it is not 100% wide
-                self.objects["button_generate_files"]= Button(text="Generate Filled Templates", tooltip='Generate filled ImmPort Templates for upload into ImmPort', callback=self.generate_filled_template_files) #, style=dict(description_width='initial'))
+                
+                self.objects["button_generate_files"]= Button(text="Generate Filled Templates", tooltip='Generate filled ImmPort Templates for upload into ImmPort', callback=self.generate_filled_template_files, width = "400px") #, style=dict(description_width='initial'))
                 #generate_filled_template_files
                 self.objects["box_study_files_table"].set_children([ self.objects["button_generate_files"].get(), self.objects["study_file_table"]])
                 self.objects["button_filechooser_study_file_directory_load"].button_change(button=self.objects["button_filechooser_study_file_directory_load"], style='success', text='Study Files Loaded',tooltip='The Study files have been loaded',disabled=False, icon='')
@@ -858,7 +859,7 @@ class GUI(GUI_Object):
         
         self.objects["filechooser_data_dictionary"] = File_Chooser(name="filechooser_data_dictionary", title='<b><span style="font-size:18px;">📁 Select the curated data dictionary</span></b>', tooltip='Load a curated data dictionary file',multiple=False,filter_pattern=['*.csv','*.txt',"*.tsv"], style=dict(description_width='initial'))
                 
-        self.objects["filechooser_data_dictionary"].on_file_change_callback = self.on_file_change
+     #   self.objects["filechooser_data_dictionary"].on_file_change_callback = self.on_file_change
 
         self.objects["button_filechooser_data_dictionary_load"]= self.objects["filechooser_data_dictionary"].add_load_button(description="Load Data Dictionary", tooltip="Load a curated data dictionary file", callback=self.load_data_dictionary)
         self.objects["button_form_column_confirm"]= Button(text="Confirm Form Columns", tooltip='Confirm that the selected column from the data dictionary contains the instrument/CRF/form codes', callback=self.load_data_dictionary_columns) #, style=dict(description_width='initial'))
@@ -1144,8 +1145,8 @@ class File_Chooser(GUI_Object):
                 self.load_button.show_hide_element('')
                 self.load_button.widget.button_style='info'
                 self.load_button.widget.disabled=False
-            if hasattr(self, "on_file_change_callback"):
-                self.on_file_change_callback()
+            # if hasattr(self, "on_file_change_callback"):
+            #     self.on_file_change_callback()
             else:
                 self.load_button.show_hide_element('none')
 
