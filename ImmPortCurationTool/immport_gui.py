@@ -823,7 +823,7 @@ class GUI(GUI_Object):
         grid_body = widgets.GridspecLayout(shape[0]+1, shape[1])
 
         for idx, title in enumerate(header_names):
-            grid_body[0,idx] = widgets.HTML(f"<b>{title}</b>")
+            grid_body[0, idx] = widgets.HTML(f"<div style='font-size:16px; font-weight:bold;'>{title}</div>")
             grid_body[0,idx].layout = widgets.Layout(width=column_widths[idx])
         
         dataframe_for_table =  self.data["file_list_df"].copy()
@@ -835,7 +835,8 @@ class GUI(GUI_Object):
             for idx, column_title in enumerate(header_names):
                 readonly_bool = (True if column_title in readonly else False)
                 grid_body[ind2, idx] = create_table_widget(dtype= self.data["file_list_df"][column_title].dtype, value=dataframe_for_table[column_title][ind], readonly= readonly_bool, dataframe= self.data["file_list_df"],columnName=column_title)
-                grid_body[ind2, idx].layout = widgets.Layout(width=column_widths[idx])
+               
+                grid_body[ind2, idx].layout = widgets.Layout(width=column_widths[idx], text_align='center')
 
                 grid_body[ind2, idx].description_tooltip=f"{{'row':{ind},'col':{idx}','title':'{column_title}'}}"
                 grid_body[ind2,idx].observe(functools.partial(update_dataframe_from_table, dataframe= self.data["file_list_df"], column_name=column_title,column=idx,row=ind), names='value')
