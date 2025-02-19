@@ -326,18 +326,53 @@ class GUI(GUI_Object):
     #     return
 
     def generate_gui(self):
-        """Generate the GUI"""
 
-        # self.generate_error_header()
-        self.add_tab(Tab("1. Study",self.generate_tab_study_info()))
-        self.add_tab(Tab("2. Data Dictionary",self.generate_tab_data_dictionary()))
-        self.add_tab(Tab("3. Study Files",self.generate_tab_study_files()))
-        self.add_tab(Tab("Logging",self.generate_tab_logging()))
-        self.add_tab(Tab("Help",self.generate_tab_help()))
-        self.generate_console()
-        self.log(message="GUI generated", level="info")
-        self.flush_log()
-        return self.widget
+        self.objects["title"] = widgets.HTML(value="<h1 style='text-align:center; color:#3E6962; font-size:36px;'>ImmPort Curation Tool</h1>")
+
+        tab_titles = ["1. Study", "2. Data Dictionary", "3. Study Files", "Logging", "Help"]
+        tab_colors = ["#98b3a2", "#F4DAC1", "#ADD5CC", "#dca485", "#D6C097"]  # Custom colors
+
+        tab_contents = {
+            "1. Study": self.generate_tab_study_info(),
+            "2. Data Dictionary": self.generate_tab_data_dictionary(),
+            "3. Study Files": self.generate_tab_study_files(),
+            "Logging": self.generate_tab_logging(),
+            "Help": self.generate_tab_help(),
+        }
+
+        content_area = widgets.Output()
+
+        def on_tab_click(button):
+            with content_area:
+                content_area.clear_output(wait=True)
+                display(tab_contents[button.description])
+
+        tab_buttons = []
+        for i, title in enumerate(tab_titles):
+            button = widgets.Button(
+                description=title,
+                style={"button_color": tab_colors[i]},  
+                layout=widgets.Layout(width="auto",flex="1", height="40px") 
+            )
+            button.on_click(on_tab_click)
+            tab_buttons = tab_buttons + [button]
+
+        button_container = widgets.HBox(tab_buttons, layout=widgets.Layout(
+            width="100%",  
+            display="flex",
+            justify_content="space-between" 
+        ))
+
+        with content_area:
+            display(tab_contents[tab_titles[0]])
+
+        ui = widgets.VBox([
+            self.objects["title"],  
+            button_container,  
+            content_area  
+        ], layout=widgets.Layout(margin="0px", padding="0px"))
+
+        return ui  
     
     def clear_console(self,b):
         self.loggers['console'].widget.clear_output()
@@ -345,33 +380,63 @@ class GUI(GUI_Object):
     def generate_tab_help(self):
 
         documentation = [
-            # {"label":"User Guide","text":"A step-by-step guide on using this tool.", "link":"User_Guide.md"},
-            {"label":"FAQ","text":"Commonly asked questions.", "link":"/documentation/FAQ.md"},
-            {"label":"Errors","text":"Documentation on common errors and how to solve them.", "link":"/documentation/Logging Errors.md"},
-            {"label":"Data Dictionary","text":"Documentation on how to curate the data dictionary.", "link":"/documentation/Curated_Data_Dictionary.md"},
-            {"label":"Study File","text":"Documentation on the format for study files.", "link":"/documentation/Study_File_format.md"},
-            {"label":"Load ImmPort Files","text":"Documentation on how to get files from ImmPort for this tool.", "link":"/documentation/Load_files_from_immport.md"}
+            {"label":"User Guide","text":"A step-by-step guide on using this tool", "link":"User_Guide.md"},
+            {"label":"FAQ","text":"Commonly asked questions", "link":"/documentation/FAQ.md"},
+            {"label":"Errors","text":"Common errors and how to solve them", "link":"/documentation/Logging Errors.md"},
+            {"label":"Data Dictionary","text":"How to curate the data dictionary", "link":"/documentation/Curated_Data_Dictionary.md"},
+            {"label":"Study File","text":"Required format for study files", "link":"/documentation/Study_File_format.md"},
+            {"label":"Load ImmPort Files","text":"How to get files from ImmPort for this tool", "link":"/documentation/Load_files_from_immport.md"}
             ]
+        
+        documentation_header = widgets.HTML(value="""
+            <h2 style='color:black; text-align:left; margin-bottom: 2px;'>📄 Documentation Links</h2>
+        """)
+        
+        overview_header = widgets.HTML(value=f"""
+            <div style='display: flex; justify-content: space-between; align-items: center; width: 100%;'>
+                <h2 style='color:black; margin-bottom: 0px;'>🔍 Overview</h2>
+                <span style='font-size: 18px; color: black;'> {self.objects["version"].get().value} </span>
+            </div>
 
-        table = "<table style='font-size: 16px'>"
-        for md in documentation:
-            table += f"<tr><th><a href='{documentation_base_url}/{md['link']}'>{md['label']}</a></th><td align='left'>{md['text']}</td></tr>"
-        table += "</table>"
+            <p style='font-size:18px; color:black; margin-top: 0px;'>
+                <br>
+                The purpose of this tool is to transform data files/tables from a study into ImmPort templates for upload and integration into the ImmPort database
+                <br>
+                <br>
+                <b>1. Study:</b> Start the data transformation by uploading study data in the first tab
+                <br>
+                <br>
+                <b>2. Data Dictionary:</b> Next, upload the study data dictionary
+                <br>
+                <br>
+                <b>3. Study Files:</b> Finally, upload the study files folder and choose the files you would like to incorporate into the final template
+                <br>
+                <br>
+                <b>Logging:</b> Progress and error messages appear here
+            </p>
+        """)
 
-        self.objects["html_documentation"]=HTML(html_text=f"<h1><a href='{documentation_base_url}/documentation/README.md'>Other Useful Documentation</a></h1>{table}", description="")
+        doc_links = []
+        doc_links = doc_links + [
+        widgets.HTML(value=f"""
+            <p style='font-size:18px; margin-bottom:2px;'>
+                <span style='font-weight:bold; color:black;'>•</span>
+                <a href='{documentation_base_url}/{doc['link']}' target='_blank' 
+                    style='text-decoration:none; font-weight:bold; color:#0077b6;'>
+                    {doc['label']}
+                </a>: {doc['text']}
+            </p>
+        """)
+        for doc in documentation
+    ]
 
-        self.objects["html_documentation_user_guide"] = HTML(html_text=f"<H1><a href='{documentation_base_url}/User_Guide.md'>User Guide</a></H1><font style='font-size:16px'>A step-by-step guide on using this tool.</font>",description="")
-        # self.objects["html_documentation_FAQ"] = HTML(html_text=f"<H1><a href='{documentation_base_url}/documentation/FAQ.md'>FAQ</a></h1><p>Common Questions</p>",description="")
+        tab_content = widgets.VBox([
+            overview_header,
+            documentation_header, 
+            widgets.VBox(doc_links)
+        ], layout=widgets.Layout(padding="1px"))
 
-        tab = widgets.VBox([
-            self.objects["version"].get(),
-            self.objects["html_documentation_user_guide"].get(),
-            self.objects["html_documentation"].get()
-            # self.objects["html_documentation_FAQ"].get()
-            
-        ])
-
-        return tab
+        return tab_content
 
     def generate_tab_study_info(self):
         """Generate the study info tab"""
