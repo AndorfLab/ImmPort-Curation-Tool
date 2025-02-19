@@ -633,6 +633,19 @@ class GUI(GUI_Object):
             
         self.objects["button_filechooser_data_dictionary_load"].button_change(button=self.objects["button_filechooser_data_dictionary_load"], style='danger', text='Load Failed',tooltip='Something went wrong while loading the Data Dictionary',disabled=False, icon='')
         
+    def on_file_change(self):
+
+        self.objects["button_filechooser_data_dictionary_load"].button_change(
+            button=self.objects["button_filechooser_data_dictionary_load"], 
+            style='',  
+            text='Load Data Dictionary',  
+            tooltip='Load a curated data dictionary file', 
+            disabled=False,  
+            icon='upload'  
+        )
+        
+        display(self.objects["button_filechooser_data_dictionary_load"].widget)
+
     def get_study_file_attribute(self, filename, attribute):
         """Get the study file attribute"""
         if attribute.upper() not in list(self.data["study_files"].columns):
