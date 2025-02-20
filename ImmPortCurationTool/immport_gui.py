@@ -77,6 +77,7 @@ main_logger=''
 #TODO potentially move to external file
 documentation_base_url = "https://github.com/JoshuaFortriede/ImmPort-Curation-Tool/blob/master"
 
+
 class Timer:
     def __init__(self, timeout, callback):
         self._timeout = timeout
@@ -263,9 +264,6 @@ class GUI(GUI_Object):
         self.generate_gui()
         self.check_schema_version()
 
-
-
-
     def add_tab(self, tab):
         old_tabs_tuple = self.widget.children
         old_tabs_list = list(old_tabs_tuple)
@@ -318,12 +316,49 @@ class GUI(GUI_Object):
         handler.setFormatter(logging.Formatter('%(asctime)s  - [%(levelname)s] %(message)s'))
         self.loggers[name].addHandler(handler)
 
-    # def generate_error_header(self): #TODO refactor into a "Banner Output"
-    #     self.objects["box_errors"] = HBox(name="box_errors")
-    #     self.objects["html_errors"] = HTML()
-    #     self.objects["button_errors_clear"] = Button(description="Clear")
-    #     self.objects["box_errors"].set_children(self.objects["html_errors"].get(),self.objects["button_errors_clear"].get())
-    #     return
+    def reset_tab2(self, b):  
+
+        if "filechooser_data_dictionary" in self.objects:
+            self.objects["filechooser_data_dictionary"].reset("", "")  
+
+        if "dropdown_table_form_column" in self.objects:
+            del self.objects["dropdown_table_form_column"]
+        if "button_form_column_confirm" in self.objects:
+            del self.objects["button_form_column_confirm"]
+
+        self.objects["dropdown_table_form_column"] = Dropdown(
+            options=['No selection'], 
+            description='<b><span style="font-size:18px;">Select the column that specifies the form/instrument</span></b>', 
+            tooltip='Select the column from the data dictionary that contains the form codes', 
+            style={'description_width': 'initial'}
+        )
+
+        self.objects["button_form_column_confirm"] = Button(
+            text="Confirm Form Columns", 
+            tooltip='Confirm that the selected column from the data dictionary contains the instrument/CRF/form codes', 
+            callback=self.load_data_dictionary_columns
+        )
+
+        if "tab_row_dd_form_row" in self.objects:
+            self.objects["tab_row_dd_form_row"].children = []
+
+            self.objects["tab_row_dd_form_row"].children = [
+                self.objects["dropdown_table_form_column"].get(),
+                self.objects["button_form_column_confirm"].get()
+            ]
+            self.hide_row("tab_row_dd_form_row")
+
+        self.objects["button_filechooser_data_dictionary_load"] = self.objects["filechooser_data_dictionary"].add_load_button(
+            description="Load Data Dictionary",
+            tooltip="Load a curated data dictionary file",
+            callback=self.load_data_dictionary
+        )
+
+        self.objects["tab_row_dd_row"].children = [
+            self.objects["filechooser_data_dictionary"].get(), 
+            self.objects["button_filechooser_data_dictionary_load"].get()
+        ]
+
 
     def generate_gui(self):
 
@@ -772,7 +807,7 @@ class GUI(GUI_Object):
                 self.log(message="Generating DF Table", level='debug',flush=True)
                 self.objects["study_file_table"] = self.generate_df_table(column_widths =  ["300px","250px","100px","150px","125px","175px"], readonly=["Filename","Description"])
                 
-                self.objects["button_generate_files"]= Button(text="Generate Filled Templates", tooltip='Generate filled ImmPort Templates for upload into ImmPort', callback=self.generate_filled_template_files, width = "400px") #, style=dict(description_width='initial'))
+                self.objects["button_generate_files"]= Button(text="Generate Filled Templates", tooltip='Generate filled ImmPort Templates for upload into ImmPort', callback=self.generate_filled_template_files, width = "400px", margin="auto") #, style=dict(description_width='initial'))
                 #generate_filled_template_files
                 self.objects["box_study_files_table"].set_children([ self.objects["button_generate_files"].get(), self.objects["study_file_table"]])
                 self.objects["button_filechooser_study_file_directory_load"].button_change(button=self.objects["button_filechooser_study_file_directory_load"], style='success', text='Study Files Loaded',tooltip='The Study files have been loaded',disabled=False, icon='')
@@ -847,26 +882,28 @@ class GUI(GUI_Object):
 
         
     def load_data_dictionary_columns(self, b):
-        self.objects["button_form_column_confirm"].button_change(button=self.objects["button_form_column_confirm"], style='success', text='Confirmed',tooltip='The form columns have been loaded',disabled=True, icon='')
+        self.objects["button_form_column_confirm"].button_change(button=self.objects["button_form_column_confirm"], style='success', text='Confirmed',tooltip='The form columns have been loaded', disabled=True, icon='')   #disabled=True, icon='')
         
-        dictionary_tables = list(self.dictionary['tables'].keys())
-        self.objects["html_data_dictionary_tables"].set_text(text=f"{', '.join(dictionary_tables)}")
+            # ✅ Ensure tables are displayed correctly
+        if "html_data_dictionary_tables" in self.objects:
+            dictionary_tables = list(self.dictionary['tables'].keys())
+            self.objects["html_data_dictionary_tables"].set_text(text=f"{', '.join(dictionary_tables)}")
         
-        return
-    
+
     def generate_tab_data_dictionary(self):
+
         self.objects["html_documentation_curated_dd"] = HTML(
             html_text=f"<h2><a title='Information on creating a curated data dictionary' href='{documentation_base_url}/documentation/Curated_Data_Dictionary.md' style='font-size: 18px; text-decoration: none; color: #0077b6;'><b>Click for the curated data dictionary user guide</b></a></h2>",description="")
         
         self.objects["filechooser_data_dictionary"] = File_Chooser(name="filechooser_data_dictionary", title='<b><span style="font-size:18px;">📁 Select the curated data dictionary</span></b>', tooltip='Load a curated data dictionary file',multiple=False,filter_pattern=['*.csv','*.txt',"*.tsv"], style=dict(description_width='initial'))
-                
-     #   self.objects["filechooser_data_dictionary"].on_file_change_callback = self.on_file_change
 
         self.objects["button_filechooser_data_dictionary_load"]= self.objects["filechooser_data_dictionary"].add_load_button(description="Load Data Dictionary", tooltip="Load a curated data dictionary file", callback=self.load_data_dictionary)
         self.objects["button_form_column_confirm"]= Button(text="Confirm Form Columns", tooltip='Confirm that the selected column from the data dictionary contains the instrument/CRF/form codes', callback=self.load_data_dictionary_columns) #, style=dict(description_width='initial'))
 
         self.objects["dropdown_table_form_column"] = Dropdown(options=['No selection'], description='<b><span style="font-size:18px;">Select the column that specifies the form/instrument</span></b>', tooltip='Select the column from the data dictionary that contains the form codes', style={'description_width': 'initial'})
 
+        self.objects["reset_tab2_button"] = Button(text="Reset Tab", tooltip="Reset all inputs in Tab 2", style="warning", callback=self.reset_tab2, width="120px")
+        
         self.objects["tab_row_dd_row"] = widgets.HBox([self.objects["filechooser_data_dictionary"].get(),self.objects["button_filechooser_data_dictionary_load"].get()])
         self.objects["tab_row_dd_form_row"] = widgets.HBox([self.objects["dropdown_table_form_column"].get(),self.objects["button_form_column_confirm"].get()])
         self.hide_row("tab_row_dd_form_row")
@@ -879,7 +916,9 @@ class GUI(GUI_Object):
             spacer,
             self.objects["tab_row_dd_form_row"],
             spacer,
-            self.objects["html_documentation_curated_dd"].get()
+            self.objects["html_documentation_curated_dd"].get(),
+            spacer,
+            self.objects["reset_tab2_button"].get()
         ])
 
         return tab
@@ -972,21 +1011,22 @@ class Tab(GUI_Object):
         
 class Button(GUI_Object):
     """Button class"""
-    def __init__(self, text, style=None, icon="", tooltip="", state=False, callback=None, display=True, width="auto"):
+    def __init__(self, text, style=None, icon="", tooltip="", state=False, callback=None, display=True, width="auto", margin=""):
         super().__init__(
             widgets.Button(
                 description=text,
                 icon=icon,
                 tooltip=tooltip,
-                layout=widgets.Layout(width=width),
+                layout=widgets.Layout(width=width, margin=margin),
                 disabled = state
             )
         )
         
         if style is None:
             self.widget.style.button_color = "#F5DAD2"
-        
-        if style is not None:
+        elif style == 'warning':
+            self.widget.style.button_color = '#F7F6BB'
+        else: 
             self.widget.button_style = style
 
         if callback is not None:
@@ -1394,7 +1434,6 @@ def get_planned_visits(planned_visits, nameonly=False, returnType=None):
             return names.tolist()
         return names
     return planned_visits[["PLANNED_VISIT_ACCESSION","NAME"]]
-
 
 
 
