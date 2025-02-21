@@ -1194,7 +1194,8 @@ class TextField(GUI_Object):
         if "regex" in kwargs:
             self.widget.observe(self.check_value, names='value')
             self.regex = kwargs["regex"]
-            self.helper = HTML(html_text=f"<span style='color:red'>Invalid Value! Please use a value that matches the format of {self.regex}</span>")
+            regex_display = self.regex.replace(r"\d", " numbers (0-9)")
+            self.helper = HTML(html_text=f"<span style='color:red'>Invalid Value! Please use a value that matches the format of {regex_display}</span>")
             self.helper.toggle_display()
     
     def get(self):
