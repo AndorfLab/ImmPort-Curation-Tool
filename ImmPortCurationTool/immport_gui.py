@@ -359,6 +359,37 @@ class GUI(GUI_Object):
             self.objects["button_filechooser_data_dictionary_load"].get()
         ]
 
+    def reset_tab3(self, b):  
+
+        if "filechooser_study_file_directory" in self.objects:
+            self.objects["filechooser_study_file_directory"].reset("", "")  
+
+        if "button_filechooser_study_file_directory_load" in self.objects:
+            del self.objects["button_filechooser_study_file_directory_load"]
+
+        self.objects["button_filechooser_study_file_directory_load"] = self.objects["filechooser_study_file_directory"].add_load_button(
+            description="Load study files directory",
+            tooltip="Load the study files directory",
+            callback=self.load_study_files
+        )
+
+        self.objects["tab_row_study_files_filechooser"].children = [
+            self.objects["filechooser_study_file_directory"].get(),
+            self.objects["button_filechooser_study_file_directory_load"].get()
+        ]
+
+        if "tables_section" in self.objects:
+            self.objects["tables_section"].children = []  
+            self.objects["tables_section"].layout.visibility = 'hidden'
+            #self.objects["box_study_files_table"].layout.display = 'none'
+
+        self.objects["tab3_layout"].children = [  
+            widgets.HTML(value="<div style='height: 10px;'></div>"),
+            self.objects["tab_row_study_files_filechooser"], 
+            widgets.HTML(value="<div style='height: 10px;'></div>"),
+            self.objects["reset_tab3_button"].get(),
+            widgets.HTML(value="<div style='height: 10px;'></div>")
+        ]
 
     def generate_gui(self):
 
@@ -700,17 +731,23 @@ class GUI(GUI_Object):
         self.objects["tab_row_study_files_filechooser"] = widgets.HBox([self.objects["filechooser_study_file_directory"].get(), self.objects["button_filechooser_study_file_directory_load"].get()])
         self.objects["box_study_files_table"]=VBox(name="box_study_files_table")
 
+        self.objects["reset_tab3_button"] = Button(text="Reset Tab", tooltip="Reset all inputs in Tab 3", style="warning", callback=self.reset_tab3, width="120px")
+
         spacer = widgets.HTML(value="<div style='height: 10px;'></div>")
 
-        tab = widgets.VBox([
+        self.objects["tab3_layout"] = widgets.VBox([
             spacer,
             self.objects["tab_row_study_files_filechooser"], 
             spacer, 
             self.objects["tables_section"], 
             spacer,
             self.objects["box_study_files_table"].get(), 
-            spacer])
-        return tab
+            spacer,
+            self.objects["reset_tab3_button"].get(),
+            spacer
+            ])
+        return self.objects["tab3_layout"] 
+    
 
     def generate_zip_file(self, fh_zip, files=[]):
         for file in files:
