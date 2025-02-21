@@ -316,6 +316,36 @@ class GUI(GUI_Object):
         handler.setFormatter(logging.Formatter('%(asctime)s  - [%(levelname)s] %(message)s'))
         self.loggers[name].addHandler(handler)
 
+    def reset_tab1(self, b):  
+
+        if "filechooser_study_tab_file" in self.objects:
+            self.objects["filechooser_study_tab_file"].reset("", "")  
+
+        if "filechooser_planned_visits" in self.objects:
+            self.objects["filechooser_planned_visits"].reset("", "")  
+
+        if "filechooser_study_files" in self.objects:
+            self.objects["filechooser_study_files"].reset("", "")  
+
+        if "text_study_id" in self.objects:
+            self.objects["text_study_id"].reset()
+
+        if "text_workspace_id" in self.objects:
+            self.objects["text_workspace_id"].reset()
+
+        if "dropdown_study_visit_list" in self.objects:
+            self.objects["dropdown_study_visit_list"].set_options([""]) 
+            
+        if "toggle_current_immport_study" in self.objects:
+            old_value = self.objects["toggle_current_immport_study"].widget.value
+            self.objects["toggle_current_immport_study"].widget.value = None  
+            self.objects["toggle_current_immport_study"].widget.value = 0  
+
+        if "toggle_non_tab_files" in self.objects:
+            old_value = self.objects["toggle_non_tab_files"].widget.value
+            self.objects["toggle_non_tab_files"].widget.value = None  
+            self.objects["toggle_non_tab_files"].widget.value = 0  
+    
     def reset_tab2(self, b):  
 
         if "filechooser_data_dictionary" in self.objects:
@@ -381,8 +411,7 @@ class GUI(GUI_Object):
         if "tables_section" in self.objects:
             self.objects["tables_section"].children = []  
             self.objects["tables_section"].layout.visibility = 'hidden'
-            #self.objects["box_study_files_table"].layout.display = 'none'
-
+ 
         self.objects["tab3_layout"].children = [  
             widgets.HTML(value="<div style='height: 10px;'></div>"),
             self.objects["tab_row_study_files_filechooser"], 
@@ -582,6 +611,8 @@ class GUI(GUI_Object):
 
         box_immport_study_no.set_children([workspace_id_section, study_id_section])
 
+        self.objects["reset_tab1_button"] = Button(text="Reset Tab", tooltip="Reset all inputs in Tab 1", style="warning", callback=self.reset_tab1, width="120px")
+
         spacer = widgets.HTML(value="<div style='height: 10px;'></div>")
 
         tab = widgets.VBox([
@@ -599,6 +630,8 @@ class GUI(GUI_Object):
             study_visit_list_section,
             spacer, 
             box_immport_download_instructions.get(),
+            spacer,
+            self.objects["reset_tab1_button"].get(),
             spacer
         ])
 
@@ -618,6 +651,8 @@ class GUI(GUI_Object):
         return tab
 
     def load_study_file(self, value):
+
+        print("📂 load_study_file() was triggered!")  
         if value.description == "Change":
             filename = self.objects["filechooser_study_files"].get_filepath()
             with open(filename, 'r') as pv:
@@ -818,6 +853,8 @@ class GUI(GUI_Object):
     def load_study_files(self, b): #HERE
         """Load the study files"""
 
+        print("📂 load_study_files() was triggered!")
+
         self.objects["button_filechooser_study_file_directory_load"].button_change(button=self.objects["button_filechooser_study_file_directory_load"], style='warning', text='Loading Study Files...',tooltip='The Study files are loading',disabled=False, icon='spinner')
         self.objects["html_study_files_display_text"] = HTML(html_text='<p style="font-size:18px;">Generating Study File Table...</p>')
 
@@ -828,6 +865,14 @@ class GUI(GUI_Object):
                 self.log(message='Loading files in study file directory',level='debug',flush=True)
                 study_files = [f for f in os.listdir(self.objects["filechooser_study_file_directory"].get_dir()) if any(f.endswith(ext) for ext in included_extensions)]
                 study_files.sort()
+
+                # ✅ Extract planned visits and update dropdown
+            #    planned_visits = self.get_planned_visits(nameonly=True, returnType="list")
+            #    print(f"🔽 Updating dropdown with planned visits: {planned_visits}")
+
+             #   if "dropdown_study_visit_list" in self.objects:
+             #       self.objects["dropdown_study_visit_list"].set_options(planned_visits)
+
 
                 self.data['file_list_df'] = pd.DataFrame(columns=['Filename','Table Code', 'Assessment Name','Template','Default Visit'])
                 
@@ -1165,6 +1210,9 @@ class TextField(GUI_Object):
                 self.helper.show_hide_element(display='')
                 return
             self.helper.show_hide_element(display='none')
+    
+    def reset(self):
+        self.widget.value = ""  
 
 class File_Chooser(GUI_Object):
     """FileChooser class"""
@@ -1451,8 +1499,8 @@ def create_table_widget(dtype=None, value='', readonly=False, dataframe=None, co
             disabled=False,
         )
 
-
 def on_select_study_tab_file(value, gui=None, fc_name=None):
+  
     if value.description == "Change":
         gui.data["planned_visit"] = cf.readFileFromZip( gui.objects[fc_name].widget.selected_path, gui.objects[fc_name].widget.selected_filename, "planned_visit.txt")
         gui.data["study_files"] = cf.readFileFromZip(   gui.objects[fc_name].widget.selected_path, gui.objects[fc_name].widget.selected_filename, "study_file.txt")
@@ -1460,8 +1508,14 @@ def on_select_study_tab_file(value, gui=None, fc_name=None):
 
         visit_names = get_planned_visits(gui.data["planned_visit"],nameonly=True, returnType="list")
         
-        gui.objects["dropdown_study_visit_list"].set_options(visit_names)
+        if "dropdown_study_visit_list" in gui.objects:
+            gui.objects["dropdown_study_visit_list"].set_options(visit_names)
 
+            if "study_visit_list_section" in gui.objects:
+                gui.objects["study_visit_list_section"].children = [
+                    gui.objects["label_study_visit_list"], 
+                    gui.objects["dropdown_study_visit_list"].get()  
+                ]
 
 def get_planned_visits(planned_visits, nameonly=False, returnType=None):
     #TODO move into gui and wrap try/except with logging
