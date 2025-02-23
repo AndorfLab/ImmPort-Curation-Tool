@@ -652,7 +652,6 @@ class GUI(GUI_Object):
 
     def load_study_file(self, value):
 
-        print("📂 load_study_file() was triggered!")  
         if value.description == "Change":
             filename = self.objects["filechooser_study_files"].get_filepath()
             with open(filename, 'r') as pv:
@@ -850,10 +849,16 @@ class GUI(GUI_Object):
 
         return tab
     
-    def load_study_files(self, b): #HERE
-        """Load the study files"""
+    def load_study_files(self, b): 
 
-        print("📂 load_study_files() was triggered!")
+        if "box_study_files_table" not in self.objects:
+            self.objects["box_study_files_table"] = VBox(name="box_study_files_table")
+
+        table_content = widgets.HTML(value="<p style='font-size:18px;'>This is a test table</p>")
+
+        self.objects["box_study_files_table"].set_children([table_content])
+
+        self.objects["box_study_files_table"].toggle_display()  
 
         self.objects["button_filechooser_study_file_directory_load"].button_change(button=self.objects["button_filechooser_study_file_directory_load"], style='warning', text='Loading Study Files...',tooltip='The Study files are loading',disabled=False, icon='spinner')
         self.objects["html_study_files_display_text"] = HTML(html_text='<p style="font-size:18px;">Generating Study File Table...</p>')
@@ -865,14 +870,6 @@ class GUI(GUI_Object):
                 self.log(message='Loading files in study file directory',level='debug',flush=True)
                 study_files = [f for f in os.listdir(self.objects["filechooser_study_file_directory"].get_dir()) if any(f.endswith(ext) for ext in included_extensions)]
                 study_files.sort()
-
-                # ✅ Extract planned visits and update dropdown
-            #    planned_visits = self.get_planned_visits(nameonly=True, returnType="list")
-            #    print(f"🔽 Updating dropdown with planned visits: {planned_visits}")
-
-             #   if "dropdown_study_visit_list" in self.objects:
-             #       self.objects["dropdown_study_visit_list"].set_options(planned_visits)
-
 
                 self.data['file_list_df'] = pd.DataFrame(columns=['Filename','Table Code', 'Assessment Name','Template','Default Visit'])
                 
@@ -887,11 +884,30 @@ class GUI(GUI_Object):
                 self.data['file_list_df'] = self.data['file_list_df'][["Filename","Description","Table Code","Assessment Name","Template","Default Visit"]]
 
                 self.log(message="Generating DF Table", level='debug',flush=True)
+
+                print("✅ TEST LOGGING: This should appear!")
+                self.log(message="TEST LOGGING: If this doesn't appear, logging is broken!", level='debug', flush=True)
+
+
+
                 self.objects["study_file_table"] = self.generate_df_table(column_widths =  ["300px","250px","100px","150px","125px","175px"], readonly=["Filename","Description"])
                 
                 self.objects["button_generate_files"]= Button(text="Generate Filled Templates", tooltip='Generate filled ImmPort Templates for upload into ImmPort', callback=self.generate_filled_template_files, width = "400px", margin="auto") #, style=dict(description_width='initial'))
-                #generate_filled_template_files
+              
                 self.objects["box_study_files_table"].set_children([ self.objects["button_generate_files"].get(), self.objects["study_file_table"]])
+
+                temp = list(self.objects["box_study_files_table"].widget.children)  
+                self.objects["box_study_files_table"].widget.children = []  
+                self.objects["box_study_files_table"].widget.children = temp  
+
+                self.objects["tab3_layout"].children = [
+                    self.objects["tab_row_study_files_filechooser"],  
+                    self.objects["box_study_files_table"].get(),  
+                    self.objects["reset_tab3_button"].get()
+                ]
+
+                self.objects["box_study_files_table"].toggle_display()
+
                 self.objects["button_filechooser_study_file_directory_load"].button_change(button=self.objects["button_filechooser_study_file_directory_load"], style='success', text='Study Files Loaded',tooltip='The Study files have been loaded',disabled=False, icon='')
             except Exception as e:
                 error = HTML(html_text='<b>Error:</b> ' + str(e))
@@ -904,7 +920,6 @@ class GUI(GUI_Object):
 
         return
     
-
     def set_study_id_from_textfield(self,value):
         if value.type == 'change':
             self.set_study_id(value["new"])
@@ -1387,6 +1402,16 @@ class Log_Output(GUI_Object):
                 self.messages[level][message]+=1
         if flush:
             self.flush()
+
+    # def write(self, message=None, level=None, flush=True):  
+    #     level = level.lower()
+        
+    #     if level in self.log:
+    #         self.log[level](message)
+
+    #     if flush:
+    #         self.flush()
+
 
     def flush(self):
         if len(self.messages.keys())==0:
