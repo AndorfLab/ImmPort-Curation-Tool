@@ -611,7 +611,7 @@ class GUI(GUI_Object):
 
         box_immport_study_no.set_children([workspace_id_section, study_id_section])
 
-        self.objects["reset_tab1_button"] = Button(text="Reset Tab", tooltip="Reset all inputs in Tab 1", style="warning", callback=self.reset_tab1, width="120px")
+        self.objects["reset_tab1_button"] = Button(text="Reset Tab", tooltip="Reset all inputs in Tab 1", style="warning", callback=self.reset_tab1, width="140px", icon="trash")
 
         spacer = widgets.HTML(value="<div style='height: 10px;'></div>")
 
@@ -716,7 +716,7 @@ class GUI(GUI_Object):
         try:
             self.dictionary = rc.parseDataDictionary(self.config['data_dictionary']['filepath'], self)
             self.log(message="Dictionary Parsed",level='debug',flush=True)
-            self.objects["button_filechooser_data_dictionary_load"].button_change(button=self.objects["button_filechooser_data_dictionary_load"], style='success', text='Dictionary Loaded',tooltip='The dictionary file has been loaded',disabled=True, icon='')
+            self.objects["button_filechooser_data_dictionary_load"].button_change(button=self.objects["button_filechooser_data_dictionary_load"], style='success', text='Dictionary Loaded',tooltip='The dictionary file has been loaded',disabled=False, icon='')
 
             self.objects["dropdown_table_form_column"].set_options(option_list=list(self.dictionary['columns'].items()))
             self.show_row("tab_row_dd_form_row")
@@ -732,17 +732,6 @@ class GUI(GUI_Object):
             self.log(message=f"Error loading data dictionary: {e}", level="error", flush=True)
             
         self.objects["button_filechooser_data_dictionary_load"].button_change(button=self.objects["button_filechooser_data_dictionary_load"], style='danger', text='Load Failed',tooltip='Something went wrong while loading the Data Dictionary',disabled=False, icon='')
-        
-    # def on_file_change(self):
-
-    #     self.objects["button_filechooser_data_dictionary_load"].button_change(
-    #         button=self.objects["button_filechooser_data_dictionary_load"], 
-    #         style='',  
-    #         text='Load Data Dictionary',  
-    #         tooltip='Load a curated data dictionary file', 
-    #         disabled=False,  
-    #         icon='upload'  
-    #     )
         
     def get_study_file_attribute(self, filename, attribute):
         """Get the study file attribute"""
@@ -765,7 +754,7 @@ class GUI(GUI_Object):
         self.objects["tab_row_study_files_filechooser"] = widgets.HBox([self.objects["filechooser_study_file_directory"].get(), self.objects["button_filechooser_study_file_directory_load"].get()])
         self.objects["box_study_files_table"]=VBox(name="box_study_files_table")
 
-        self.objects["reset_tab3_button"] = Button(text="Reset Tab", tooltip="Reset all inputs in Tab 3", style="warning", callback=self.reset_tab3, width="120px")
+        self.objects["reset_tab3_button"] = Button(text="Reset Tab", tooltip="Reset all inputs in Tab 3", style="warning", callback=self.reset_tab3, width="140px", icon="trash")
 
         spacer = widgets.HTML(value="<div style='height: 10px;'></div>")
 
@@ -857,7 +846,7 @@ class GUI(GUI_Object):
             self.log(message="Error: Some files failed to generate.", level='error', flush=True)
             self.objects["button_generate_files"].button_change(
                 button=self.objects["button_generate_files"], style='danger', 
-                text='Error: Some files failed to generate. Click to retry', 
+                text='Error: Some files failed to generate. Click to retry.', 
                 tooltip='An error occurred during file generation. See log for more details.', 
                 disabled=False, icon='warning'
             )
@@ -925,7 +914,7 @@ class GUI(GUI_Object):
 
                 self.objects["study_file_table"] = self.generate_df_table(column_widths =  ["300px","250px","100px","150px","125px","175px"], readonly=["Filename","Description"])
                 
-                self.objects["button_generate_files"]= Button(text="Generate Filled Templates", tooltip='Generate filled ImmPort Templates for upload into ImmPort', callback=self.generate_filled_template_files, width = "400px", margin="auto") #, style=dict(description_width='initial'))
+                self.objects["button_generate_files"]= Button(text="Generate Filled Templates", tooltip='Generate filled ImmPort Templates for upload into ImmPort', callback=self.generate_filled_template_files, width = "500px", margin="auto") #, style=dict(description_width='initial'))
               
                 self.objects["box_study_files_table"].set_children([ self.objects["button_generate_files"].get(), self.objects["study_file_table"]])
 
@@ -1012,7 +1001,7 @@ class GUI(GUI_Object):
 
         
     def load_data_dictionary_columns(self, b):
-        self.objects["button_form_column_confirm"].button_change(button=self.objects["button_form_column_confirm"], style='success', text='Confirmed',tooltip='The form columns have been loaded', disabled=True, icon='')   #disabled=True, icon='')
+        self.objects["button_form_column_confirm"].button_change(button=self.objects["button_form_column_confirm"], style='success', text='Confirmed',tooltip='The form columns have been loaded', disabled=False, icon='')   
         
             # ✅ Ensure tables are displayed correctly
         if "html_data_dictionary_tables" in self.objects:
@@ -1032,7 +1021,7 @@ class GUI(GUI_Object):
 
         self.objects["dropdown_table_form_column"] = Dropdown(options=['No selection'], description='<b><span style="font-size:18px;">Select the column that specifies the form/instrument</span></b>', tooltip='Select the column from the data dictionary that contains the form codes', style={'description_width': 'initial'})
 
-        self.objects["reset_tab2_button"] = Button(text="Reset Tab", tooltip="Reset all inputs in Tab 2", style="warning", callback=self.reset_tab2, width="120px")
+        self.objects["reset_tab2_button"] = Button(text="Reset Tab", tooltip="Reset all inputs in Tab 2", style="warning", callback=self.reset_tab2, width="140px", icon="trash")
         
         self.objects["tab_row_dd_row"] = widgets.HBox([self.objects["filechooser_data_dictionary"].get(),self.objects["button_filechooser_data_dictionary_load"].get()])
         self.objects["tab_row_dd_form_row"] = widgets.HBox([self.objects["dropdown_table_form_column"].get(),self.objects["button_form_column_confirm"].get()])
@@ -1048,7 +1037,8 @@ class GUI(GUI_Object):
             spacer,
             self.objects["html_documentation_curated_dd"].get(),
             spacer,
-            self.objects["reset_tab2_button"].get()
+            self.objects["reset_tab2_button"].get(),
+            spacer
         ])
 
         return tab
@@ -1187,9 +1177,11 @@ class Button(GUI_Object):
         if style == '':
             self.widget.style.button_color = "#F5DAD2"
         elif style == 'success':
-            self.widget.style.button_color = '#3E6962'
+            self.widget.style.button_color = '#6e9790'
         elif style == 'warning':
             self.widget.style.button_color = '#F7F6BB'
+        elif style == 'danger':
+            self.widget.style.button_color = '#ac8188'
         else:
             self.widget.style.button_color = None
             self.widget.button_style = style
