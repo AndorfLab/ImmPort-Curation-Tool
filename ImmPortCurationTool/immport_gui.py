@@ -792,8 +792,33 @@ class GUI(GUI_Object):
         my_assessments={}
         study_id = self.get_study_id()
         self.objects["button_generate_files"].button_change(button=self.objects["button_generate_files"], style='warning', text='Generating...',tooltip='The files are being generated. This could take a few minutes',disabled=False, icon='spinner')
+
+        errors_occurred = False
+
         for index, study_file_row in self.data['file_list_df'].iterrows():
-            if study_file_row["Template"] == "Assessment":
+
+            table_code = str(study_file_row["Table Code"]).strip() if pd.notna(study_file_row["Table Code"]) else ""
+            template = str(study_file_row["Template"]).strip() if pd.notna(study_file_row["Template"]) else ""
+             
+            if table_code != '' and template == '':
+                self.log(
+                    message=f"Error in row {index+1}: A template must be selected for Table Code '{table_code}'", 
+                    level='error', 
+                    flush=True
+                )
+                self.flush_log()
+                errors_occurred = True
+
+            if table_code == '' and template != '':
+                self.log(
+                    message=f"Error in row {index+1}: A Table Code must be selected for '{template}'", 
+                    level='error', 
+                    flush=True
+                )
+                self.flush_log()
+                errors_occurred = True
+                
+            if study_file_row["Template"] == "Assessment" and table_code != '':
                 try:
                     
                     table_code = study_file_row["Table Code"]
@@ -823,10 +848,27 @@ class GUI(GUI_Object):
                     ])
                     fh_zip_file.close()
                     self.flush_log()
+
                 except Exception as err:
+                    errors_occurred = True
                     self.log(message=f"Error processing {table_code} - {err}", level='error', flush=True)
-                    pass
-        self.objects["button_generate_files"].button_change(button=self.objects["button_generate_files"], style='success', text='Files Generated - Click to Re-Generate',tooltip='Files have been generated in the Results folder. Click to re-generate files.',disabled=False, icon='')
+
+        if errors_occurred:
+            self.log(message="Error: Some files failed to generate.", level='error', flush=True)
+            self.objects["button_generate_files"].button_change(
+                button=self.objects["button_generate_files"], style='danger', 
+                text='Error: Some files failed to generate. Click to retry', 
+                tooltip='An error occurred during file generation. See log for more details.', 
+                disabled=False, icon='warning'
+            )
+        else:
+            self.log(message="✅ All files successfully generated.", level='info', flush=True)
+            self.objects["button_generate_files"].button_change(
+                button=self.objects["button_generate_files"], style='success', 
+                text='Files Generated - Click to Re-Generate', 
+                tooltip='Files have been generated in the Results folder. Click to re-generate files.', 
+                disabled=False, icon='check'
+            )
 
     def generate_console(self):
         self.loggers['console'] = Log_Output(name="console", level=logging.ERROR, max_height="100px")
@@ -854,10 +896,6 @@ class GUI(GUI_Object):
         if "box_study_files_table" not in self.objects:
             self.objects["box_study_files_table"] = VBox(name="box_study_files_table")
 
-        table_content = widgets.HTML(value="<p style='font-size:18px;'>This is a test table</p>")
-
-        self.objects["box_study_files_table"].set_children([table_content])
-
         self.objects["box_study_files_table"].toggle_display()  
 
         self.objects["button_filechooser_study_file_directory_load"].button_change(button=self.objects["button_filechooser_study_file_directory_load"], style='warning', text='Loading Study Files...',tooltip='The Study files are loading',disabled=False, icon='spinner')
@@ -884,11 +922,6 @@ class GUI(GUI_Object):
                 self.data['file_list_df'] = self.data['file_list_df'][["Filename","Description","Table Code","Assessment Name","Template","Default Visit"]]
 
                 self.log(message="Generating DF Table", level='debug',flush=True)
-
-                print("✅ TEST LOGGING: This should appear!")
-                self.log(message="TEST LOGGING: If this doesn't appear, logging is broken!", level='debug', flush=True)
-
-
 
                 self.objects["study_file_table"] = self.generate_df_table(column_widths =  ["300px","250px","100px","150px","125px","175px"], readonly=["Filename","Description"])
                 
