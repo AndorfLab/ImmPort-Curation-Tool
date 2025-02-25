@@ -28,21 +28,18 @@ def getColumnMapping(dictionary,table_name,mapping):
         mapping_col = dictionary["tables"][table_name]["mappings"][mapping]
         return dictionary["tables"][table_name]["fields"][mapping_col]["description"]
 
-def parseDictionaryRow(row, dictionary):
-    # print(row)
-    # print(dictionary['columns'])
+def parseDictionaryRow(row, dictionary, formatted_columns):
 
-    table_name = row[dictionary["columns"]["Table Name"]]
-    values = row[dictionary["columns"]["Code List Values"]]
-    field_name = row[dictionary["columns"]["Field Name"]]
+    table_name = row[formatted_columns["Table Name"]]
+    values = row[formatted_columns["Code List Values"]]
+    field_name = row[formatted_columns["Field Name"]]
 
     if(table_name not in dictionary["tables"]):
         dictionary["tables"][table_name]={"fields":{},"mappings":{}}
     
-    verbatim_question = row[dictionary["columns"]["Verbatim Question"]]
+    verbatim_question = row[formatted_columns["Verbatim Question"]]
     if(verbatim_question.lower() == "[same]"):
-        verbatim_question =row[dictionary["columns"]["Field Description"]]
-
+        verbatim_question =row[formatted_columns["Field Description"]]
 
     dictionary["tables"][table_name]["fields"][field_name]={"question":True,"verbatim_question" : verbatim_question}
     # dictionary["tables"][table_name]["fields"][field_name]={
@@ -65,20 +62,20 @@ def parseDictionaryRow(row, dictionary):
 
     dictionary_to_variable = {"key_field":"Key Field", "description":"Field Description","expected":"Expected","unit":"Unit","note":"Note","who_is_assessed":"Who is Assessed","age_onset":"Age at Onset Reported","age_onset_unit":"Age At Onset Unit Reported","location":"Location","study_day":"Study Day"}
 
-    if "Map to Planned Visit" in dictionary["columns"]:
+    if "Map to Planned Visit" in formatted_columns:
         dictionary_to_variable['map_to_visit']="Map to Planned Visit"
-    elif "Map To Planned Visit" in dictionary["columns"]:
+    elif "Map To Planned Visit" in formatted_columns:
         dictionary_to_variable['map_to_visit']="Map To Planned Visit"
-    elif "Map To Visit" in dictionary["columns"]:
+    elif "Map To Visit" in formatted_columns:
         dictionary_to_variable['map_to_visit']="Map To Visit"
 
     for key, label in dictionary_to_variable.items():
-        if label in dictionary["columns"]:
-            dictionary["tables"][table_name]["fields"][field_name][key]=row[dictionary["columns"][label]]
+        if label in formatted_columns:
+            dictionary["tables"][table_name]["fields"][field_name][key]=row[formatted_columns[label]]
         else:
             dictionary["tables"][table_name]["fields"][field_name][key]=""
 
-    col_mapping = row[dictionary["columns"]["Column Mappings"]]
+    col_mapping = row[formatted_columns["Column Mappings"]]
     if col_mapping.upper() == "VISIT":
         col_mapping = "[Visit]"
 
@@ -90,14 +87,16 @@ def parseDictionaryRow(row, dictionary):
         dictionary["tables"][table_name]["fields"][field_name]["values"]=parseCodeListValues(values)
 
 def parseDataDictionary(filename, gui_object):
+
     dictionary={"columns":{},"tables":{}}
 
     with open(filename, encoding="utf-8-sig") as dictionary_FH:
         reader = csv.reader(dictionary_FH, delimiter=',', quotechar='"')
         header = next(reader)
-        for column in header:
-            dictionary["columns"][column]=header.index(column)
-        
+
+        formatted_columns = {column.title(): i for i, column in enumerate(header)}
+        dictionary["columns"] = formatted_columns  
+
         required_dictionary_columns=[
             "Table Name",
             "Code List Values",
@@ -105,23 +104,23 @@ def parseDataDictionary(filename, gui_object):
             "Verbatim Question",
             "Field Description",
             "Unit",
-            "Who is Assessed",
+            "Who Is Assessed",
             "Age At Onset Reported",
             "Age At Onset Unit Reported",
             "Location",
             "Study Day"
         ]
 
-        missing_required_columns = list(filter(lambda c: c not in dictionary["columns"].keys(), required_dictionary_columns))
+        missing_required_columns = list(filter(lambda c: c not in formatted_columns.keys(), required_dictionary_columns))
 
         if len(missing_required_columns):
             gui_object.log(level="Critical", flush=True, message=f"Data Dictionary is missing the following fields:\n\t"+"\n\t".join(missing_required_columns))
-            # return
+            
             raise NotImplementedError("Data Dictionary missing column")
 
         for i, row in enumerate(reader):
             try:
-                parseDictionaryRow(row, dictionary)
+                parseDictionaryRow(row, dictionary, formatted_columns)
             except KeyError as e:
                 gui_object.log(level="critical", message=f"Data Dictionary missing column{e}", flush=True)
             except Exception as e:
@@ -145,9 +144,6 @@ def parseDataDictionary(filename, gui_object):
                             ig.main_logger.write(level="error", message=f"Map to Planned Visit column on table {table_name} for {visit_col} is not a JSON dictionary. Try using <a href='https://jsonlint.com?json={urllib.parse.quote(str(map_to_visit_str))}'>jsonlint.com</a> to find the errors.", flush=True)
                     except Exception as e:
                         ig.main_logger.write(level="error", message=f"Invalid JSON for Map to Planned Visit column on table {table_name} for {visit_col}. Try using <a href='https://jsonlint.com?json={urllib.parse.quote(str(map_to_visit_str))}'>jsonlint.com</a> to find the errors.", flush=True)
-            # else:
-            #     ig.main_logger.write(level="info", message=f"No map_to_visit on table {table_name}", flush=True)
-
 
             for field in dictionary["tables"][table_name]["fields"].keys():
                 possible_fields = []
@@ -157,6 +153,5 @@ def parseDataDictionary(filename, gui_object):
                 for pf in possible_fields:
                     if pf in dictionary["tables"][table_name]["fields"]:
                         dictionary["tables"][table_name]["fields"][pf]["question"]=False
-
-
+           
     return dictionary

@@ -788,10 +788,30 @@ class GUI(GUI_Object):
 
             table_code = str(study_file_row["Table Code"]).strip() if pd.notna(study_file_row["Table Code"]) else ""
             template = str(study_file_row["Template"]).strip() if pd.notna(study_file_row["Template"]) else ""
-             
+            default_visit = str(study_file_row["Default Visit"]).strip() if pd.notna(study_file_row["Default Visit"]) else ""
+            assessment_name = str(study_file_row["Assessment Name"]).strip() if pd.notna(study_file_row["Assessment Name"]) else ""
+
+            if table_code == '' and template == '' and assessment_name != '' :
+                self.log(
+                    message=f"Error in row {index+1}: A Template and Table Code must be selected", 
+                    level='error', 
+                    flush=True
+                )
+                self.flush_log()
+                errors_occurred = True
+            
+            if table_code == '' and template == '' and default_visit != '' :
+                self.log(
+                    message=f"Error in row {index+1}: A Template and Table Code must be selected", 
+                    level='error', 
+                    flush=True
+                )
+                self.flush_log()
+                errors_occurred = True
+
             if table_code != '' and template == '':
                 self.log(
-                    message=f"Error in row {index+1}: A template must be selected for Table Code '{table_code}'", 
+                    message=f"Error in row {index+1}: A Template must be selected for Table Code '{table_code}'", 
                     level='error', 
                     flush=True
                 )
@@ -1001,14 +1021,17 @@ class GUI(GUI_Object):
 
         
     def load_data_dictionary_columns(self, b):
+
+        dictionary_tables = list(self.dictionary['tables'].keys())
+ 
+        self.objects["html_data_dictionary_tables"].set_text(text="Test String")
+
         self.objects["button_form_column_confirm"].button_change(button=self.objects["button_form_column_confirm"], style='success', text='Confirmed',tooltip='The form columns have been loaded', disabled=False, icon='')   
         
-            # ✅ Ensure tables are displayed correctly
         if "html_data_dictionary_tables" in self.objects:
             dictionary_tables = list(self.dictionary['tables'].keys())
             self.objects["html_data_dictionary_tables"].set_text(text=f"{', '.join(dictionary_tables)}")
         
-
     def generate_tab_data_dictionary(self):
 
         self.objects["html_documentation_curated_dd"] = HTML(
