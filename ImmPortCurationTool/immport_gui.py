@@ -259,7 +259,7 @@ class GUI(GUI_Object):
         self.objects={}
         self.dictionary={}
         self.loggers={}
-        # self.generate_console()
+        self.generate_console()
         self.objects["version"]=HTML(html_text=f"<span style='font-size: 16px;'><b>Version:</b> {VERSION}</span>", )
         self.generate_gui()
         self.check_schema_version()
@@ -780,6 +780,12 @@ class GUI(GUI_Object):
     def generate_filled_template_files(self, b):
         my_assessments={}
         study_id = self.get_study_id()
+
+        results_folder = f"results/{study_id}/"
+        if not os.path.exists(results_folder):
+            os.makedirs(results_folder, exist_ok=True)
+
+
         self.objects["button_generate_files"].button_change(button=self.objects["button_generate_files"], style='warning', text='Generating...',tooltip='The files are being generated. This could take a few minutes',disabled=False, icon='spinner')
 
         errors_occurred = False
@@ -879,12 +885,27 @@ class GUI(GUI_Object):
                 disabled=False, icon='check'
             )
 
+    # def generate_console(self):
+    #     self.loggers['console'] = Log_Output(name="console", level=logging.ERROR, max_height="100px")
+    #     self.loggers['output_logger'].logger.addHandler(self.loggers['console'].log_viewer)
+
+    #     self.objects["button_clear_console"] = self.loggers["console"].add_clear_button(description="", icon="ban", style="", tooltip="Clear Console Logger")
+    #     self.objects["button_clear_console"].show_hide_element(display='none')
+
     def generate_console(self):
+
+        if 'output_logger' not in self.loggers:
+            self.loggers["output_logger"] = Log_Output(name="output_logger", level=logging.INFO)
+
         self.loggers['console'] = Log_Output(name="console", level=logging.ERROR, max_height="100px")
+
         self.loggers['output_logger'].logger.addHandler(self.loggers['console'].log_viewer)
 
-        self.objects["button_clear_console"] = self.loggers["console"].add_clear_button(description="", icon="ban", style="", tooltip="Clear Console Logger")
+        self.objects["button_clear_console"] = self.loggers["console"].add_clear_button(
+            description="", icon="ban", style="", tooltip="Clear Console Logger"
+        )
         self.objects["button_clear_console"].show_hide_element(display='none')
+
 
     def generate_tab_logging(self):
         """Generate the logging tab"""
@@ -1018,20 +1039,17 @@ class GUI(GUI_Object):
         box_body = widgets.VBox([grid_body], layout=widgets.Layout(height='450px', overflow_y='auto'))
         box = widgets.VBox([box_body], layout=widgets.Layout(height='510px'))
         return box
-
-        
+    
     def load_data_dictionary_columns(self, b):
-
+    
         dictionary_tables = list(self.dictionary['tables'].keys())
- 
-        self.objects["html_data_dictionary_tables"].set_text(text="Test String")
 
         self.objects["button_form_column_confirm"].button_change(button=self.objects["button_form_column_confirm"], style='success', text='Confirmed',tooltip='The form columns have been loaded', disabled=False, icon='')   
         
         if "html_data_dictionary_tables" in self.objects:
             dictionary_tables = list(self.dictionary['tables'].keys())
             self.objects["html_data_dictionary_tables"].set_text(text=f"{', '.join(dictionary_tables)}")
-        
+
     def generate_tab_data_dictionary(self):
 
         self.objects["html_documentation_curated_dd"] = HTML(
@@ -1435,6 +1453,17 @@ class Log_Output(GUI_Object):
             "info":20,
             "debug":10
             }
+        
+          # ✅ Ensure `clear_button` always exists
+        self.clear_button = Button(
+            text="Clear Log",
+            tooltip="Clear the main logger",
+            callback=self.clear_output,
+            style="",
+            icon="trash",
+            width="120px"
+        )
+        self.clear_button.show_hide_element(display="none")
 
     ##Add history to the log output
     ##Add a button to write from history with certain level
@@ -1481,6 +1510,12 @@ class Log_Output(GUI_Object):
             pass
 
         self.messages={}
+
+          # ✅ Fix: Check if `clear_button` exists before using it
+        if hasattr(self, "clear_button"):
+            self.clear_button.show_hide_element(display="")
+
+
         return highest_level
 
     def clear_output(self,b):

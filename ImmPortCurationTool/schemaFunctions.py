@@ -77,6 +77,11 @@ def validate_data(data, schema_name=None):
             )
             return True
         elif("properties/data/items/properties/resultData/items/properties/plannedVisitId/type" == "/".join(list(error.schema_path))):
+
+            print(f"🔍 DEBUG: Schema Path -> {error.schema_path}")
+            print(f"🔍 DEBUG: Invalid Value -> {error.instance}")
+            print(f"🔍 DEBUG: Expected Type -> {error.message}")
+
             if error.cause is None:
                 last_error=error
                 ig.main_logger.write(
@@ -272,30 +277,6 @@ class Assessment(ImmPort_Data):
         
         
     def process_study_file(self, study_file_info=None, study_file_directory=None, data_dictionary=None, planned_visits=None, study_id=None, workspace_id=None, name_reported=None):
-       
-       
-        try:
-            print(f"🔍 Processing study file: {study_file_info['Filename']}")  # Debugging
-            if not study_file_info["Table Code"]:
-                raise ValueError("❌ Table Code is missing!")  # ✅ Raise an error if it's empty
-            if "Filename" not in study_file_info or not study_file_info["Filename"]:
-                raise ValueError("❌ Filename is missing!")
-            if "Template" not in study_file_info:
-                raise ValueError("❌ Template is missing!")
-            
-            # Run the existing function normally
-            self.do_processing(study_file_info, study_file_directory, data_dictionary, planned_visits, study_id, workspace_id, name_reported)
-        
-        except Exception as err:
-            print(f"🚨 ERROR inside process_study_file(): {err}")  # Debugging
-            raise  # ✅ Ensure the error propagates up
-        
-        
-       
-       
-       
-       
-       
         filename = study_file_info.get("Filename")
         table_code = study_file_info.get("Table Code")
         assessment_name = study_file_info.get("Assessment Name")
