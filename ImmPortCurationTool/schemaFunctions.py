@@ -78,10 +78,6 @@ def validate_data(data, schema_name=None):
             return True
         elif("properties/data/items/properties/resultData/items/properties/plannedVisitId/type" == "/".join(list(error.schema_path))):
 
-            print(f"🔍 DEBUG: Schema Path -> {error.schema_path}")
-            print(f"🔍 DEBUG: Invalid Value -> {error.instance}")
-            print(f"🔍 DEBUG: Expected Type -> {error.message}")
-
             if error.cause is None:
                 last_error=error
                 ig.main_logger.write(

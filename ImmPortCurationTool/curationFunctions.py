@@ -21,7 +21,7 @@ def writePanelComponentTemplate(panel, component,header, filepath):
     df_temp = panel.merge(component, left_on='Assessment Panel ID', right_on='ASSESSMENT_PANEL_ACCESSION')
     df_temp["Subject ID"]=df_temp["User Defined ID"]
     df_temp["User Defined ID"]=df_temp.index+0
-    df_temp.drop(columns=["ASSESSMENT_PANEL_ACCESSION","component_group_id","WORKSPACE_ID"],axis=1,inplace=True, errors='ignore')
+    df_temp.drop(columns=["ASSESSMENT_PANEL_ACCESSION","component_group_id","WORKSPACE_ID"], inplace=True, errors='ignore')
     colNames = list(map(lambda s: s.replace("_x","").replace("_y",""),df_temp.columns.to_list()))
 
     #Need separator as | as it is not in string and allows correct output of data.
@@ -83,7 +83,7 @@ def addVisitAccessionFromName(planned_visits, table, visit_col,dictionary,file_t
 
     table_visits = table.groupby([visit_col], as_index=False).agg('nunique')
 
-    table_visits.drop(table_visits.columns.difference([visit_col]),1, inplace=True)
+    table_visits.drop(table_visits.columns.difference([visit_col]),axis=1, inplace=True)
     table_visits["plannedVisit"] = ""
     for index, row in table_visits.iterrows():
         for key in dict_visits.keys():

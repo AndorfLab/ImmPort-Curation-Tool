@@ -26,7 +26,7 @@ custom_css = """
 <style>
 
     .widget-button {
-        font-size: 18px !important;
+        font-size: 18px !important; 
         font-weight: bold !important;
         color: black !important;
     }
@@ -412,26 +412,29 @@ class GUI(GUI_Object):
             self.objects["tables_section"].children = []  
             self.objects["tables_section"].layout.visibility = 'hidden'
  
+        spacer = widgets.HTML(value="<div style='height: 10px;'></div>")
+
         self.objects["tab3_layout"].children = [  
-            widgets.HTML(value="<div style='height: 10px;'></div>"),
+            spacer,
             self.objects["tab_row_study_files_filechooser"], 
-            widgets.HTML(value="<div style='height: 10px;'></div>"),
+            spacer,
             self.objects["reset_tab3_button"].get(),
-            widgets.HTML(value="<div style='height: 10px;'></div>")
+            spacer
         ]
+
 
     def generate_gui(self):
 
-        self.objects["title"] = widgets.HTML(value="<h1 style='text-align:center; color:#3E6962; font-size:36px;'>ImmPort Curation Tool</h1>")
+        self.objects["title"] = widgets.HTML(value="<h1 style='text-align:center; color:#3E6962; font-size:24px;'>ImmPort Curation Tool</h1>") #widgets.HTML(value="<h1 style='text-align:center; color:#3E6962; font-size:36px;'>ImmPort Curation Tool</h1>")
 
-        tab_titles = ["1. Study", "2. Data Dictionary", "3. Study Files", "Logging", "Help"]
+        tab_titles = ["1. ImmPort Files", "2. Data Dictionary", "3. Study Files", "Logs", "Help"]
         tab_colors = ["#98b3a2", "#F4DAC1", "#ADD5CC", "#dca485", "#D6C097"]  # Custom colors
 
         tab_contents = {
-            "1. Study": self.generate_tab_study_info(),
+            "1. ImmPort Files": self.generate_tab_study_info(),
             "2. Data Dictionary": self.generate_tab_data_dictionary(),
             "3. Study Files": self.generate_tab_study_files(),
-            "Logging": self.generate_tab_logging(),
+            "Logs": self.generate_tab_logging(),
             "Help": self.generate_tab_help(),
         }
 
@@ -498,7 +501,7 @@ class GUI(GUI_Object):
                 The purpose of this tool is to transform data files/tables from a study into ImmPort templates for upload and integration into the ImmPort database
                 <br>
                 <br>
-                <b>1. Study:</b> Start the data transformation by uploading study data in the first tab
+                <b>1. ImmPort Files:</b> Start the data transformation by uploading study data in the first tab
                 <br>
                 <br>
                 <b>2. Data Dictionary:</b> Next, upload the study data dictionary
@@ -869,7 +872,7 @@ class GUI(GUI_Object):
                     self.log(message=f"Error processing {table_code} - {err}", level='error', flush=True)
 
         if errors_occurred:
-            self.log(message="Error: Some files failed to generate.", level='error', flush=True)
+            self.log(message="Some files failed to generate.", level='error', flush=True)
             self.objects["button_generate_files"].button_change(
                 button=self.objects["button_generate_files"], style='danger', 
                 text='Error: Some files failed to generate. Click to retry.', 
@@ -912,12 +915,16 @@ class GUI(GUI_Object):
         global main_logger  #Hack until fixed properly
         self.loggers["output_logger"] = Log_Output(name="output_logger", level=logging.INFO)
 
-        self.objects["button_clear_main_logger"] = self.loggers["output_logger"].add_clear_button(description="Clear", tooltip="Clear the main logger", width="120px")
+        self.objects["button_clear_main_logger"] = self.loggers["output_logger"].add_clear_button(description="Clear Log", tooltip="Clear the main logger", width="140px")
 
         self.main_logger=self.loggers["output_logger"]
         main_logger=self.main_logger
 
-        tab = widgets.VBox([self.objects["button_clear_main_logger"].get(),self.loggers["output_logger"].get()])
+        spacer = widgets.HTML(value="<div style='height: 10px;'></div>")
+
+        tab = widgets.VBox([self.loggers["output_logger"].get(), 
+                           self.objects["button_clear_main_logger"].get(),
+                            spacer])
 
         return tab
     
@@ -1533,7 +1540,7 @@ class Log_Output(GUI_Object):
         )
 
         if style == "":
-            button.widget.style.button_color = '#F5DAD2' 
+            button.widget.style.button_color = '#F7F6BB' 
 
         self.clear_button = button
         return button
