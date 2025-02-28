@@ -784,10 +784,19 @@ class GUI(GUI_Object):
         my_assessments={}
         study_id = self.get_study_id()
 
-        results_folder = f"results/{study_id}/"
+        study_files_dir = self.objects["filechooser_study_file_directory"].get_filepath()
+
+        parent_dir = os.path.dirname(study_files_dir)
+        parent_dir = os.path.dirname(parent_dir)
+
+        todays_date = pd.to_datetime('today').strftime('%Y-%m-%d')
+        
+        study_id_todays_date = study_id + "-" + todays_date
+
+        results_folder = os.path.join(parent_dir, "results", study_id_todays_date)
+
         if not os.path.exists(results_folder):
             os.makedirs(results_folder, exist_ok=True)
-
 
         self.objects["button_generate_files"].button_change(button=self.objects["button_generate_files"], style='warning', text='Generating...',tooltip='The files are being generated. This could take a few minutes',disabled=False, icon='spinner')
 
@@ -851,21 +860,21 @@ class GUI(GUI_Object):
                         study_file_directory = self.objects["filechooser_study_file_directory"].get_filepath(),
                         data_dictionary = self.dictionary,
                         planned_visits = self.data["planned_visit"],
-                        study_id =study_id,
+                        study_id = study_id,
                         workspace_id = self.get_workspace_id(),
                         name_reported = self.get_study_file_attribute(filename, "DESCRIPTION"),
                     )
 
-                    my_assessments[table_code].export_to_txt( filename=f"results/{study_id}/{study_id}_{table_code}.txt")
-                    my_assessments[table_code].export_to_json(filename=f"results/{study_id}/{study_id}_{table_code}.json")
+                    my_assessments[table_code].export_to_txt( filename=f"{results_folder}/{study_id}_{table_code}.txt")
+                    my_assessments[table_code].export_to_json(filename=f"{results_folder}/{study_id}_{table_code}.json")
                     
-                    fh_zip_file = zipfile.ZipFile(f"results/{study_id}/{table_code}.zip", 'w', zipfile.ZIP_DEFLATED)
-                    self.generate_zip_file(fh_zip=fh_zip_file, files=[
-                        f"results/{study_id}/{study_id}_{table_code}.txt", 
-                        os.path.relpath(self.objects["filechooser_study_file_directory"].get_filepath()+filename)
-                    ])
-                    fh_zip_file.close()
-                    self.flush_log()
+            #        fh_zip_file = zipfile.ZipFile(f"results/{study_id}/{table_code}.zip", 'w', zipfile.ZIP_DEFLATED)
+            #        self.generate_zip_file(fh_zip=fh_zip_file, files=[
+            #            f"results/{study_id}/{study_id}_{table_code}.txt", 
+            #            os.path.relpath(self.objects["filechooser_study_file_directory"].get_filepath()+filename)
+            #        ])
+            #        fh_zip_file.close()
+            #        self.flush_log()
 
                 except Exception as err:
                     errors_occurred = True
@@ -881,6 +890,7 @@ class GUI(GUI_Object):
             )
         else:
             self.log(message="✅ All files successfully generated.", level='info', flush=True)
+            self.log(message=f"Files are in {results_folder}", level='info', flush=True)
             self.objects["button_generate_files"].button_change(
                 button=self.objects["button_generate_files"], style='success', 
                 text='Files Generated - Click to Re-Generate', 
