@@ -327,6 +327,9 @@ class GUI(GUI_Object):
         if "filechooser_study_files" in self.objects:
             self.objects["filechooser_study_files"].reset("", "")  
 
+        if "error_message_study_tab_file" in self.objects:
+            self.objects["error_message_study_tab_file"].show_hide_element(display="none")
+
         if "text_study_id" in self.objects:
             self.objects["text_study_id"].reset()
 
@@ -421,7 +424,6 @@ class GUI(GUI_Object):
             self.objects["reset_tab3_button"].get(),
             spacer
         ]
-
 
     def generate_gui(self):
 
@@ -538,120 +540,185 @@ class GUI(GUI_Object):
 
     def generate_tab_study_info(self):
 
-        self.objects["toggle_current_immport_study"] = ToggleButtons(description='<b><span style="font-size:18px;">🔘 Choose initial input type</span></b>', options=[('Download information from ImmPort',0),('Use ImmPort TAB file',1)], value=0, tooltips=['Downloaded from the public area of ImmPort','Downloaded from the private area of ImmPort'], style=dict(description_width='initial',button_width='auto'))
-        self.objects["filechooser_study_tab_file"] = File_Chooser(name="filechooser_study_tab_file", title='<b><span style="font-size:18px;">📁 Select the ImmPort study TAB ZIP file</span></b>', tooltip='Load a study tab file',multiple=False,filter_pattern=['SDY*-DR*_Tab.zip'], style=dict(description_width='initial'))
-        self.objects["filechooser_study_tab_file"].set_onclick(self, callback_function=on_select_study_tab_file, callback_data = {"gui":self, "fc_name":"filechooser_study_tab_file"})
+        try:
 
-        self.objects["filechooser_planned_visits"] = File_Chooser(name="filechooser_planned_visits", title='<b><span style="font-size:18px;">📁 Select the ImmPort planned visit file</span></b>', tooltip='Load a planned visit file',multiple=False,filter_pattern=['*.csv'], style=dict(description_width='initial'))
-        self.objects["filechooser_planned_visits"].set_onclick(self, callback_function=self.load_planned_visit_file, callback_data = {})
-
-        self.objects["filechooser_study_files"] = File_Chooser(name="filechooser_study_files", title='<b><span style="font-size:18px;">📁 Select the ImmPort study file</span></b>', tooltip='Load a study files file',multiple=False,filter_pattern=['*.csv'], style=dict(description_width='initial'))
-        self.objects["filechooser_study_files"].set_onclick(self, callback_function=self.load_study_file, callback_data = {})
-
-        self.objects["html_non_Immport"] = HTML(
-            html_text=f"<h2><a title='Information on ImmPort downloads' href='{documentation_base_url}/documentation/Load_files_from_immport.md' style='font-size: 18px; text-decoration: none; color: #0077b6;'><b>Click for information on how to download data from ImmPort</b></a></h2>",description="")
-
-        self.objects["label_study_id"] = widgets.HTML(
-            "<b><span style='font-size:18px;'>🆔 Input the study ID</span></b>"
-        )
-
-        self.objects["text_study_id"] = TextField(placeholder="SDY9999", regex=r"SDY\d+", layout=widgets.Layout(width="350px"))
-    
-        study_id_section = widgets.VBox([
-        self.objects["label_study_id"],
-        self.objects["text_study_id"].get()
-        ])
-
-        self.objects["label_workspace_id"] = widgets.HTML(
-            "<b><span style='font-size:18px;'>🆔 Input the workspace ID</span></b>"
-        )
+            self.objects["toggle_current_immport_study"] = ToggleButtons(description='<b><span style="font-size:18px;">🔘 Choose initial input type</span></b>', options=[('Download information from ImmPort',0),('Use ImmPort TAB file',1)], value=0, tooltips=['Downloaded from the public area of ImmPort','Downloaded from the private area of ImmPort'], style=dict(description_width='initial',button_width='auto'))
         
-        self.objects["text_workspace_id"] = TextField(placeholder="9999", regex=r"\d+", layout=widgets.Layout(width="350px", description_width="200px") ) 
-
-        workspace_id_section = widgets.VBox([
-        self.objects["label_workspace_id"],
-        self.objects["text_workspace_id"].get()
-        ])
-
-        self.objects["label_study_visit_list"] = widgets.HTML(
-            "<b><span style='font-size:18px;'>🔍 View the loaded study visits</span></b>"
-        )
         
-        self.objects["dropdown_study_visit_list"] = Dropdown(options=[''], tooltip='View the loaded study visits')
-   
-        study_visit_list_section = widgets.VBox([
-        self.objects["label_study_visit_list"],
-        self.objects["dropdown_study_visit_list"].get()
-        ])
+            self.objects["error_message_study_tab_file"] = HTML(html_text="<span style='color: red; font-size: 16px;'>⚠️ Please select a valid ImmPort study TAB ZIP file.</span>", description="")
+            self.objects["error_message_study_tab_file"].show_hide_element(display="none")  
+        
+            self.objects["filechooser_study_tab_file"] = File_Chooser(name="filechooser_study_tab_file", title='<b><span style="font-size:18px;">📁 Select the ImmPort study TAB ZIP file</span></b>', tooltip='Load a study tab file',multiple=False,filter_pattern=['SDY*-DR*_Tab.zip'], style=dict(description_width='initial'))
+            self.objects["filechooser_study_tab_file"].set_onclick(self, callback_function=self.on_select_study_tab_file_with_error_handling, callback_data={"gui":self, "fc_name":"filechooser_study_tab_file"})
 
-        self.objects["text_study_id"].set_observe(callback_function=self.set_study_id_from_textfield, callback_data = {})
-        self.objects["text_workspace_id"].set_observe(callback_function=self.set_workspace_id_from_textfield, callback_data = {})
+            file_chooser_with_error = widgets.HBox([self.objects["filechooser_study_tab_file"].get(), self.objects["error_message_study_tab_file"].get()])
 
-        box_immport_study_yes = VBox(name="box_immport_study_yes")
-        box_immport_study_no = VBox(name="box_immport_study_no")
+            self.objects["filechooser_planned_visits"] = File_Chooser(name="filechooser_planned_visits", title='<b><span style="font-size:18px;">📁 Select the ImmPort planned visit file</span></b>', tooltip='Load a planned visit file',multiple=False,filter_pattern=['*.csv'], style=dict(description_width='initial'))
+            self.objects["filechooser_planned_visits"].set_onclick(self, callback_function=self.load_planned_visit_file, callback_data = {})
 
-        box_immport_study_yes.toggle_display()
+            self.objects["filechooser_study_files"] = File_Chooser(name="filechooser_study_files", title='<b><span style="font-size:18px;">📁 Select the ImmPort study file</span></b>', tooltip='Load a study files file',multiple=False,filter_pattern=['*.csv'], style=dict(description_width='initial'))
+            self.objects["filechooser_study_files"].set_onclick(self, callback_function=self.load_study_file, callback_data = {})
 
-        box_immport_download_instructions = VBox(name='box_immport_download_instructions')
-        box_immport_download_instructions.set_children([self.objects['html_non_Immport'].get()])
+            self.objects["html_non_Immport"] = HTML(
+                html_text=f"<h2><a title='Information on ImmPort downloads' href='{documentation_base_url}/documentation/Load_files_from_immport.md' style='font-size: 18px; text-decoration: none; color: #0077b6;'><b>Click for information on how to download data from ImmPort</b></a></h2>",description="")
 
-        box_planned_visits = VBox(name='box_planned_visits')
-        box_planned_visits.set_children([self.objects['filechooser_planned_visits'].get()])
+            self.objects["label_study_id"] = widgets.HTML(
+                "<b><span style='font-size:18px;'>🆔 Input the study ID</span></b>"
+            )
 
-        box_study_files = VBox(name='box_study_files')
-        box_study_files.set_children([self.objects['filechooser_study_files'].get()])
+            self.objects["text_study_id"] = TextField(placeholder="SDY9999", regex=r"SDY\d+", layout=widgets.Layout(width="350px"))
+        
+            study_id_section = widgets.VBox([
+            self.objects["label_study_id"],
+            self.objects["text_study_id"].get()
+            ])
 
-        self.objects["toggle_non_tab_files"] = ToggleButtons(description='<b><span style="font-size:18px;">Do you want to amend the TAB file with new planned visits and/or study files?</span></b>', options=[('Yes',1),('No',0)], value=0, tooltips=[], style=dict(description_width='initial',button_width='auto'))
+            self.objects["label_workspace_id"] = widgets.HTML(
+                "<b><span style='font-size:18px;'>🆔 Input the workspace ID</span></b>"
+            )
+            
+            self.objects["text_workspace_id"] = TextField(placeholder="9999", regex=r"\d+", layout=widgets.Layout(width="350px", description_width="200px") ) 
 
-        spacer_before_toggle = widgets.HTML(value="<div style='height: 20px;'></div>")
+            workspace_id_section = widgets.VBox([
+            self.objects["label_workspace_id"],
+            self.objects["text_workspace_id"].get()
+            ])
 
-        toggle_with_spacing = widgets.VBox([
-            spacer_before_toggle,
-            self.objects["toggle_non_tab_files"].get()
-        ])
+            self.objects["label_study_visit_list"] = widgets.HTML(
+                "<b><span style='font-size:18px;'>🔍 View the loaded study visits</span></b>"
+            )
+            
+            self.objects["dropdown_study_visit_list"] = Dropdown(options=[''], tooltip='View the loaded study visits')
 
-        box_immport_study_yes.set_children([self.objects["filechooser_study_tab_file"].get(), toggle_with_spacing])
+            study_visit_list_section = widgets.VBox([
+            self.objects["label_study_visit_list"],
+            self.objects["dropdown_study_visit_list"].get()
+            ])
 
-        box_immport_study_no.set_children([workspace_id_section, study_id_section])
+            self.objects["text_study_id"].set_observe(callback_function=self.set_study_id_from_textfield, callback_data = {})
+            self.objects["text_workspace_id"].set_observe(callback_function=self.set_workspace_id_from_textfield, callback_data = {})
 
-        self.objects["reset_tab1_button"] = Button(text="Reset Tab", tooltip="Reset all inputs in Tab 1", style="warning", callback=self.reset_tab1, width="140px", icon="trash")
+            box_immport_study_yes = VBox(name="box_immport_study_yes")
+            box_immport_study_no = VBox(name="box_immport_study_no")
 
-        spacer = widgets.HTML(value="<div style='height: 10px;'></div>")
+            box_immport_study_yes.toggle_display()
 
-        tab = widgets.VBox([
-            spacer,
-            self.objects["toggle_current_immport_study"].get(), 
-            spacer,
-            box_immport_study_yes.get(), 
-            spacer,
-            box_immport_study_no.get(),
-            spacer,
-            box_planned_visits.get(),
-            spacer,
-            box_study_files.get(),
-            spacer,
-            study_visit_list_section,
-            spacer, 
-            box_immport_download_instructions.get(),
-            spacer,
-            self.objects["reset_tab1_button"].get(),
-            spacer
-        ])
+            box_immport_download_instructions = VBox(name='box_immport_download_instructions')
+            box_immport_download_instructions.set_children([self.objects['html_non_Immport'].get()])
 
-        self.objects["toggle_current_immport_study"].set_observe(callback_function=self.toggle_show_hide, callback_data={
-            "toggle":{
-                1:[box_immport_study_yes], 
-                0:[box_immport_study_no,box_planned_visits,box_study_files,box_immport_download_instructions]
-                }
-            })
+            box_planned_visits = VBox(name='box_planned_visits')
+            box_planned_visits.set_children([self.objects['filechooser_planned_visits'].get()])
 
-        self.objects["toggle_non_tab_files"].set_observe(callback_function=self.toggle_show_hide, callback_data={
-            "toggle":{
-                1:[box_planned_visits,box_study_files,box_immport_download_instructions], 
-                0:[]
-                }
-            })
+            box_study_files = VBox(name='box_study_files')
+            box_study_files.set_children([self.objects['filechooser_study_files'].get()])
+
+            self.objects["toggle_non_tab_files"] = ToggleButtons(description='<b><span style="font-size:18px;">Do you want to amend the TAB file with new planned visits and/or study files?</span></b>', options=[('Yes',1),('No',0)], value=0, tooltips=[], style=dict(description_width='initial',button_width='auto'))
+
+            spacer_before_toggle = widgets.HTML(value="<div style='height: 20px;'></div>")
+
+            toggle_with_spacing = widgets.VBox([
+                spacer_before_toggle,
+                self.objects["toggle_non_tab_files"].get()
+            ])
+
+       #     box_immport_study_yes.set_children([self.objects["filechooser_study_tab_file"].get(), toggle_with_spacing])
+
+            box_immport_study_yes.set_children([file_chooser_with_error, toggle_with_spacing])
+
+            box_immport_study_no.set_children([workspace_id_section, study_id_section])
+
+            self.objects["reset_tab1_button"] = Button(text="Reset Tab", tooltip="Reset all inputs in Tab 1", style="warning", callback=self.reset_tab1, width="140px", icon="trash")
+
+            spacer = widgets.HTML(value="<div style='height: 10px;'></div>")
+
+            tab = widgets.VBox([
+                spacer,
+                self.objects["toggle_current_immport_study"].get(), 
+                spacer,
+                box_immport_study_yes.get(), 
+                spacer,
+                box_immport_study_no.get(),
+                spacer,
+                box_planned_visits.get(),
+                spacer,
+                box_study_files.get(),
+                spacer,
+                study_visit_list_section,
+                spacer, 
+                box_immport_download_instructions.get(),
+                spacer,
+                self.objects["reset_tab1_button"].get(),
+                spacer
+            ])
+
+            self.objects["toggle_current_immport_study"].set_observe(callback_function=self.toggle_show_hide, callback_data={
+                "toggle":{
+                    1:[box_immport_study_yes], 
+                    0:[box_immport_study_no,box_planned_visits,box_study_files,box_immport_download_instructions]
+                    }
+                })
+
+            self.objects["toggle_non_tab_files"].set_observe(callback_function=self.toggle_show_hide, callback_data={
+                "toggle":{
+                    1:[box_planned_visits,box_study_files,box_immport_download_instructions], 
+                    0:[]
+                    }
+                })
+            
+        except Exception as e:
+            self.log(message=f"Error in selecting ImmPort study file: {str(e)}", level="error", flush=True)
+            self.flush_log()
+
         return tab
+        
+    def on_select_study_tab_file_with_error_handling(self, value, gui=None, fc_name=None):
+        try:
+            if value.description == "Change":
+                # Attempt to load the file
+                gui.data["planned_visit"] = cf.readFileFromZip(
+                    gui.objects[fc_name].widget.selected_path,
+                    gui.objects[fc_name].widget.selected_filename,
+                    "planned_visit.txt"
+                )
+
+                if gui.data["planned_visit"] is None:
+                    raise ValueError("Missing required file 'planned_visit.txt' in the TAB ZIP file.")
+
+                gui.data["study_files"] = cf.readFileFromZip(
+                    gui.objects[fc_name].widget.selected_path,
+                    gui.objects[fc_name].widget.selected_filename,
+                    "study_file.txt"
+                )
+
+                if gui.data["study_files"] is None:
+                    raise ValueError("Missing required file 'study_file.txt' in the TAB ZIP file.")
+
+                gui.data["study"] = cf.readFileFromZip(
+                    gui.objects[fc_name].widget.selected_path,
+                    gui.objects[fc_name].widget.selected_filename,
+                    "study.txt"
+                )
+
+                if gui.data["study"] is None:
+                    raise ValueError("Missing required file 'study.txt' in the TAB ZIP file.")
+
+                visit_names = get_planned_visits(gui.data["planned_visit"], nameonly=True, returnType="list")
+
+                if "dropdown_study_visit_list" in gui.objects:
+                    gui.objects["dropdown_study_visit_list"].set_options(visit_names)
+
+                    if "study_visit_list_section" in gui.objects:
+                        gui.objects["study_visit_list_section"].children = [
+                            gui.objects["label_study_visit_list"],
+                            gui.objects["dropdown_study_visit_list"].get()
+                        ]
+
+                gui.objects["error_message_study_tab_file"].show_hide_element(display="none")
+
+        except Exception as e:
+            gui.objects["error_message_study_tab_file"].show_hide_element(display="")
+            gui.log(message=f"Error loading ImmPort study TAB file: {str(e)}", level="error", flush=True)
+            gui.flush_log()
 
     def load_study_file(self, value):
 
@@ -1628,9 +1695,12 @@ def create_table_widget(dtype=None, value='', readonly=False, dataframe=None, co
 def on_select_study_tab_file(value, gui=None, fc_name=None):
   
     if value.description == "Change":
-        gui.data["planned_visit"] = cf.readFileFromZip( gui.objects[fc_name].widget.selected_path, gui.objects[fc_name].widget.selected_filename, "planned_visit.txt")
-        gui.data["study_files"] = cf.readFileFromZip(   gui.objects[fc_name].widget.selected_path, gui.objects[fc_name].widget.selected_filename, "study_file.txt")
-        gui.data["study"] = cf.readFileFromZip(         gui.objects[fc_name].widget.selected_path, gui.objects[fc_name].widget.selected_filename, "study.txt")
+
+        gui.data["planned_visit"] = cf.readFileFromZip(gui.objects[fc_name].widget.selected_path, gui.objects[fc_name].widget.selected_filename, "planned_visit.txt")
+        
+        gui.data["study_files"] = cf.readFileFromZip(gui.objects[fc_name].widget.selected_path, gui.objects[fc_name].widget.selected_filename, "study_file.txt")
+
+        gui.data["study"] = cf.readFileFromZip(gui.objects[fc_name].widget.selected_path, gui.objects[fc_name].widget.selected_filename, "study.txt")
 
         visit_names = get_planned_visits(gui.data["planned_visit"],nameonly=True, returnType="list")
         

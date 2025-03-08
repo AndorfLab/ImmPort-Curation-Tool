@@ -53,7 +53,10 @@ def readFileFromZip(dir,zip,file):
             with myzip.open(f"{zip}/Tab/{file}") as myfile:
                 myfile_contents = pd.read_csv(io.BytesIO(myfile.read()), encoding='utf8', sep="\t")
                 return myfile_contents
-    except:
+            
+    except KeyError:
+        return None
+    except Exception as e:
         raise NotImplementedError("Zip extract went wrong")
 
 def get_studyfile_line_count(directory):
