@@ -277,8 +277,10 @@ class Assessment(ImmPort_Data):
         table_code = study_file_info.get("Table Code")
         assessment_name = study_file_info.get("Assessment Name")
         template = study_file_info.get("Template")
+
         if template == "Assessment":
             template = "assessments"
+
         default_visit = study_file_info.get("Default Visit")
 
         study_file_path = os.path.abspath(os.path.join(study_file_directory,filename))
@@ -299,6 +301,9 @@ class Assessment(ImmPort_Data):
         )
 
         datafile = cf.readAndModifyStudyFile(study_file_path, table_data, data_dictionary, planned_visits)
+
+       
+
         #Read Templates
         [assessment_panel_template,assessment_components_template,assessment_template_header] = cf.readTemplate(template, template_path=txt_template_path_full)  # self.text_template_path??
         assessment_components_template["ASSESSMENT_PANEL_ACCESSION"]=''
@@ -491,27 +496,7 @@ class Assessment_MetaData(ImmPort_Data):
         self.set_data("subjectId", subject_id)
 
 class Assessment_ResultData(ImmPort_Data):
-    """Class to hold data to go into the Results section of the Assessment template.
-       Each instance is equiavlent to a single response to a question. Most likely,
-       a single line in a result file.
 
-    Parent Class:
-        ImmPort_Data
-    
-    Attributes:
-        plannedVisitId: str
-        nameReported: str
-        studyDay: number
-    
-    Variables:
-        iterable_counter: int (Init: 0)- used to generate an incremental counter
-        truncate_long_fields: Bool (Init: True) - used to truncate strings based on schema
-        validator: str (Init: assessments.ResultData) - used to lookup jsonschema for validation
-        
-        data_fields: dict - used to validate types and string length
-
-    Methods:
-    """
     iterable_counter = 0
     truncate_long_fields = True
     validator = "assessments.ResultData"
@@ -574,3 +559,305 @@ class Assessment_ResultData(ImmPort_Data):
 
 
 schema_store = get_schema_store(json_schema_template_path_full)
+
+
+class LabPanel(ImmPort_Data):
+    filename="labPanel.json"
+    name="labPanels"
+    templateType='combined-result'
+    validator = "labPanels"
+  
+    panel_header_columns=["Column Name", "Biosample ID", "Lab Test Panel ID", "Study ID", "Protocol ID(s)", "Subject ID", "Planned Visit ID", "Type", "Subtype", "Name", "Description", "Study Time Collected", "Study Time Collected Unit", "Study Time T0 Event", "Study Time T0 Event Specify", "Name Reported"]
+    component_header_columns=["User Defined ID","Name Reported","Result Value Reported","Result Unit Reported"]
+
+    def __init__(self):
+        self.data=[]
+        self.records=[]
+        super().__init__(schemaFile=self.filename)
+
+    def add_record(self, record):
+        self.records.append(record)
+
+    def get_obj(self):
+        obj = {
+            "fileName":self.filename,
+            "name":self.name,
+            "schemaVersion":self.schemaVersion,
+            "templateType":self.templateType
+        }
+        obj["data"] = self.get_data()
+        return obj
+    
+    def obj_to_data(self):
+        self.data=[]
+        for record in self.records:
+            this_record_data = {"metaData":record.metaData.get_data(), "resultData":[]}
+            for datum in record.resultData:
+                this_record_data["resultData"].append(datum.get_data())
+            self.data.append(this_record_data)
+        
+        
+    def process_study_file(self, study_file_info=None, study_file_directory=None, data_dictionary=None, planned_visits=None, study_id=None, workspace_id=None, name_reported=None):
+        filename = study_file_info.get("Filename")
+        table_code = study_file_info.get("Table Code")
+        labTest_name = study_file_info.get("Assessment Name")
+        template = study_file_info.get("Template")
+
+        if template == "LabPanel":
+            template = "labPanels"
+
+        default_visit = study_file_info.get("Default Visit")
+
+        study_file_path = os.path.abspath(os.path.join(study_file_directory,filename))
+        table_data = {
+            "tables":[table_code], 
+            "labTest_type":labTest_name,
+            "template":template,
+            "visit":default_visit
+        }
+        if name_reported is None:
+            name_reported=ig.getStudyFileReportedName(filename)
+
+        study_file_panel = LabTest_Panel(
+            nameReported=name_reported,
+            labTestType=labTest_name,
+            crfFileNames=[filename],
+            studyId=study_id
+        )
+
+        datafile = cf.readAndModifyStudyFile(study_file_path, table_data, data_dictionary, planned_visits)
+
+        
+        #Read Templates
+        [labTest_panel_template,labTest_components_template,labTest_template_header] = cf.readTemplate(template, template_path=txt_template_path_full)  # self.text_template_path??
+        labTest_components_template["ASSESSMENT_PANEL_ACCESSION"]=''
+        labTest_components_template=cf.datafileToComponents(datafile,data_dictionary,[table_code],labTest_components_template,workspace_id)
+        
+        loaded_labTest = self.load_df(labTest_components_template,study_file_panel,
+            crfFileNames=[filename],
+            studyId=study_id)
+
+        # Iterate through template DF and create labTest_Datum
+        return [study_file_panel, labTest_components_template]
+
+    def load_df(self, dataframe, panel, crfFileNames=None, studyId=None):
+        labTest_data = {}
+
+        for index, row in dataframe.iterrows():
+            field_data = self.convert_result_columns_to_fields(row.to_dict())
+            userID = field_data.get('userDefinedId')
+            
+            if userID not in labTest_data:
+                labTest_data[userID] = LabTest_Datum(labTest_panel=panel, subject_id=userID)
+            
+            result_data_obj = LabTest_ResultData(studyId=studyId, crfFileNames=crfFileNames ,**field_data)
+            labTest_data[userID].add_result_data(result_data_obj)
+
+        for record in labTest_data.values():
+            self.add_record(record)
+
+    # TODO: Look about moving to ImmPort_Data Class
+    def export_to_json(self, filename=None):
+        valid = self.validate()
+        if not valid:
+            raise ValueError(f"Lab Test data is not valid: {valid}")
+        
+        check_directory_exists(filename)
+        with open(filename, 'w')as fh:
+            print(json.dumps(self.get_obj(), indent=4), file=fh)
+        return
+
+    # TODO: Look about moving to ImmPort_Data Class
+    def export_to_txt(self, filename=None):
+        if not self.validate():
+            raise ValueError("Lab Test data is not valid")
+        separator = "\t"
+        check_directory_exists(filename)
+        with open(filename, 'w') as fh:
+
+            print(self.name, f"Schema Version {self.schemaVersion}", sep=separator, file=fh)
+            print('Please do not delete or edit this column', file=fh)
+
+            most_result_data = max(list(map(lambda x: len(x["resultData"]), self.data)))
+            print(*LabTest.panel_header_columns,'Result Separator Column', *LabTest.component_header_columns * most_result_data, sep=separator, file=fh)
+
+            for datum in self.data:
+                row_data = [''] # For Column Name
+                row_data.extend(self.populate_panel_columns(datum["metaData"]))
+                row_data.append('') #For separator column
+                for result_data in datum["resultData"]:
+                    row_data.extend(self.populate_component_column_set(result_data))
+            
+                print(*row_data, sep=separator, file=fh)
+        return 
+
+    def populate_panel_columns(self,metadata):
+        return [
+        #    metadata.get('subjectId'),
+        #    metadata.get('assessmentPanelId'),
+        #    metadata.get('studyId'),
+        #    metadata.get('nameReported'),
+        #    metadata.get('assessmentType'),
+        #    '',
+        #    ";".join(metadata.get('crfFileNames',[])),
+
+            metadata.get('subjectId'),
+            metadata.get('labTestPanelId'),
+            metadata.get('studyId'),
+        ]
+        
+    def populate_component_column_set(self,result_data):
+        return [
+            result_data.get('userDefinedId'),
+            result_data.get('nameReported'),
+            result_data.get("resultValueReported",''),
+            result_data.get("resultUnitReported",'')
+        ]
+
+    def convert_result_columns_to_fields(self, column_dict):
+        mapping_dict = {
+            'User Defined ID': 'userDefinedId',
+            'Name Reported': 'nameReported',
+            'Result Value Reported': 'resultValueReported',
+            'Result Unit Reported': "resultUnitReported"
+        }
+
+        field_dict = dict(map(lambda x: (x[1], column_dict.get(x[0],"")), mapping_dict.items()))
+        filtered_dict = dict(filter(lambda elem: ((type(elem[1]) != float and elem[1] not in ['','userDefinedId']) or str(elem[1]) not in ['nan', '', 'userDefinedId']), field_dict.items()))
+        return filtered_dict
+
+class LabTest_Datum(ImmPort_Data):
+
+    def __init__(self, subject_id=None, labTest_panel=None):
+        metadata_obj = LabTest_MetaData(subject_id=subject_id, labTest_panel=labTest_panel)
+        self.set_metadata(metadata_obj)
+        self.resultData = []
+    
+    def set_metadata(self, metadata_obj):
+        self.metaData = metadata_obj
+
+    def add_result_data(self, result_data_obj):
+        self.resultData.append(result_data_obj)
+
+    def print_obj(self):
+        return self.__dict__
+
+class LabTest_Panel(ImmPort_Data):
+    iterable_counter = 0
+    truncate_long_fields = True
+
+    data_fields={
+        "labTestPanelId": {
+            "type": "string",
+            "maxLength": 100
+        },
+        # "nameReported": {
+        #     "type": "string",
+        #     "maxLength": 125
+        # },
+        # "assessmentType": {
+        #     "type": "string",
+        #     "maxLength": 125
+        # },
+        "studyId": {
+            "type": "string"
+        } #,
+        # "crfFileNames": {
+        #     "type": "array",
+        #     "items": {
+        #         "type": "string",
+        #         "maxLength": 240
+        #     }
+        # }
+    }
+
+    def __init__(self, nameReported=None, labTestType=None,studyId=None, crfFileNames=[]):
+        LabTest_Panel.iterable_counter +=1
+        filename_string = "-".join(crfFileNames)
+
+        self.data={}
+        self.set_data_value("labTestPanelId", f"{studyId}_{filename_string}_Panel{LabTest_Panel.iterable_counter}")
+      #  self.set_data_value("nameReported", nameReported)
+      #  self.set_data_value("assessmentType", assessmentType)
+        self.set_data_value("studyId", studyId)
+     #   self.set_data_value("crfFileNames", crfFileNames)
+
+class LabTest_MetaData(ImmPort_Data):
+    iterable_counter = 0
+    truncate_long_fields = True
+    validator = "labTests.MetaData"
+    data_fields = load_data_fields(validator)
+
+
+    
+    def __init__(self, subject_id=None, assessment_panel=None):
+        if subject_id == None:
+            LabTest_MetaData.iterable_counter +=1
+            subject_id = "Subject%s" % LabTest_MetaData.iterable_counter
+        self.data={}
+        self.data.update(labTest_panel.get_data())
+
+        self.set_data("subjectId", subject_id)
+
+class LabTest_ResultData(ImmPort_Data):
+
+    iterable_counter = 0
+    truncate_long_fields = True
+    validator = "labTests.ResultData"
+
+    data_fields = load_data_fields(validator)
+
+    result_unit_reported_synonyms = {
+        "g":"gm",
+        "%":"percentage",
+        "mcg":"ug",
+        "hr":"Hour",
+        "cms":"cm",
+        "kgs":"kg",
+        "months":"Month",
+        "years":"Year"
+    }
+
+    enumFields = dict(filter(lambda x: "enum" in x[1], data_fields.items()))
+
+    def __init__(self, plannedVisitId=None, nameReported=None, studyDay=None, studyId=None, crfFileNames=[], **kwargs):
+        LabTest_ResultData.iterable_counter +=1
+        
+        if crfFileNames is not None:
+            filename_string = "_".join(crfFileNames)
+        else:
+            filename_string = "NoCRF"
+
+        self.data={}
+        new_user_id = f"{studyId}_{filename_string}_RD{LabTest_ResultData.iterable_counter}"
+        
+        self.set_data("userDefinedId", new_user_id)
+        
+        self.set_data("plannedVisitId", plannedVisitId)
+        self.set_data("nameReported", nameReported)
+        self.set_data("studyDay", studyDay if studyDay is not None else 99999)
+
+        del kwargs["userDefinedId"]
+        
+        for key, value in kwargs.items():
+            # TODO: need a way to identify/report ALL instances, and then allow user to specify mapping in GUI
+            if key in self.enumFields and value not in self.enumFields[key]["enum"]:
+                if key.endswith("UnitReported"):
+                    if value in self.result_unit_reported_synonyms:
+                        ig.main_logger.write(
+                            level="info",
+                            message=f"\tSuggest substituting '{self.result_unit_reported_synonyms[value]}' for '{value}' for field '{key}' - {nameReported}"
+                        )
+                    else:
+                        ig.main_logger.write(
+                            level="info",
+                            message=f"Value '{value}' for field '{key}' is not a preferred term - {nameReported}"
+                        )
+                else:
+                    ig.main_logger.write(
+                        level="warn",
+                        message=f"Value '{value}' for field '{key}' is not valid - {nameReported}"
+                    )
+
+            self.set_data_value(key, value)
+

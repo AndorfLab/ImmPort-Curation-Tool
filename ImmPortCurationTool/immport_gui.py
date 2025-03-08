@@ -1596,7 +1596,7 @@ immport_data = {'tab_data':{},'config':{}}
 ####Keep
 
 def get_immport_template_names():
-    return ['--Select--',"Assessment"]
+    return ['--Select--',"Assessment", "Lab Test"]
 
 
 def update_dataframe_from_table(value,row=None, column=None, column_name=None, dataframe=None):

@@ -16,7 +16,7 @@ pd.options.display.max_rows = 200
 
 missingVisits_all = {}
 
-def writePanelComponentTemplate(panel, component,header, filepath):
+def writePanelComponentTemplate(panel, component, header, filepath):
     panel["Result Separator Column"]=""
     df_temp = panel.merge(component, left_on='Assessment Panel ID', right_on='ASSESSMENT_PANEL_ACCESSION')
     df_temp["Subject ID"]=df_temp["User Defined ID"]
@@ -180,7 +180,20 @@ def readTemplate(template, template_path="templates/txt-templates/"):
         assessment_components_template = assessments.iloc[: , split_on_col+1:].copy()
         assessment_components_template.rename(columns={"Name Reported.1":"Name Reported"}, inplace=True)
 
+        print(f"read panel template assessment {assessment_panel_template} component {assessment_components_template} header {assessment_template_header}")
         return assessment_panel_template,assessment_components_template,assessment_template_header
+    
+    if(template == 'labPanels'):
+        template_file_path = os.path.abspath(os.path.join(template_path,"labTests.txt"))
+
+        labTest_template_header = pd.read_csv(template_file_path,nrows=2)
+        labTests = pd.read_csv(template_file_path, sep='\t', skiprows=2,nrows=0)
+        split_on_col = labTests.columns.get_loc("Result Separator Column")
+        labTest_panel_template = labTests.iloc[: , :split_on_col-1]
+        labTest_components_template = labTests.iloc[: , split_on_col+1:].copy()
+        labTest_components_template.rename(columns={"Name Reported.1":"Name Reported"}, inplace=True)
+
+        return labTest_panel_template,labTest_components_template,labTest_template_header
 
 def createColumnMappingDict(dictionary,table_name):
     mappings={"PLANNED_VISIT_ID":"Planned Visit ID"}
@@ -302,20 +315,14 @@ def getColumnName(dictionary, table_name, column_id):
 
 
 def readAndModifyStudyFile(filepath,file_tables,dictionary,planned_visits):
-    """1. Read Study File into DF
-    2. Add Visit Accession
-    3. If no User Defined ID, but Accession, rename Accession to User Defined ID column
 
+    print(f"filepath{filepath}")
 
-    Args:
-        filepath (string): path to study file
-        file_tables (object): object holding element of 'tables_to_load' from config
-        dictionary (object): data dictionary
-        planned_visits (_type_): planned visit data dictionary
+    print(f"file_tables{file_tables}")
 
-    Returns:
-        DataFrame: modified dataframe from study file.
-    """
+    print(f"dictionary{dictionary}")
+
+    print(f"planned_visits{planned_visits}")
 
     full_datafile = pd.DataFrame()
 
@@ -339,6 +346,7 @@ def readAndModifyStudyFile(filepath,file_tables,dictionary,planned_visits):
 
         full_datafile = pd.concat([full_datafile, datafile], ignore_index=True)
         
+    print(f"full_datafile {full_datafile}")
     return full_datafile
 
 def getAssessmentPanelID(crf_Files,study_files,assessment_panel_df,study_id,assessment_type):
