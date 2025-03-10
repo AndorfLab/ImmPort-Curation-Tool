@@ -1,3 +1,6 @@
+
+import traceback
+
 import pandas as pd
 import os
 import re
@@ -259,6 +262,7 @@ class GUI(GUI_Object):
         self.objects={}
         self.dictionary={}
         self.loggers={}
+        self.main_logger = self.loggers.get("output_logger")
         self.generate_console()
         self.objects["version"]=HTML(html_text=f"<span style='font-size: 16px;'><b>Version:</b> {VERSION}</span>", )
         self.generate_gui()
@@ -327,6 +331,12 @@ class GUI(GUI_Object):
         if "filechooser_study_files" in self.objects:
             self.objects["filechooser_study_files"].reset("", "")  
 
+        if "error_message_study_files" in self.objects:
+            self.objects["error_message_study_files"].show_hide_element(display="none")
+
+        if "error_message_planned_visits" in self.objects:
+            self.objects["error_message_planned_visits"].show_hide_element(display="none")
+
         if "error_message_study_tab_file" in self.objects:
             self.objects["error_message_study_tab_file"].show_hide_element(display="none")
 
@@ -341,12 +351,10 @@ class GUI(GUI_Object):
             
         if "toggle_current_immport_study" in self.objects:
             old_value = self.objects["toggle_current_immport_study"].widget.value
-            self.objects["toggle_current_immport_study"].widget.value = None  
             self.objects["toggle_current_immport_study"].widget.value = 0  
 
         if "toggle_non_tab_files" in self.objects:
             old_value = self.objects["toggle_non_tab_files"].widget.value
-            self.objects["toggle_non_tab_files"].widget.value = None  
             self.objects["toggle_non_tab_files"].widget.value = 0  
     
     def reset_tab2(self, b):  
@@ -543,11 +551,10 @@ class GUI(GUI_Object):
         try:
 
             self.objects["toggle_current_immport_study"] = ToggleButtons(description='<b><span style="font-size:18px;">🔘 Choose initial input type</span></b>', options=[('Download information from ImmPort',0),('Use ImmPort TAB file',1)], value=0, tooltips=['Downloaded from the public area of ImmPort','Downloaded from the private area of ImmPort'], style=dict(description_width='initial',button_width='auto'))
-        
-        
+
             self.objects["error_message_study_tab_file"] = HTML(html_text="<span style='color: red; font-size: 16px;'>⚠️ Please select a valid ImmPort study TAB ZIP file.</span>", description="")
             self.objects["error_message_study_tab_file"].show_hide_element(display="none")  
-        
+
             self.objects["filechooser_study_tab_file"] = File_Chooser(name="filechooser_study_tab_file", title='<b><span style="font-size:18px;">📁 Select the ImmPort study TAB ZIP file</span></b>', tooltip='Load a study tab file',multiple=False,filter_pattern=['SDY*-DR*_Tab.zip'], style=dict(description_width='initial'))
             self.objects["filechooser_study_tab_file"].set_onclick(self, callback_function=self.on_select_study_tab_file_with_error_handling, callback_data={"gui":self, "fc_name":"filechooser_study_tab_file"})
 
@@ -556,8 +563,18 @@ class GUI(GUI_Object):
             self.objects["filechooser_planned_visits"] = File_Chooser(name="filechooser_planned_visits", title='<b><span style="font-size:18px;">📁 Select the ImmPort planned visit file</span></b>', tooltip='Load a planned visit file',multiple=False,filter_pattern=['*.csv'], style=dict(description_width='initial'))
             self.objects["filechooser_planned_visits"].set_onclick(self, callback_function=self.load_planned_visit_file, callback_data = {})
 
+            self.objects["error_message_planned_visits"] = HTML(html_text="<span style='color: red; font-size: 16px;'>⚠️ Please select a valid planned visits file.</span>", description="")
+            self.objects["error_message_planned_visits"].show_hide_element(display="none")  
+
+            self.objects["file_chooser_planned_visits_with_error"] = widgets.HBox([self.objects["filechooser_planned_visits"].get(), self.objects["error_message_planned_visits"].get()])
+            
             self.objects["filechooser_study_files"] = File_Chooser(name="filechooser_study_files", title='<b><span style="font-size:18px;">📁 Select the ImmPort study file</span></b>', tooltip='Load a study files file',multiple=False,filter_pattern=['*.csv'], style=dict(description_width='initial'))
             self.objects["filechooser_study_files"].set_onclick(self, callback_function=self.load_study_file, callback_data = {})
+
+            self.objects["error_message_study_files"] = HTML(html_text="<span style='color: red; font-size: 16px;'>⚠️ Please select a valid study files file.</span>", description="")
+            self.objects["error_message_study_files"].show_hide_element(display="none")
+
+            self.objects["file_chooser_study_files_with_error"] = widgets.HBox([self.objects["filechooser_study_files"].get(), self.objects["error_message_study_files"].get()])
 
             self.objects["html_non_Immport"] = HTML(
                 html_text=f"<h2><a title='Information on ImmPort downloads' href='{documentation_base_url}/documentation/Load_files_from_immport.md' style='font-size: 18px; text-decoration: none; color: #0077b6;'><b>Click for information on how to download data from ImmPort</b></a></h2>",description="")
@@ -567,7 +584,7 @@ class GUI(GUI_Object):
             )
 
             self.objects["text_study_id"] = TextField(placeholder="SDY9999", regex=r"SDY\d+", layout=widgets.Layout(width="350px"))
-        
+
             study_id_section = widgets.VBox([
             self.objects["label_study_id"],
             self.objects["text_study_id"].get()
@@ -607,10 +624,10 @@ class GUI(GUI_Object):
             box_immport_download_instructions.set_children([self.objects['html_non_Immport'].get()])
 
             box_planned_visits = VBox(name='box_planned_visits')
-            box_planned_visits.set_children([self.objects['filechooser_planned_visits'].get()])
+            box_planned_visits.set_children([self.objects['file_chooser_planned_visits_with_error']])
 
             box_study_files = VBox(name='box_study_files')
-            box_study_files.set_children([self.objects['filechooser_study_files'].get()])
+            box_study_files.set_children([self.objects['file_chooser_study_files_with_error']])
 
             self.objects["toggle_non_tab_files"] = ToggleButtons(description='<b><span style="font-size:18px;">Do you want to amend the TAB file with new planned visits and/or study files?</span></b>', options=[('Yes',1),('No',0)], value=0, tooltips=[], style=dict(description_width='initial',button_width='auto'))
 
@@ -620,8 +637,6 @@ class GUI(GUI_Object):
                 spacer_before_toggle,
                 self.objects["toggle_non_tab_files"].get()
             ])
-
-       #     box_immport_study_yes.set_children([self.objects["filechooser_study_tab_file"].get(), toggle_with_spacing])
 
             box_immport_study_yes.set_children([file_chooser_with_error, toggle_with_spacing])
 
@@ -666,15 +681,20 @@ class GUI(GUI_Object):
                 })
             
         except Exception as e:
-            self.log(message=f"Error in selecting ImmPort study file: {str(e)}", level="error", flush=True)
+            self.log(message=f"Error in selecting ImmPort study file: {str(e)}\n{traceback.format_exc()}", level="error", flush=True)
             self.flush_log()
 
+            tab = widgets.VBox([
+                widgets.HTML(value="<h2 style='color: red;'>Error: Failed to load the ImmPort study tab.</h2>"),
+                widgets.HTML(value=f"<p style='color: red;'>{str(e)}</p>")
+            ])
+
         return tab
-        
+
+    
     def on_select_study_tab_file_with_error_handling(self, value, gui=None, fc_name=None):
         try:
             if value.description == "Change":
-                # Attempt to load the file
                 gui.data["planned_visit"] = cf.readFileFromZip(
                     gui.objects[fc_name].widget.selected_path,
                     gui.objects[fc_name].widget.selected_filename,
@@ -721,58 +741,96 @@ class GUI(GUI_Object):
             gui.flush_log()
 
     def load_study_file(self, value):
+        try:
 
-        if value.description == "Change":
-            filename = self.objects["filechooser_study_files"].get_filepath()
-            with open(filename, 'r') as pv:
-                if filename.endswith(".csv"):
-                    sep = ","
-                else:
-                    sep = "\t"
+            if value.description == "Change":
+                filename = self.objects["filechooser_study_files"].get_filepath()
+                with open(filename, 'r') as pv:
+                    if filename.endswith(".csv"):
+                        sep = ","
+                    else:
+                        sep = "\t"
 
-                self.data["study_files"] = pd.read_csv(pv, sep=sep)
+                    self.data["study_files"] = pd.read_csv(pv, sep=sep)
 
-                rename_map={
-                    "Study File Accession":"STUDY_FILE_ACCESSION",
-                    "Study File Type":"STUDY_FILE_TYPE",
-                    "File Name":"FILE_NAME",
-                    "Description":"DESCRIPTION"
-                }
+                    mandatory_column = [
+                        "Study File Accession"
+                    ]
 
-                for col in list(rename_map.keys()):
-                    if col not in self.data["study_files"].columns:
-                        del rename_map[col]
-                self.data["study_files"].rename(columns=rename_map, inplace=True)
+                    missing_column = [col for col in mandatory_column if col not in self.data["study_file"].columns]
+
+                    if missing_column:
+                        raise ValueError(f"The following mandatory columns are missing: {', '.join(missing_column)}")
+
+
+                    rename_map={
+                        "Study File Accession":"STUDY_FILE_ACCESSION",
+                        "Study File Type":"STUDY_FILE_TYPE",
+                        "File Name":"FILE_NAME",
+                        "Description":"DESCRIPTION"
+                    }
+
+                    for col in list(rename_map.keys()):
+                        if col not in self.data["study_files"].columns:
+                            del rename_map[col]
+
+                    self.data["study_files"].rename(columns=rename_map, inplace=True)
+
+                self.objects["error_message_study_files"].show_hide_element(display="none")
+
+        except Exception as e:
+            self.objects["error_message_study_files"].show_hide_element(display="")
+            self.log(message=f"Error loading study file: {str(e)}", level="error", flush=True)
+            self.flush_log()
+
 
     def load_planned_visit_file(self, value):
-        if value.description == "Change":
-            planned_visit_filename = self.objects["filechooser_planned_visits"].get_filepath()
-            with open(planned_visit_filename, 'r') as pv:
-                if planned_visit_filename.endswith(".csv"):
-                    sep = ","
-                else:
-                    sep = "\t"
+        try:
+            if value.description == "Change":
+                planned_visit_filename = self.objects["filechooser_planned_visits"].get_filepath()
+                with open(planned_visit_filename, 'r') as pv:
+                    if planned_visit_filename.endswith(".csv"):
+                        sep = ","
+                    else:
+                        sep = "\t"
 
-                self.data["planned_visit"] = pd.read_csv(pv, sep=sep)
+                    self.data["planned_visit"] = pd.read_csv(pv, sep=sep)
 
-                rename_map={
-                    "PV Accession":"PLANNED_VISIT_ACCESSION",
-                    "Name":"NAME",
-                    "Min Start Day":"MIN_START_DAY",
-                    "Max Start Day":"MAX_START_DAY",
-                    "Start Rule":"START_RULE",
-                    "End Rule":"END_RULE",
-                    "Order Number":"ORDER_NUMBER",
-                    "Test Delete":"Not Present"
-                }
+                    mandatory_column = [
+                        "PV Accession"
+                    ]
 
-                for col in list(rename_map.keys()):
-                    if col not in self.data["planned_visit"].columns:
-                        del rename_map[col]
-                self.data["planned_visit"].rename(columns=rename_map, inplace=True)
-        
-            visit_names = get_planned_visits(self.data["planned_visit"],nameonly=True, returnType="list")
-            self.objects["dropdown_study_visit_list"].set_options(visit_names)
+                    missing_column = [col for col in mandatory_column if col not in self.data["planned_visit"].columns]
+
+                    if missing_column:
+                        raise ValueError(f"The following mandatory columns are missing: {', '.join(missing_column)}")
+
+                    rename_map={
+                        "PV Accession":"PLANNED_VISIT_ACCESSION",
+                        "Name":"NAME",
+                        "Min Start Day":"MIN_START_DAY",
+                        "Max Start Day":"MAX_START_DAY",
+                        "Start Rule":"START_RULE",
+                        "End Rule":"END_RULE",
+                        "Order Number":"ORDER_NUMBER",
+                        "Test Delete":"Not Present"
+                    }
+
+                    for col in list(rename_map.keys()):
+                        if col not in self.data["planned_visit"].columns:
+                            del rename_map[col]
+
+                    self.data["planned_visit"].rename(columns=rename_map, inplace=True)
+            
+                visit_names = get_planned_visits(self.data["planned_visit"],nameonly=True, returnType="list")
+                self.objects["dropdown_study_visit_list"].set_options(visit_names)
+
+                self.objects["error_message_planned_visits"].show_hide_element(display="none")
+
+        except Exception as e:
+            self.objects["error_message_planned_visits"].show_hide_element(display="")
+            self.log(message=f"Error loading planned visits file: {str(e)}", level="error", flush=True)
+            self.flush_log()
 
     def load_data_dictionary(self,gui):
         self.objects["button_filechooser_data_dictionary_load"].button_change(button=self.objects["button_filechooser_data_dictionary_load"], style='warning', text='Loading',tooltip='The data dictionary file is being loaded',disabled=False, icon='spinner')
@@ -976,6 +1034,8 @@ class GUI(GUI_Object):
 
         if 'output_logger' not in self.loggers:
             self.loggers["output_logger"] = Log_Output(name="output_logger", level=logging.INFO)
+
+        self.main_logger = self.loggers["output_logger"]
 
         self.loggers['console'] = Log_Output(name="console", level=logging.ERROR, max_height="100px")
 
@@ -1385,11 +1445,9 @@ class File_Chooser(GUI_Object):
     def __init__(self, name, **kwargs):
         super().__init__(
             FileChooser(**kwargs)
-            # FileChooser()
         )
         self.name = name
 
-        #Register an on select callback
         self.widget.register_callback(self.on_select)
     
     def set_filter(self, filter=[]):
@@ -1407,7 +1465,7 @@ class File_Chooser(GUI_Object):
         self.widget.selected_filename = filename
     
     def reset(self, path, filename):
-        self.widget.reset(path=path, filename=filename)
+       self.widget.reset(path=path, filename=filename)
 
     def get_filepath(self):
         return self.widget.selected_path +"/"+ self.widget.selected_filename
