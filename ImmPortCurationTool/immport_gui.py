@@ -342,7 +342,7 @@ class GUI(GUI_Object):
 
         if "text_study_id" in self.objects:
             self.objects["text_study_id"].reset()
-
+  
         if "text_workspace_id" in self.objects:
             self.objects["text_workspace_id"].reset()
 
@@ -375,7 +375,7 @@ class GUI(GUI_Object):
         )
 
         self.objects["button_form_column_confirm"] = Button(
-            text="Confirm Form Columns", 
+            text="Confirm", 
             tooltip='Confirm that the selected column from the data dictionary contains the instrument/CRF/form codes', 
             callback=self.load_data_dictionary_columns
         )
@@ -429,23 +429,24 @@ class GUI(GUI_Object):
             spacer,
             self.objects["tab_row_study_files_filechooser"], 
             spacer,
-            self.objects["reset_tab3_button"].get(),
+         #   self.objects["reset_tab3_button"].get(),
+            self.objects["bottom_buttons_3"],
             spacer
         ]
 
     def generate_gui(self):
 
-        self.objects["title"] = widgets.HTML(value="<h1 style='text-align:center; color:#3E6962; font-size:24px;'>ImmPort Curation Tool</h1>") #widgets.HTML(value="<h1 style='text-align:center; color:#3E6962; font-size:36px;'>ImmPort Curation Tool</h1>")
+        self.objects["title"] = widgets.HTML(value="<h1 style='text-align:center; color:#3E6962; font-size:30px;'>ImmPort Curation Tool</h1>") 
 
-        tab_titles = ["1. ImmPort Files", "2. Data Dictionary", "3. Study Files", "Logs", "Help"]
-        tab_colors = ["#98b3a2", "#F4DAC1", "#ADD5CC", "#dca485", "#D6C097"]  # Custom colors
+        tab_titles = ["Overview", "1. ImmPort Files", "2. Data Dictionary", "3. Study Files", "Logs"]
+        tab_colors = ["#98b3a2", "#F4DAC1", "#ADD5CC", "#dca485", "#D6C097"]  
 
         tab_contents = {
+            "Overview": self.generate_tab_help(),
             "1. ImmPort Files": self.generate_tab_study_info(),
             "2. Data Dictionary": self.generate_tab_data_dictionary(),
             "3. Study Files": self.generate_tab_study_files(),
             "Logs": self.generate_tab_logging(),
-            "Help": self.generate_tab_help(),
         }
 
         content_area = widgets.Output()
@@ -502,7 +503,7 @@ class GUI(GUI_Object):
         
         overview_header = widgets.HTML(value=f"""
             <div style='display: flex; justify-content: space-between; align-items: center; width: 100%;'>
-                <h2 style='color:black; margin-bottom: 0px;'>🔍 Overview</h2>
+                <h2 style='color:black; margin-bottom: 0px;'>🔍 About this Tool</h2>
                 <span style='font-size: 18px; color: black;'> {self.objects["version"].get().value} </span>
             </div>
 
@@ -550,12 +551,12 @@ class GUI(GUI_Object):
 
         try:
 
-            self.objects["toggle_current_immport_study"] = ToggleButtons(description='<b><span style="font-size:18px;">🔘 Choose initial input type</span></b>', options=[('Download information from ImmPort',0),('Use ImmPort TAB file',1)], value=0, tooltips=['Downloaded from the public area of ImmPort','Downloaded from the private area of ImmPort'], style=dict(description_width='initial',button_width='auto'))
+            self.objects["toggle_current_immport_study"] = ToggleButtons(description='<b><span style="font-size:18px;">🔘 Choose initial input type</span></b>', options=[('Download information from ImmPort',0),('Use ImmPort Tab file',1)], value=0, tooltips=['Downloaded from the public area of ImmPort','Downloaded from the private area of ImmPort'], style=dict(description_width='initial',button_width='auto'))
 
-            self.objects["error_message_study_tab_file"] = HTML(html_text="<span style='color: red; font-size: 16px;'>⚠️ Please select a valid ImmPort study TAB ZIP file.</span>", description="")
+            self.objects["error_message_study_tab_file"] = HTML(html_text="<span style='color: red; font-size: 16px;'>⚠️ Please select a valid ImmPort study Tab ZIP file </span>", description="")
             self.objects["error_message_study_tab_file"].show_hide_element(display="none")  
 
-            self.objects["filechooser_study_tab_file"] = File_Chooser(name="filechooser_study_tab_file", title='<b><span style="font-size:18px;">📁 Select the ImmPort study TAB ZIP file</span></b>', tooltip='Load a study tab file',multiple=False,filter_pattern=['SDY*-DR*_Tab.zip'], style=dict(description_width='initial'))
+            self.objects["filechooser_study_tab_file"] = File_Chooser(name="filechooser_study_tab_file", title='<b><span style="font-size:18px;">📁 Select the ImmPort study Tab ZIP file</span></b>', tooltip='Load a study Tab file',multiple=False,filter_pattern=['SDY*-DR*_Tab.zip'], style=dict(description_width='initial'))
             self.objects["filechooser_study_tab_file"].set_onclick(self, callback_function=self.on_select_study_tab_file_with_error_handling, callback_data={"gui":self, "fc_name":"filechooser_study_tab_file"})
 
             file_chooser_with_error = widgets.HBox([self.objects["filechooser_study_tab_file"].get(), self.objects["error_message_study_tab_file"].get()])
@@ -563,7 +564,7 @@ class GUI(GUI_Object):
             self.objects["filechooser_planned_visits"] = File_Chooser(name="filechooser_planned_visits", title='<b><span style="font-size:18px;">📁 Select the ImmPort planned visit file</span></b>', tooltip='Load a planned visit file',multiple=False,filter_pattern=['*.csv'], style=dict(description_width='initial'))
             self.objects["filechooser_planned_visits"].set_onclick(self, callback_function=self.load_planned_visit_file, callback_data = {})
 
-            self.objects["error_message_planned_visits"] = HTML(html_text="<span style='color: red; font-size: 16px;'>⚠️ Please select a valid planned visits file.</span>", description="")
+            self.objects["error_message_planned_visits"] = HTML(html_text="<span style='color: red; font-size: 16px;'>⚠️ Please select a valid planned visits file </span>", description="")
             self.objects["error_message_planned_visits"].show_hide_element(display="none")  
 
             self.objects["file_chooser_planned_visits_with_error"] = widgets.HBox([self.objects["filechooser_planned_visits"].get(), self.objects["error_message_planned_visits"].get()])
@@ -571,13 +572,10 @@ class GUI(GUI_Object):
             self.objects["filechooser_study_files"] = File_Chooser(name="filechooser_study_files", title='<b><span style="font-size:18px;">📁 Select the ImmPort study file</span></b>', tooltip='Load a study files file',multiple=False,filter_pattern=['*.csv'], style=dict(description_width='initial'))
             self.objects["filechooser_study_files"].set_onclick(self, callback_function=self.load_study_file, callback_data = {})
 
-            self.objects["error_message_study_files"] = HTML(html_text="<span style='color: red; font-size: 16px;'>⚠️ Please select a valid study files file.</span>", description="")
+            self.objects["error_message_study_files"] = HTML(html_text="<span style='color: red; font-size: 16px;'>⚠️ Please select a valid study files file </span>", description="")
             self.objects["error_message_study_files"].show_hide_element(display="none")
 
             self.objects["file_chooser_study_files_with_error"] = widgets.HBox([self.objects["filechooser_study_files"].get(), self.objects["error_message_study_files"].get()])
-
-            self.objects["html_non_Immport"] = HTML(
-                html_text=f"<h2><a title='Information on ImmPort downloads' href='{documentation_base_url}/documentation/Load_files_from_immport.md' style='font-size: 18px; text-decoration: none; color: #0077b6;'><b>Click for information on how to download data from ImmPort</b></a></h2>",description="")
 
             self.objects["label_study_id"] = widgets.HTML(
                 "<b><span style='font-size:18px;'>🆔 Input the study ID</span></b>"
@@ -620,16 +618,13 @@ class GUI(GUI_Object):
 
             box_immport_study_yes.toggle_display()
 
-            box_immport_download_instructions = VBox(name='box_immport_download_instructions')
-            box_immport_download_instructions.set_children([self.objects['html_non_Immport'].get()])
-
             box_planned_visits = VBox(name='box_planned_visits')
             box_planned_visits.set_children([self.objects['file_chooser_planned_visits_with_error']])
 
             box_study_files = VBox(name='box_study_files')
             box_study_files.set_children([self.objects['file_chooser_study_files_with_error']])
 
-            self.objects["toggle_non_tab_files"] = ToggleButtons(description='<b><span style="font-size:18px;">Do you want to amend the TAB file with new planned visits and/or study files?</span></b>', options=[('Yes',1),('No',0)], value=0, tooltips=[], style=dict(description_width='initial',button_width='auto'))
+            self.objects["toggle_non_tab_files"] = ToggleButtons(description='<b><span style="font-size:18px;">Do you want to amend the Tab file with new planned visits and/or study files?</span></b>', options=[('Yes',1),('No',0)], value=0, tooltips=[], style=dict(description_width='initial',button_width='auto'))
 
             spacer_before_toggle = widgets.HTML(value="<div style='height: 20px;'></div>")
 
@@ -643,6 +638,55 @@ class GUI(GUI_Object):
             box_immport_study_no.set_children([workspace_id_section, study_id_section])
 
             self.objects["reset_tab1_button"] = Button(text="Reset Tab", tooltip="Reset all inputs in Tab 1", style="warning", callback=self.reset_tab1, width="140px", icon="trash")
+
+            self.objects["help_button_1"] = widgets.Button(description='Help', tooltip='Click for help', icon='question-circle')
+
+            self.objects["help_button_1"].style.button_color = '#F7F6BB'
+
+            self.objects["help_text_1"] = widgets.HTML(
+                value="""
+                <div style='color: black; font-family: Arial, sans-serif; font-size: 14px;
+                            padding: 5px; border: 1px solid #ccc; background-color: #f9f9f9;
+                            border-radius: 5px;'>
+                    <h2 style='text-align: center; font-weight: bold; margin: 5px 0;'>Inputs</h2>
+                    <b>Input the workspace ID:</b> This should be a numeric identifier, listed as the 'Workspace ID' in ImmPort. Example: 3366. <br>
+                    <b>Input the study ID:</b> This should be an identifier that begins with SDY followed by a number, listed as the 'Study Accession' in ImmPort. Example: SDY1550. <br>
+                    <b>Select the ImmPort planned visit file:</b> This should be a file that contains information about the planned visits, listed as planned_visit in ImmPort. This information should include the names of the visits, start days, and planned visit accessions. <br>
+                    <b>Select the ImmPort study file:</b> This should be a file that contains basic information about the study-specific study files (which are uploaded in '3. Study Files'), listed as study_file in ImmPort. This information should include the study file names, brief descriptions, study file types, and study file accessions. <br>
+                    <b>View the loaded study visits:</b> This shows the names of the study visits that were listed in the ImmPort planned_visit file. <br>
+                    <h2 style='text-align: center; font-weight: bold; margin: 5px 0;'>Additional Information</h2>
+                        <a title='Information on ImmPort downloads' 
+                            href='{0}/documentation/Load_files_from_immport.md' 
+                            style='font-size: 16px; text-decoration: none; color: #0077b6;'>
+                            <b>Click for information on how to download data from ImmPort</b>
+                        </a>
+                </div>
+                """.format(documentation_base_url),
+                layout={'width': '600px', 'height': 'auto'}
+            )
+
+            self.objects["toggle_current_immport_study"].set_observe(callback_function=self.update_help_text, callback_data={})
+
+            self.objects["help_text_1_box"] = widgets.VBox([self.objects["help_text_1"]])
+            self.objects["help_text_1_box"].layout.display = 'none' 
+
+            def toggle_help_text_1(b):
+                if self.objects["help_text_1_box"].layout.display == 'none':
+                    self.objects["help_text_1_box"].layout.display = 'block'  
+                else:
+                    self.objects["help_text_1_box"].layout.display = 'none'   
+
+            self.objects["help_button_1"].on_click(toggle_help_text_1)
+
+            self.objects["help_section_1"] = widgets.HBox([
+                self.objects["help_button_1"],
+                self.objects["help_text_1_box"]
+            ])
+
+            bottom_buttons_1 = widgets.HBox([
+                self.objects["reset_tab1_button"].get(),
+                self.objects["help_section_1"]
+            ])
 
             spacer = widgets.HTML(value="<div style='height: 10px;'></div>")
 
@@ -660,22 +704,20 @@ class GUI(GUI_Object):
                 spacer,
                 study_visit_list_section,
                 spacer, 
-                box_immport_download_instructions.get(),
-                spacer,
-                self.objects["reset_tab1_button"].get(),
+                bottom_buttons_1, 
                 spacer
             ])
 
             self.objects["toggle_current_immport_study"].set_observe(callback_function=self.toggle_show_hide, callback_data={
                 "toggle":{
                     1:[box_immport_study_yes], 
-                    0:[box_immport_study_no,box_planned_visits,box_study_files,box_immport_download_instructions]
+                    0:[box_immport_study_no,box_planned_visits,box_study_files] #,box_immport_download_instructions]
                     }
                 })
 
             self.objects["toggle_non_tab_files"].set_observe(callback_function=self.toggle_show_hide, callback_data={
                 "toggle":{
-                    1:[box_planned_visits,box_study_files,box_immport_download_instructions], 
+                    1:[box_planned_visits,box_study_files], #,box_immport_download_instructions], 
                     0:[]
                     }
                 })
@@ -690,8 +732,46 @@ class GUI(GUI_Object):
             ])
 
         return tab
-
     
+    def update_help_text(self, event):
+        """Dynamically updates the help text based on the toggle selection."""
+        toggle_value = event["new"] 
+
+        if toggle_value == 1:
+            new_help_text = """
+            <div style='color: black; font-family: Arial, sans-serif; font-size: 14px;
+                        padding: 5px; border: 1px solid #ccc; background-color: #f9f9f9;
+                        border-radius: 5px;'>
+                <h2 style='text-align: center; font-weight: bold; margin: 5px 0;'>Inputs</h2>
+                <b>Select the ImmPort study Tab ZIP file:</b> This should be a ZIP file that contains multiple ImmPort-specific files, listed as 'SDY(#)-DR(#)_Tab.zip' in ImmPort. <br>
+                <b>Do you want to amend the Tab file with new planned visits and/or study files?:</b> This should be used if you want to use a different planned_visit.txt and/or study_file.txt then the ones that are currently in the Tab zip file. <br>
+                <b>Select the ImmPort planned visit file:</b> This will appear if 'Yes' is chosen from the 'Do you want to amend the Tab file with new planned visits and/or study files?' question. This should be a file that contains information about the planned visits, listed as planned_visit in ImmPort. This information should include the names of the visits, start days, and planned visit accessions. <br>
+                <b>Select the ImmPort study file:</b> This will appear if 'Yes' is chosen from the 'Do you want to amend the Tab file with new planned visits and/or study files?' question.  This should be a file that contains basic information about the study-specific study files (which are uploaded in '3. Study Files'), listed as study_file in ImmPort. This information should include the study file names, brief descriptions, study file types, and study file accessions. <br>
+                <b>View the loaded study visits:</b> This shows the names of the study visits that were listed in the ImmPort planned_visit file. <br>
+            </div>
+            """.format(documentation_base_url)
+        else: 
+            new_help_text = """
+            <div style='color: black; font-family: Arial, sans-serif; font-size: 14px;
+                        padding: 5px; border: 1px solid #ccc; background-color: #f9f9f9;
+                        border-radius: 5px;'>
+                <h2 style='text-align: center; font-weight: bold; margin: 5px 0;'>Inputs</h2>
+                <b>Input the workspace ID:</b> This should be a numeric identifier, listed as the 'Workspace ID' in ImmPort. Example: 3366. <br>
+                <b>Input the study ID:</b> This should be an identifier that begins with SDY followed by a number, listed as the 'Study Accession' in ImmPort. Example: SDY1550. <br>
+                <b>Select the ImmPort planned visit file:</b> This should be a file that contains information about the planned visits, listed as planned_visit in ImmPort. This information should include the names of the visits, start days, and planned visit accessions. <br>
+                <b>Select the ImmPort study file:</b> This should be a file that contains basic information about the study-specific study files (which are uploaded in '3. Study Files'), listed as study_file in ImmPort. This information should include the study file names, brief descriptions, study file types, and study file accessions. <br>
+                <b>View the loaded study visits:</b> This shows the names of the study visits that were listed in the ImmPort planned_visit file. <br>
+                <h2 style='text-align: center; font-weight: bold; margin: 5px 0;'>Additional Information</h2>
+                    <a title='Information on ImmPort downloads' 
+                        href='{0}/documentation/Load_files_from_immport.md' 
+                        style='font-size: 16px; text-decoration: none; color: #0077b6;'>
+                        <b>Click for information on how to download data from ImmPort</b>
+                    </a>
+                </div>
+                """.format(documentation_base_url)
+            
+        self.objects["help_text_1"].value = new_help_text
+
     def on_select_study_tab_file_with_error_handling(self, value, gui=None, fc_name=None):
         try:
             if value.description == "Change":
@@ -702,7 +782,7 @@ class GUI(GUI_Object):
                 )
 
                 if gui.data["planned_visit"] is None:
-                    raise ValueError("Missing required file 'planned_visit.txt' in the TAB ZIP file.")
+                    raise ValueError("Missing required file 'planned_visit.txt' in the Tab ZIP file.")
 
                 gui.data["study_files"] = cf.readFileFromZip(
                     gui.objects[fc_name].widget.selected_path,
@@ -711,7 +791,7 @@ class GUI(GUI_Object):
                 )
 
                 if gui.data["study_files"] is None:
-                    raise ValueError("Missing required file 'study_file.txt' in the TAB ZIP file.")
+                    raise ValueError("Missing required file 'study_file.txt' in the Tab ZIP file.")
 
                 gui.data["study"] = cf.readFileFromZip(
                     gui.objects[fc_name].widget.selected_path,
@@ -720,7 +800,7 @@ class GUI(GUI_Object):
                 )
 
                 if gui.data["study"] is None:
-                    raise ValueError("Missing required file 'study.txt' in the TAB ZIP file.")
+                    raise ValueError("Missing required file 'study.txt' in the Tab ZIP file.")
 
                 visit_names = get_planned_visits(gui.data["planned_visit"], nameonly=True, returnType="list")
 
@@ -737,7 +817,7 @@ class GUI(GUI_Object):
 
         except Exception as e:
             gui.objects["error_message_study_tab_file"].show_hide_element(display="")
-            gui.log(message=f"Error loading ImmPort study TAB file: {str(e)}", level="error", flush=True)
+            gui.log(message=f"Error loading ImmPort study Tab file: {str(e)}", level="error", flush=True)
             gui.flush_log()
 
     def load_study_file(self, value):
@@ -761,7 +841,6 @@ class GUI(GUI_Object):
 
                     if missing_column:
                         raise ValueError(f"The following mandatory columns are missing: {', '.join(missing_column)}")
-
 
                     rename_map={
                         "Study File Accession":"STUDY_FILE_ACCESSION",
@@ -884,6 +963,49 @@ class GUI(GUI_Object):
 
         self.objects["reset_tab3_button"] = Button(text="Reset Tab", tooltip="Reset all inputs in Tab 3", style="warning", callback=self.reset_tab3, width="140px", icon="trash")
 
+        self.objects["help_button_3"] = widgets.Button(description='Help', tooltip='Click for help', icon='question-circle')
+
+        self.objects["help_button_3"].style.button_color = '#F7F6BB'
+
+        self.objects["help_text_3"] = widgets.HTML(
+            value="""
+            <div style='color: black; font-family: Arial, sans-serif; font-size: 14px;
+                        padding: 10px; border: 1px solid #ccc; background-color: #f9f9f9;
+                        border-radius: 5px;'>
+                <h2 style='text-align: center; font-weight: bold; margin: 5px 0;'>Input</h2>
+                <b>Select the study files directory:</b> This should be a directory that contain the study-specific files that contain the forms and results of the study. In ImmPort, this is the 'StudyFiles' folder. <br>
+                <h2 style='text-align: center; font-weight: bold; margin: 5px 0;'>Table</h2>    
+                <b>Table Code:</b> Add stuff here. This field is mandatory. <br>
+                <b>Assessment Name:</b> Add stuff here. This field is not mandatory. <br>
+                <b>Template:</b> Add stuff here. This field is mandatory. <br>
+                <b>Default Visit:</b> Add stuff here. This field is not mandatory. <br>
+                When this table is completed, click the 'Generate Filled Templates' button.
+            </div>
+            """,
+            layout={'width': '600px', 'height': 'auto'}
+        )
+
+        self.objects["help_text_3_box"] = widgets.VBox([self.objects["help_text_3"]])
+        self.objects["help_text_3_box"].layout.display = 'none' 
+
+        def toggle_help_text_3(b):
+            if self.objects["help_text_3_box"].layout.display == 'none':
+                self.objects["help_text_3_box"].layout.display = 'block'  
+            else:
+                self.objects["help_text_3_box"].layout.display = 'none'   
+
+        self.objects["help_button_3"].on_click(toggle_help_text_3)
+
+        self.objects["help_section_3"] = widgets.HBox([
+            self.objects["help_button_3"],
+            self.objects["help_text_3_box"]
+        ])
+
+        self.objects["bottom_buttons_3"] = widgets.HBox([
+            self.objects["reset_tab3_button"].get(),
+            self.objects["help_section_3"]
+        ])
+
         spacer = widgets.HTML(value="<div style='height: 10px;'></div>")
 
         self.objects["tab3_layout"] = widgets.VBox([
@@ -894,7 +1016,7 @@ class GUI(GUI_Object):
             spacer,
             self.objects["box_study_files_table"].get(), 
             spacer,
-            self.objects["reset_tab3_button"].get(),
+            self.objects["bottom_buttons_3"],
             spacer
             ])
         return self.objects["tab3_layout"] 
@@ -1110,7 +1232,8 @@ class GUI(GUI_Object):
                 self.objects["tab3_layout"].children = [
                     self.objects["tab_row_study_files_filechooser"],  
                     self.objects["box_study_files_table"].get(),  
-                    self.objects["reset_tab3_button"].get()
+                #    self.objects["reset_tab3_button"].get()
+                    self.objects["bottom_buttons_3"]
                 ]
 
                 self.objects["box_study_files_table"].toggle_display()
@@ -1196,8 +1319,8 @@ class GUI(GUI_Object):
 
     def generate_tab_data_dictionary(self):
 
-        self.objects["html_documentation_curated_dd"] = HTML(
-            html_text=f"<h2><a title='Information on creating a curated data dictionary' href='{documentation_base_url}/documentation/Curated_Data_Dictionary.md' style='font-size: 18px; text-decoration: none; color: #0077b6;'><b>Click for the curated data dictionary user guide</b></a></h2>",description="")
+      #  self.objects["html_documentation_curated_dd"] = HTML(
+      #      html_text=f"<h2><a title='Information on creating a curated data dictionary' href='{documentation_base_url}/documentation/Curated_Data_Dictionary.md' style='font-size: 18px; text-decoration: none; color: #0077b6;'><b>Click for the curated data dictionary user guide</b></a></h2>",description="")
         
         self.objects["filechooser_data_dictionary"] = File_Chooser(name="filechooser_data_dictionary", title='<b><span style="font-size:18px;">📁 Select the curated data dictionary</span></b>', tooltip='Load a curated data dictionary file',multiple=False,filter_pattern=['*.csv','*.txt',"*.tsv"], style=dict(description_width='initial'))
 
@@ -1208,6 +1331,57 @@ class GUI(GUI_Object):
 
         self.objects["reset_tab2_button"] = Button(text="Reset Tab", tooltip="Reset all inputs in Tab 2", style="warning", callback=self.reset_tab2, width="140px", icon="trash")
         
+        self.objects["help_button_2"] = widgets.Button(description='Help', tooltip='Click for help', icon='question-circle')
+
+        self.objects["help_button_2"].style.button_color = '#F7F6BB'
+
+        self.objects["help_text_2"] = widgets.HTML(
+            value="""
+            <div style='color: black; font-family: Arial, sans-serif; font-size: 14px;
+                        padding: 5px; border: 1px solid #ccc; background-color: #f9f9f9;
+                        border-radius: 5px;'>
+                <h2 style='text-align: center; font-weight: bold; margin: 5px 0;'>Inputs</h2>
+                <b>Select the curated data dictionary:</b> This file should contain the data dictionary, which contains metadata about the study-specific study files (which are uploaded in '3. Study Files').  <br>
+                <b>Select the column that specifies the form/instrument:</b> This will appear after the data dictionary is successfully loaded in. The dropdown should show the columns in the data dictionary. The column that contains the form/instrument identifier information should be chosen. This is likely the 'Table Name' column. <br>
+                <h2 style='text-align: center; font-weight: bold; margin: 5px 0;'>Additional Information</h2>
+                        <a title='Information on creating a curated data dictionary' 
+                            href='{0}/documentation/Curated_Data_Dictionary.md' 
+                            style='font-size: 16px; text-decoration: none; color: #0077b6;'>
+                            <b>Click for the curated data dictionary user guide</b>
+                        </a> 
+                        <br>
+                        <a title='An example data dictionary' 
+                            href='{0}/documentation/Example_Data_Dictionary.md' 
+                            style='font-size: 16px; text-decoration: none; color: #0077b6;'>
+                            <b>Click for an example data dictionary</b>
+                        </a>
+            </div>
+            """.format(documentation_base_url),
+            layout={'width': '600px', 'height': 'auto'}
+        )
+
+        self.objects["help_text_2_box"] = widgets.VBox([self.objects["help_text_2"]])
+        self.objects["help_text_2_box"].layout.display = 'none' 
+
+        def toggle_help_text_2(b):
+            if self.objects["help_text_2_box"].layout.display == 'none':
+                self.objects["help_text_2_box"].layout.display = 'block'  
+            else:
+                self.objects["help_text_2_box"].layout.display = 'none'   
+
+        self.objects["help_button_2"].on_click(toggle_help_text_2)
+
+        self.objects["help_section_2"] = widgets.HBox([
+            self.objects["help_button_2"],
+            self.objects["help_text_2_box"]
+        ])
+
+        bottom_buttons_2 = widgets.HBox([
+            self.objects["reset_tab2_button"].get(),
+            self.objects["help_section_2"]
+        ])
+    
+
         self.objects["tab_row_dd_row"] = widgets.HBox([self.objects["filechooser_data_dictionary"].get(),self.objects["button_filechooser_data_dictionary_load"].get()])
         self.objects["tab_row_dd_form_row"] = widgets.HBox([self.objects["dropdown_table_form_column"].get(),self.objects["button_form_column_confirm"].get()])
         self.hide_row("tab_row_dd_form_row")
@@ -1220,9 +1394,7 @@ class GUI(GUI_Object):
             spacer,
             self.objects["tab_row_dd_form_row"],
             spacer,
-            self.objects["html_documentation_curated_dd"].get(),
-            spacer,
-            self.objects["reset_tab2_button"].get(),
+            bottom_buttons_2,
             spacer
         ])
 
@@ -1299,7 +1471,7 @@ class GUI(GUI_Object):
             return False
 
 class Tab(GUI_Object):
-    """Tab class"""
+    
     def __init__(self, name, contents=None, callback=None):
         self.name = name
         box_layout = widgets.Layout(overflow='scroll hidden')
@@ -1386,7 +1558,6 @@ class Button(GUI_Object):
         if display is not None:
             self.widget.layout.display = display
 
-
 class ToggleButtons(GUI_Object):
     """ToggleButtons class"""
     def __init__(self, options, value=None, description="", tooltips=[], style=None):
@@ -1403,42 +1574,53 @@ class ToggleButtons(GUI_Object):
 
 class TextField(GUI_Object):
     counter = 0
+
     def __init__(self, **kwargs):
         super().__init__(
             widgets.Text(
-                value=kwargs.get("text",""),
-                placeholder=kwargs.get("placeholder",""),
-                description=kwargs.get("description",""),
+                value=kwargs.get("text", ""),
+                placeholder=kwargs.get("placeholder", ""),
+                description=kwargs.get("description", ""),
                 disabled=False
             )
         )
 
-        self.name = kwargs.get("name","undefined_textfield_"+str(TextField.counter))
-        TextField.counter+=1
+        self.name = kwargs.get("name", "undefined_textfield_" + str(TextField.counter))
+        TextField.counter += 1
 
         if "regex" in kwargs:
             self.widget.observe(self.check_value, names='value')
             self.regex = kwargs["regex"]
             regex_display = self.regex.replace(r"\d", " numbers (0-9)")
-            self.helper = HTML(html_text=f"<span style='color:red'>Invalid Value! Please use a value that matches the format of {regex_display}</span>")
-            self.helper.toggle_display()
-    
+
+            self.helper = widgets.Output()
+            
+            with self.helper:
+                display(widgets.HTML(f"<span style='color:red; font-size: 16px;'>⚠️ Please use a value that matches the format of {regex_display}</span>"))
+
+            self.helper.layout.display = "none"  
+
     def get(self):
-        """Return the widget"""
         if hasattr(self, "helper"):
-            return widgets.HBox([self.widget,self.helper.get()])
+            return widgets.HBox([self.widget, self.helper])  
         return self.widget
 
-    @debounce(1)    #Wait 1 second
-    def check_value(self, value):
-        if value["type"]=="change":
-            if re.fullmatch(self.regex, self.widget.value.upper()) is None:
-                self.helper.show_hide_element(display='')
-                return
-            self.helper.show_hide_element(display='none')
-    
+    @debounce(1) 
+    def check_value(self, change):
+        if not self.widget.value.strip():  
+            self.helper.layout.display = "none"
+            return  
+
+        if not re.match(self.regex, change["new"]):
+            self.helper.layout.display = "block"  
+        else:
+            self.helper.layout.display = "none"  
+
     def reset(self):
         self.widget.value = ""  
+
+        if hasattr(self, "helper"):  
+            self.helper.layout.display = "none"  
 
 class File_Chooser(GUI_Object):
     """FileChooser class"""
