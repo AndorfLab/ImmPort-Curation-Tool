@@ -252,11 +252,14 @@ class GUI_Object():
             return
         self.widget.layout.display=display
 
-
 class GUI(GUI_Object):
     """Main interface class"""
     def __init__(self):
         super().__init__(widgets.Tab(layout=widgets.Layout(min_height="500px")))
+
+        self.template_widgets = {}  
+        self.name_reported_widgets = {}  
+
         self.tabs={}
         self.config={}
         self.objects={}
@@ -1021,51 +1024,60 @@ class GUI(GUI_Object):
             ])
         return self.objects["tab3_layout"] 
     
-
     def generate_zip_file(self, fh_zip, files=[]):
         for file in files:
             fh_zip.write(file, os.path.basename(file))
         return
 
     def generate_filled_template_files(self, b):
-        my_assessments={}
+
+        if not hasattr(self, 'table_code_widgets'):
+            self.table_code_widgets = {}
+        if not hasattr(self, 'template_widgets'):
+            self.template_widgets = {}
+        if not hasattr(self, 'default_visit_widgets'):
+            self.default_visit_widgets = {}
+
+        for index in self.data["file_list_df"].index:
+            if index in self.table_code_widgets:
+                self.data["file_list_df"].at[index, "Table Code"] = self.table_code_widgets[index].value
+            if index in self.template_widgets:
+                self.data["file_list_df"].at[index, "Template"] = self.template_widgets[index].value
+            if index in self.default_visit_widgets:
+                self.data["file_list_df"].at[index, "Default Visit"] = self.default_visit_widgets[index].value
+
+        my_assessments = {}
         study_id = self.get_study_id()
 
         study_files_dir = self.objects["filechooser_study_file_directory"].get_filepath()
-
         parent_dir = os.path.dirname(study_files_dir)
         parent_dir = os.path.dirname(parent_dir)
 
         todays_date = pd.to_datetime('today').strftime('%Y-%m-%d')
-        
         study_id_todays_date = study_id + "-" + todays_date
-
         results_folder = os.path.join(parent_dir, "results", study_id_todays_date)
 
         if not os.path.exists(results_folder):
             os.makedirs(results_folder, exist_ok=True)
 
-        self.objects["button_generate_files"].button_change(button=self.objects["button_generate_files"], style='warning', text='Generating...',tooltip='The files are being generated. This could take a few minutes',disabled=False, icon='spinner')
+        self.objects["button_generate_files"].button_change(
+            button=self.objects["button_generate_files"], 
+            style='warning', 
+            text='Generating...', 
+            tooltip='The files are being generated. This could take a few minutes', 
+            disabled=False, 
+            icon='spinner'
+        )
 
         errors_occurred = False
 
         for index, study_file_row in self.data['file_list_df'].iterrows():
-
             table_code = str(study_file_row["Table Code"]).strip() if pd.notna(study_file_row["Table Code"]) else ""
             template = str(study_file_row["Template"]).strip() if pd.notna(study_file_row["Template"]) else ""
             default_visit = str(study_file_row["Default Visit"]).strip() if pd.notna(study_file_row["Default Visit"]) else ""
             assessment_name = str(study_file_row["Assessment Name"]).strip() if pd.notna(study_file_row["Assessment Name"]) else ""
 
-            if table_code == '' and template == '' and assessment_name != '' :
-                self.log(
-                    message=f"Error in row {index+1}: A Template and Table Code must be selected", 
-                    level='error', 
-                    flush=True
-                )
-                self.flush_log()
-                errors_occurred = True
-            
-            if table_code == '' and template == '' and default_visit != '' :
+            if table_code == '' and template == '':
                 self.log(
                     message=f"Error in row {index+1}: A Template and Table Code must be selected", 
                     level='error', 
@@ -1091,66 +1103,60 @@ class GUI(GUI_Object):
                 )
                 self.flush_log()
                 errors_occurred = True
-                
-            if study_file_row["Template"] == "Assessment" and table_code != '':
+
+            if template == "Assessment" and table_code != '':
                 try:
-                    
-                    table_code = study_file_row["Table Code"]
                     filename = study_file_row.to_dict().get("Filename")
-                    self.log(message=f"Processing filename {filename} ({table_code})",level='info', flush=True)
-                    self.objects["button_generate_files"].button_change(button=self.objects["button_generate_files"], style='warning', text=f'Generating... {table_code}',tooltip='The files are being generated. This could take a few minutes',disabled=False, icon='spinner')
-                    
-                    my_assessments[table_code]=sf.Assessment()
-                    
-                    my_assessments[table_code].process_study_file(
-                        study_file_info = study_file_row.to_dict(), 
-                        study_file_directory = self.objects["filechooser_study_file_directory"].get_filepath(),
-                        data_dictionary = self.dictionary,
-                        planned_visits = self.data["planned_visit"],
-                        study_id = study_id,
-                        workspace_id = self.get_workspace_id(),
-                        name_reported = self.get_study_file_attribute(filename, "DESCRIPTION"),
+
+                    self.objects["button_generate_files"].button_change(
+                        button=self.objects["button_generate_files"], 
+                        style='warning', 
+                        text=f'Generating... {table_code}', 
+                        tooltip='The files are being generated. This could take a few minutes', 
+                        disabled=False, 
+                        icon='spinner'
                     )
 
-                    my_assessments[table_code].export_to_txt( filename=f"{results_folder}/{study_id}_{table_code}.txt")
-                    my_assessments[table_code].export_to_json(filename=f"{results_folder}/{study_id}_{table_code}.json")
+                    my_assessments[table_code] = sf.Assessment()
                     
-            #        fh_zip_file = zipfile.ZipFile(f"results/{study_id}/{table_code}.zip", 'w', zipfile.ZIP_DEFLATED)
-            #        self.generate_zip_file(fh_zip=fh_zip_file, files=[
-            #            f"results/{study_id}/{study_id}_{table_code}.txt", 
-            #            os.path.relpath(self.objects["filechooser_study_file_directory"].get_filepath()+filename)
-            #        ])
-            #        fh_zip_file.close()
-            #        self.flush_log()
+                    my_assessments[table_code].process_study_file(
+                        study_file_info=study_file_row.to_dict(), 
+                        study_file_directory=self.objects["filechooser_study_file_directory"].get_filepath(),
+                        data_dictionary=self.dictionary,
+                        planned_visits=self.data["planned_visit"],
+                        study_id=study_id,
+                        workspace_id=self.get_workspace_id(),
+                        name_reported=self.get_study_file_attribute(filename, "DESCRIPTION"),
+                    )
+
+                    my_assessments[table_code].export_to_txt(filename=f"{results_folder}/{study_id}_{table_code}.txt")
+                    my_assessments[table_code].export_to_json(filename=f"{results_folder}/{study_id}_{table_code}.json")
 
                 except Exception as err:
                     errors_occurred = True
-                    self.log(message=f"Error processing {table_code} - {err}", level='error', flush=True)
+                    self.log(message=f"❌ Error processing {table_code} - {err}", level='error', flush=True)
 
         if errors_occurred:
-            self.log(message="Some files failed to generate.", level='error', flush=True)
+            self.log(message="❌ Some files failed to generate.", level='error', flush=True)
             self.objects["button_generate_files"].button_change(
-                button=self.objects["button_generate_files"], style='danger', 
+                button=self.objects["button_generate_files"], 
+                style='danger', 
                 text='Error: Some files failed to generate. Click to retry.', 
                 tooltip='An error occurred during file generation. See log for more details.', 
-                disabled=False, icon='warning'
+                disabled=False, 
+                icon='warning'
             )
         else:
             self.log(message="✅ All files successfully generated.", level='info', flush=True)
-            self.log(message=f"Files are in {results_folder}", level='info', flush=True)
+            self.log(message=f"📂 Files are in {results_folder}", level='info', flush=True)
             self.objects["button_generate_files"].button_change(
-                button=self.objects["button_generate_files"], style='success', 
+                button=self.objects["button_generate_files"], 
+                style='success', 
                 text='Files Generated - Click to Re-Generate', 
                 tooltip='Files have been generated in the Results folder. Click to re-generate files.', 
-                disabled=False, icon='check'
+                disabled=False, 
+                icon='check'
             )
-
-    # def generate_console(self):
-    #     self.loggers['console'] = Log_Output(name="console", level=logging.ERROR, max_height="100px")
-    #     self.loggers['output_logger'].logger.addHandler(self.loggers['console'].log_viewer)
-
-    #     self.objects["button_clear_console"] = self.loggers["console"].add_clear_button(description="", icon="ban", style="", tooltip="Clear Console Logger")
-    #     self.objects["button_clear_console"].show_hide_element(display='none')
 
     def generate_console(self):
 
@@ -1171,6 +1177,7 @@ class GUI(GUI_Object):
 
     def generate_tab_logging(self):
         """Generate the logging tab"""
+
         global main_logger  #Hack until fixed properly
         self.loggers["output_logger"] = Log_Output(name="output_logger", level=logging.INFO)
 
@@ -1186,18 +1193,19 @@ class GUI(GUI_Object):
                             spacer])
 
         return tab
-    
+        
     def load_study_files(self, b): 
-
         if "box_study_files_table" not in self.objects:
             self.objects["box_study_files_table"] = VBox(name="box_study_files_table")
 
         self.objects["box_study_files_table"].toggle_display()  
 
         self.objects["button_filechooser_study_file_directory_load"].button_change(button=self.objects["button_filechooser_study_file_directory_load"], style='warning', text='Loading Study Files...',tooltip='The Study files are loading',disabled=False, icon='spinner')
-        self.objects["html_study_files_display_text"] = HTML(html_text='<p style="font-size:18px;">Generating Study File Table...</p>')
 
-        self.objects["box_study_files_table"].set_children([self.objects["html_study_files_display_text"].get()])
+        self.objects["html_study_files_display_text"] = widgets.HTML(value='<p style="font-size:18px;">Generating Study File Table...</p>')
+
+        self.objects["box_study_files_table"].set_children([self.objects["html_study_files_display_text"]])
+
         included_extensions = ['txt','csv', 'tsv']
         if os.path.isdir(self.objects["filechooser_study_file_directory"].get_dir()):
             try:
@@ -1205,25 +1213,62 @@ class GUI(GUI_Object):
                 study_files = [f for f in os.listdir(self.objects["filechooser_study_file_directory"].get_dir()) if any(f.endswith(ext) for ext in included_extensions)]
                 study_files.sort()
 
-                self.data['file_list_df'] = pd.DataFrame(columns=['Filename','Table Code', 'Assessment Name','Template','Default Visit'])
-                
+                if "file_list_df" not in self.data:
+                    self.data["file_list_df"] = pd.DataFrame(columns=["Filename", "Table Code", "Assessment Name", "Template", "Default Visit", "Name Reported"])
+                else:
+                    if "Name Reported" not in self.data["file_list_df"].columns:
+                        self.data["file_list_df"]["Name Reported"] = "" 
+
                 table_code_categories = list(self.dictionary["tables"].keys())
                 table_code_categories.insert(0,'--Select--')
-                self.data['file_list_df']["Table Code"] = pd.Categorical([], ordered=True, categories=table_code_categories)
-                self.data["file_list_df"]["Template"] = pd.Categorical([],ordered=True,categories=get_immport_template_names())
-                self.data["file_list_df"]["Default Visit"] = pd.Categorical([],ordered=True,categories=self.get_planned_visits(nameonly=True, returnType="list"))
+
+                num_rows = len(self.data["file_list_df"])
+
+                self.data["file_list_df"]["Table Code"] = ['--Select--'] * num_rows
+
+                self.data["file_list_df"]["Table Code"] = pd.Categorical(
+                    self.data["file_list_df"]["Table Code"],
+                    ordered=True,
+                    categories=table_code_categories
+                )
+
+                self.data["file_list_df"]["Template"] = [''] * num_rows
+
+                self.data["file_list_df"]["Template"] = pd.Categorical(
+                    self.data["file_list_df"]["Template"],
+                    ordered=True,
+                    categories=get_immport_template_names()
+                )
+
+                self.data["file_list_df"]["Default Visit"] = [''] * num_rows
+
+                self.data["file_list_df"]["Default Visit"] = pd.Categorical(
+                    self.data["file_list_df"]["Default Visit"],
+                    ordered=True,
+                    categories=self.get_planned_visits(nameonly=True, returnType="list")
+                )
+
                 self.data["file_list_df"]["Filename"] = study_files
+
                 self.data['file_list_df'] = self.data['file_list_df'].merge(self.data["study_files"][["FILE_NAME","DESCRIPTION"]], left_on="Filename", right_on="FILE_NAME", how="left")
                 self.data['file_list_df'].rename(columns={"DESCRIPTION":"Description"}, inplace=True)
-                self.data['file_list_df'] = self.data['file_list_df'][["Filename","Description","Table Code","Assessment Name","Template","Default Visit"]]
+
+                if "Name Reported" not in self.data["file_list_df"].columns:
+                    self.data["file_list_df"]["Name Reported"] = ""
+
+                self.data["file_list_df"] = self.data["file_list_df"][["Filename", "Description", "Table Code", "Assessment Name", "Template", "Default Visit", "Name Reported"]]
 
                 self.log(message="Generating DF Table", level='debug',flush=True)
 
-                self.objects["study_file_table"] = self.generate_df_table(column_widths =  ["300px","250px","100px","150px","125px","175px"], readonly=["Filename","Description"])
-                
-                self.objects["button_generate_files"]= Button(text="Generate Filled Templates", tooltip='Generate filled ImmPort Templates for upload into ImmPort', callback=self.generate_filled_template_files, width = "500px", margin="auto") #, style=dict(description_width='initial'))
-              
-                self.objects["box_study_files_table"].set_children([ self.objects["button_generate_files"].get(), self.objects["study_file_table"]])
+                column_widths = ["300px", "250px", "100px", "150px", "125px", "175px"]
+                if len(self.data["file_list_df"].columns) > len(column_widths):
+                    column_widths.extend(["150px"] * (len(self.data["file_list_df"].columns) - len(column_widths)))
+
+                self.objects["study_file_table"] = self.generate_df_table(column_widths=column_widths, readonly=["Filename","Description"])
+
+                self.objects["button_generate_files"]= Button(text="Generate Filled Templates", tooltip='Generate filled ImmPort Templates for upload into ImmPort', callback=self.generate_filled_template_files, width = "500px", margin="auto")
+
+                self.objects["box_study_files_table"].set_children([self.objects["button_generate_files"].get(), self.objects["study_file_table"]])
 
                 temp = list(self.objects["box_study_files_table"].widget.children)  
                 self.objects["box_study_files_table"].widget.children = []  
@@ -1232,7 +1277,6 @@ class GUI(GUI_Object):
                 self.objects["tab3_layout"].children = [
                     self.objects["tab_row_study_files_filechooser"],  
                     self.objects["box_study_files_table"].get(),  
-                #    self.objects["reset_tab3_button"].get()
                     self.objects["bottom_buttons_3"]
                 ]
 
@@ -1240,8 +1284,8 @@ class GUI(GUI_Object):
 
                 self.objects["button_filechooser_study_file_directory_load"].button_change(button=self.objects["button_filechooser_study_file_directory_load"], style='success', text='Study Files Loaded',tooltip='The Study files have been loaded',disabled=False, icon='')
             except Exception as e:
-                error = HTML(html_text='<b>Error:</b> ' + str(e))
-                self.objects["box_study_files_table"].set_children([ error])
+                error = widgets.HTML(value='<b>Error:</b> ' + str(e))
+                self.objects["box_study_files_table"].set_children([error])
                 self.log(message="Error processing study files: "+str(e), level='error', flush=True)
 
                 raise Exception("Error loading study files: {}".format(e))
@@ -1275,38 +1319,230 @@ class GUI(GUI_Object):
 
     def get_workspace_id(self):
         return self.data["study"]["WORKSPACE_ID"][0]
+    
+    def toggle_default_visit_and_template(self, change):
+        """Toggle visibility of Default Visit and Template dropdowns based on Table Code selection."""
+      
+        ind = change.owner.row  
+        selected_value = change.new
 
+        if ind in self.default_visit_widgets:
+            default_visit_dropdown = self.default_visit_widgets[ind]
+            if selected_value == "--Select--":
+                default_visit_dropdown.layout.display = "none"
+            else:
+                default_visit_dropdown.layout.display = None  
 
-    def generate_df_table(self, column_widths =  ["300px","100px","150px","125px","175px"], readonly=["Filename"]):
-        global box, grid_body
-        header_names =  self.data["file_list_df"].columns
+        if ind in self.template_widgets:
+            template_dropdown = self.template_widgets[ind]
+            if selected_value == "--Select--":
+                template_dropdown.layout.display = "none"
 
-        shape =  self.data["file_list_df"].shape
-        grid_body = widgets.GridspecLayout(shape[0]+1, shape[1])
+                if ind in self.name_reported_widgets:
+                    self.name_reported_widgets[ind].layout.display = "none"
+
+                if ind in self.type_widgets:
+                    self.type_widgets[ind].layout.display = "none"
+
+                if ind in self.subtype_widgets:
+                    self.subtype_widgets[ind].layout.display = "none"
+
+                if ind in self.assessment_name_widgets:
+                    self.assessment_name_widgets[ind].layout.display = "none"
+        
+            else:
+                template_dropdown.layout.display = None  
+
+    def toggle_columns(self, change):
+        """Toggle visibility of columns based on the selected template."""
+
+        row = change["owner"].row  
+        template_value = change["new"]  
+
+        if template_value == "Assessment":
+            self.name_reported_widgets[row].layout.display = "none"  
+            self.type_widgets[row].layout.display = "none" 
+            self.subtype_widgets[row].layout.display = "none" 
+            self.assessment_name_widgets[row].layout.display = "block" 
+        elif template_value == "Lab Test":
+            self.name_reported_widgets[row].layout.display = "block"  
+            self.type_widgets[row].layout.display = "block"  
+            self.subtype_widgets[row].layout.display = "none" 
+            self.assessment_name_widgets[row].layout.display = "none"  
+        elif template_value == "Assessment & Lab Test":
+            self.name_reported_widgets[row].layout.display = "block"  
+            self.type_widgets[row].layout.display = "block" 
+            self.subtype_widgets[row].layout.display = "none"  
+            self.assessment_name_widgets[row].layout.display = "block"  
+        else:
+            self.name_reported_widgets[row].layout.display = "none"  
+            self.type_widgets[row].layout.display = "none"  
+            self.subtype_widgets[row].layout.display = "none"  
+            self.assessment_name_widgets[row].layout.display = "none" 
+
+    def toggle_subtype(self, change):
+        """Toggle visibility of Subtype textbox based on the selected Type."""
+
+        row = change["owner"].row  
+        type_value = change["new"]  
+
+        if type_value == "Other":
+            self.subtype_widgets[row].layout.display = "block"  
+        else:
+            self.subtype_widgets[row].layout.display = "none"  
+
+    def generate_df_table(self, column_widths=["250px", "250px", "200px", "250px", "200px", "200px", "200px", "200px", "200px"], readonly=["Filename", "Description"]):
+        """Generate a DataFrame-based table with interactive dropdowns and inputs."""
+
+        global box  
+
+        self.table_code_widgets = {}  
+        self.default_visit_widgets = {}
+        self.template_widgets = {}
+        self.assessment_name_widgets = {}
+        self.name_reported_widgets = {}
+        self.type_widgets = {}
+        self.subtype_widgets = {}
+
+        if "file_list_df" not in self.data:
+            self.data["file_list_df"] = pd.DataFrame(columns=["Filename", "Description", "Table Code", "Default Visit", "Template", "Assessment Name", "Name Reported", "Type", "Subtype"])
+        else:
+            self.data["file_list_df"] = self.data["file_list_df"].copy()
+
+            for col in self.data["file_list_df"].columns:
+                if pd.api.types.is_categorical_dtype(self.data["file_list_df"][col]):
+                    self.data["file_list_df"][col] = self.data["file_list_df"][col].astype(str)
+            self.data["file_list_df"] = self.data["file_list_df"].fillna("")
+
+        required_columns = ["Filename", "Description", "Table Code", "Default Visit", "Template", "Assessment Name", "Name Reported", "Type", "Subtype"]
+        for col in required_columns:
+            if col not in self.data["file_list_df"].columns:
+                self.data["file_list_df"][col] = "" 
+
+        dataframe_for_table = self.data["file_list_df"].copy().fillna("")
+        header_names = required_columns  
+        shape = (self.data["file_list_df"].shape[0], len(header_names))
+        self.grid_body = widgets.GridspecLayout(shape[0] + 1, shape[1])  
+
+   #     if len(header_names) > len(column_widths):
+   #         column_widths.extend(["150px"] * (len(header_names) - len(column_widths)))
 
         for idx, title in enumerate(header_names):
-            grid_body[0, idx] = widgets.HTML(f"<div style='font-size:16px; font-weight:bold;'>{title}</div>")
-            grid_body[0,idx].layout = widgets.Layout(width=column_widths[idx])
-        
-        dataframe_for_table =  self.data["file_list_df"].copy()
-        dataframe_for_table = dataframe_for_table.astype('string')
-        dataframe_for_table.fillna('', inplace=True)
+            self.grid_body[0, idx] = widgets.HTML(f"<div style='font-size:16px; font-weight:bold; text-align:center; '>{title}</div>")
+            self.grid_body[0, idx].layout = widgets.Layout(width=column_widths[idx] if idx < len(column_widths) else "200px")
 
-        for ind in  self.data["file_list_df"].index:
-            ind2 = ind+1
+        for ind in self.data["file_list_df"].index:
+            ind2 = ind + 1  
             for idx, column_title in enumerate(header_names):
-                readonly_bool = (True if column_title in readonly else False)
-                grid_body[ind2, idx] = create_table_widget(dtype= self.data["file_list_df"][column_title].dtype, value=dataframe_for_table[column_title][ind], readonly= readonly_bool, dataframe= self.data["file_list_df"],columnName=column_title)
-               
-                grid_body[ind2, idx].layout = widgets.Layout(width=column_widths[idx], text_align='center')
+                readonly_bool = column_title in readonly
 
-                grid_body[ind2, idx].description_tooltip=f"{{'row':{ind},'col':{idx}','title':'{column_title}'}}"
-                grid_body[ind2,idx].observe(functools.partial(update_dataframe_from_table, dataframe= self.data["file_list_df"], column_name=column_title,column=idx,row=ind), names='value')
+                cell_value = dataframe_for_table.at[ind, column_title]
 
-        box_body = widgets.VBox([grid_body], layout=widgets.Layout(height='450px', overflow_y='auto'))
-        box = widgets.VBox([box_body], layout=widgets.Layout(height='510px'))
+                if isinstance(cell_value, pd.Series):  
+                    cell_value = cell_value.iloc[0] if not cell_value.empty else ""
+
+                value = str(cell_value).strip() if pd.notna(cell_value) else ""
+
+                if column_title in ["Filename", "Description"]:
+                    self.grid_body[ind2, idx] = widgets.Label(value=value, layout=widgets.Layout(width="220px", color="black"))
+
+                elif column_title == "Table Code":
+                    table_code_options = list(self.dictionary["tables"].keys())  
+                    table_code_options.insert(0, "--Select--")  
+                    initial_value = value if value in table_code_options else "--Select--"
+
+                    table_code_dropdown = widgets.Dropdown(
+                        options=table_code_options,
+                        value=initial_value,
+                        layout=widgets.Layout(width="170px")
+                    )
+                    table_code_dropdown.row = ind  
+                    self.grid_body[ind2, idx] = table_code_dropdown
+                    self.table_code_widgets[ind] = table_code_dropdown  
+
+                    table_code_dropdown.observe(self.toggle_default_visit_and_template, names="value")
+
+                elif column_title == "Default Visit":
+                    visit_options = self.get_planned_visits(nameonly=True, returnType="list")  
+                    visit_options.insert(0, "--Select--")  
+                    initial_value = value if value in visit_options else "--Select--"
+
+                    default_visit_dropdown = widgets.Dropdown(
+                        options=visit_options,
+                        value=initial_value,
+                        layout=widgets.Layout(width="220px", display="none")  
+                    )
+                    default_visit_dropdown.row = ind  
+                    self.grid_body[ind2, idx] = default_visit_dropdown  
+                    self.default_visit_widgets[ind] = default_visit_dropdown  
+
+                elif column_title == "Template":
+                    options = ["--Select--", "Assessment", "Lab Test", "Assessment & Lab Test"]
+                    initial_value = value if value in options else options[0]
+
+                    template_dropdown = widgets.Dropdown(
+                        options=options,
+                        value=initial_value,
+                        layout=widgets.Layout(width="170px", display="none")
+                    )
+                    template_dropdown.row = ind  
+                    self.grid_body[ind2, idx] = template_dropdown  
+                    self.template_widgets[ind] = template_dropdown  
+
+                    template_dropdown.observe(self.toggle_columns, names="value")
+
+                elif column_title == "Assessment Name":
+                    assessment_name_text = widgets.Text(
+                        value=value,
+                        disabled=readonly_bool,
+                        layout=widgets.Layout(width="170px", display="none")
+                    )
+                    self.assessment_name_widgets[ind] = assessment_name_text
+                    self.grid_body[ind2, idx] = assessment_name_text
+
+                elif column_title == "Name Reported":
+                    name_reported_options = ["Option 1", "Option 2", "Option 3"]  
+                    name_reported_dropdown = widgets.Dropdown(
+                        options=name_reported_options,
+                        value=name_reported_options[0],
+                        layout=widgets.Layout(width="170px", display="none")  
+                    )
+                    self.name_reported_widgets[ind] = name_reported_dropdown
+                    self.grid_body[ind2, idx] = name_reported_dropdown
+
+                elif column_title == "Type":
+                    type_options = ["Option A", "Option B", "Other"]  
+                    type_dropdown = widgets.Dropdown(
+                        options=type_options,
+                        value=type_options[0],
+                        layout=widgets.Layout(width="170px", display="none")
+                    )
+                    type_dropdown.row = ind  
+                    self.type_widgets[ind] = type_dropdown
+                    self.grid_body[ind2, idx] = type_dropdown
+
+                    type_dropdown.observe(self.toggle_subtype, names="value")
+
+                elif column_title == "Subtype":
+                    subtype_text = widgets.Text(
+                        value=value,
+                        layout=widgets.Layout(width="170px", display="none")
+                    )
+                    self.subtype_widgets[ind] = subtype_text
+                    self.grid_body[ind2, idx] = subtype_text
+
+         #       else:
+         #           self.grid_body[ind2, idx] = widgets.Text(
+         #               value=value,
+         #               disabled=readonly_bool,
+         #               layout=widgets.Layout(width="170px")
+         #           )
+
+        box_body = widgets.VBox([self.grid_body], layout=widgets.Layout(height="450px", overflow_y="auto"))
+        box = widgets.VBox([box_body], layout=widgets.Layout(height="510px"))
+
         return box
-    
+
     def load_data_dictionary_columns(self, b):
     
         dictionary_tables = list(self.dictionary['tables'].keys())
@@ -1318,9 +1554,6 @@ class GUI(GUI_Object):
             self.objects["html_data_dictionary_tables"].set_text(text=f"{', '.join(dictionary_tables)}")
 
     def generate_tab_data_dictionary(self):
-
-      #  self.objects["html_documentation_curated_dd"] = HTML(
-      #      html_text=f"<h2><a title='Information on creating a curated data dictionary' href='{documentation_base_url}/documentation/Curated_Data_Dictionary.md' style='font-size: 18px; text-decoration: none; color: #0077b6;'><b>Click for the curated data dictionary user guide</b></a></h2>",description="")
         
         self.objects["filechooser_data_dictionary"] = File_Chooser(name="filechooser_data_dictionary", title='<b><span style="font-size:18px;">📁 Select the curated data dictionary</span></b>', tooltip='Load a curated data dictionary file',multiple=False,filter_pattern=['*.csv','*.txt',"*.tsv"], style=dict(description_width='initial'))
 
@@ -1381,7 +1614,6 @@ class GUI(GUI_Object):
             self.objects["help_section_2"]
         ])
     
-
         self.objects["tab_row_dd_row"] = widgets.HBox([self.objects["filechooser_data_dictionary"].get(),self.objects["button_filechooser_data_dictionary_load"].get()])
         self.objects["tab_row_dd_form_row"] = widgets.HBox([self.objects["dropdown_table_form_column"].get(),self.objects["button_form_column_confirm"].get()])
         self.hide_row("tab_row_dd_form_row")
@@ -1409,10 +1641,8 @@ class GUI(GUI_Object):
             return names
         return self.data["planned_visit"][["PLANNED_VISIT_ACCESSION","NAME"]]
 
-
     def toggle_show_hide(self, value, toggle):
         """Toggle the study immport tab"""
-        ## Need to cycle through all elements in all keys to hide if not present.
         for (key, element_list) in toggle.items():
             if key == value["new"]:
                 for element in element_list:
@@ -1433,7 +1663,6 @@ class GUI(GUI_Object):
         self.objects[row].visible = True
         self.objects[row].disabled = False
 
-
     def set_data(self, key, value):
         """Set the data"""
         self.data["key"] = value
@@ -1451,7 +1680,7 @@ class GUI(GUI_Object):
         pass
 
     def check_schema_version(self):
-        #Get current Schema version from ImmPort:
+        """Get current Schema version from ImmPort, compares that version to the template in GitHub, gives a critical error if they differ"""
         immport_protocol_schema_url = "https://downloads.immport.org/data/upload/templates/json-templates/protocols.json"
         try:
             response = urlopen(immport_protocol_schema_url)
@@ -1469,9 +1698,8 @@ class GUI(GUI_Object):
             print(type(e))
             print(e)
             return False
-
 class Tab(GUI_Object):
-    
+
     def __init__(self, name, contents=None, callback=None):
         self.name = name
         box_layout = widgets.Layout(overflow='scroll hidden')
@@ -1903,7 +2131,7 @@ immport_data = {'tab_data':{},'config':{}}
 ####Keep
 
 def get_immport_template_names():
-    return ['--Select--',"Assessment", "Lab Test"]
+    return ['--Select--',"Assessment", "Lab Test", "Assessment & Lab Test"]
 
 
 def update_dataframe_from_table(value,row=None, column=None, column_name=None, dataframe=None):
@@ -1961,25 +2189,4 @@ def get_planned_visits(planned_visits, nameonly=False, returnType=None):
             return names.tolist()
         return names
     return planned_visits[["PLANNED_VISIT_ACCESSION","NAME"]]
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
