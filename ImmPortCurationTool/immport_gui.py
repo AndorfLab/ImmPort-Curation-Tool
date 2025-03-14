@@ -962,7 +962,11 @@ class GUI(GUI_Object):
         self.objects["tables_section"].layout.display = 'none'
 
         self.objects["tab_row_study_files_filechooser"] = widgets.HBox([self.objects["filechooser_study_file_directory"].get(), self.objects["button_filechooser_study_file_directory_load"].get()])
-        self.objects["box_study_files_table"]=VBox(name="box_study_files_table")
+        
+        #self.objects["box_study_files_table"]=VBox(name="box_study_files_table")
+
+        self.objects["box_study_files_table"] = VBox(name="box_study_files_table", layout=widgets.Layout(width="100%"))
+
 
         self.objects["reset_tab3_button"] = Button(text="Reset Tab", tooltip="Reset all inputs in Tab 3", style="warning", callback=self.reset_tab3, width="140px", icon="trash")
 
@@ -1260,7 +1264,8 @@ class GUI(GUI_Object):
 
                 self.log(message="Generating DF Table", level='debug',flush=True)
 
-                column_widths = ["300px", "250px", "100px", "150px", "125px", "175px"]
+                column_widths=["300px", "300px", "250px", "300px", "250px", "250px", "250px", "250px", "250px"]
+
                 if len(self.data["file_list_df"].columns) > len(column_widths):
                     column_widths.extend(["150px"] * (len(self.data["file_list_df"].columns) - len(column_widths)))
 
@@ -1391,10 +1396,13 @@ class GUI(GUI_Object):
         else:
             self.subtype_widgets[row].layout.display = "none"  
 
-    def generate_df_table(self, column_widths=["250px", "250px", "200px", "250px", "200px", "200px", "200px", "200px", "200px"], readonly=["Filename", "Description"]):
+   
+    def generate_df_table(self, column_widths=["300px", "300px", "250px", "300px", "250px", "250px", "250px", "250px", "250px"], readonly=["Filename", "Description"]):
         """Generate a DataFrame-based table with interactive dropdowns and inputs."""
 
         global box  
+
+        schema_extractor = sf.SchemaEnumExtractor()
 
         self.table_code_widgets = {}  
         self.default_visit_widgets = {}
@@ -1428,8 +1436,10 @@ class GUI(GUI_Object):
    #         column_widths.extend(["150px"] * (len(header_names) - len(column_widths)))
 
         for idx, title in enumerate(header_names):
-            self.grid_body[0, idx] = widgets.HTML(f"<div style='font-size:16px; font-weight:bold; text-align:center; '>{title}</div>")
-            self.grid_body[0, idx].layout = widgets.Layout(width=column_widths[idx] if idx < len(column_widths) else "200px")
+      #      self.grid_body[0, idx] = widgets.HTML(f"<div style='font-size:16px; font-weight:bold; text-align:center; '>{title}</div>")
+      #      self.grid_body[0, idx].layout = widgets.Layout(width=column_widths[idx])
+
+                self.grid_body[0, idx] = widgets.HTML(f"<div style='font-size:16px; font-weight:bold; text-align:center; '>{title}</div>", layout=widgets.Layout(width=column_widths[idx], justify_content="center", align_items="center"))
 
         for ind in self.data["file_list_df"].index:
             ind2 = ind + 1  
@@ -1444,8 +1454,10 @@ class GUI(GUI_Object):
                 value = str(cell_value).strip() if pd.notna(cell_value) else ""
 
                 if column_title in ["Filename", "Description"]:
-                    self.grid_body[ind2, idx] = widgets.Label(value=value, layout=widgets.Layout(width="220px", color="black"))
+                   # self.grid_body[ind2, idx] = widgets.HTML(value= f"<span style='font-size:14px; '>{value}</span>", layout=widgets.Layout(width=column_widths[idx], color="black"))
 
+                    self.grid_body[ind2, idx] = widgets.HTML(value=f"<span style='font-size:14px; text-align:center; display:block;'>{value}</span>", layout=widgets.Layout(width=column_widths[idx], justify_content="center", align_items="center"))
+                        
                 elif column_title == "Table Code":
                     table_code_options = list(self.dictionary["tables"].keys())  
                     table_code_options.insert(0, "--Select--")  
@@ -1454,7 +1466,7 @@ class GUI(GUI_Object):
                     table_code_dropdown = widgets.Dropdown(
                         options=table_code_options,
                         value=initial_value,
-                        layout=widgets.Layout(width="170px")
+                        layout=widgets.Layout(width=column_widths[idx], justify_content="center", align_items="center")
                     )
                     table_code_dropdown.row = ind  
                     self.grid_body[ind2, idx] = table_code_dropdown
@@ -1470,7 +1482,7 @@ class GUI(GUI_Object):
                     default_visit_dropdown = widgets.Dropdown(
                         options=visit_options,
                         value=initial_value,
-                        layout=widgets.Layout(width="220px", display="none")  
+                        layout=widgets.Layout(width=column_widths[idx], display="none", justify_content="center", align_items="center")  
                     )
                     default_visit_dropdown.row = ind  
                     self.grid_body[ind2, idx] = default_visit_dropdown  
@@ -1483,7 +1495,7 @@ class GUI(GUI_Object):
                     template_dropdown = widgets.Dropdown(
                         options=options,
                         value=initial_value,
-                        layout=widgets.Layout(width="170px", display="none")
+                        layout=widgets.Layout(width=column_widths[idx], display="none", justify_content="center", align_items="center")
                     )
                     template_dropdown.row = ind  
                     self.grid_body[ind2, idx] = template_dropdown  
@@ -1495,27 +1507,27 @@ class GUI(GUI_Object):
                     assessment_name_text = widgets.Text(
                         value=value,
                         disabled=readonly_bool,
-                        layout=widgets.Layout(width="170px", display="none")
-                    )
+                        layout=widgets.Layout(flex="1", width="100%", display="none", justify_content="center", align_items="center")
+                    ) #not taking up full space for some reason
                     self.assessment_name_widgets[ind] = assessment_name_text
                     self.grid_body[ind2, idx] = assessment_name_text
-
+#column_widths[idx]
                 elif column_title == "Name Reported":
-                    name_reported_options = ["Option 1", "Option 2", "Option 3"]  
+                    name_reported_options = schema_extractor.get_enum("nameReported")
                     name_reported_dropdown = widgets.Dropdown(
                         options=name_reported_options,
                         value=name_reported_options[0],
-                        layout=widgets.Layout(width="170px", display="none")  
+                        layout=widgets.Layout(width=column_widths[idx], display="none", justify_content="center", align_items="center")  
                     )
                     self.name_reported_widgets[ind] = name_reported_dropdown
                     self.grid_body[ind2, idx] = name_reported_dropdown
 
                 elif column_title == "Type":
-                    type_options = ["Option A", "Option B", "Other"]  
+                    type_options = schema_extractor.get_enum("type")
                     type_dropdown = widgets.Dropdown(
                         options=type_options,
                         value=type_options[0],
-                        layout=widgets.Layout(width="170px", display="none")
+                        layout=widgets.Layout(width=column_widths[idx], display="none", justify_content="center", align_items="center")
                     )
                     type_dropdown.row = ind  
                     self.type_widgets[ind] = type_dropdown
@@ -1526,7 +1538,7 @@ class GUI(GUI_Object):
                 elif column_title == "Subtype":
                     subtype_text = widgets.Text(
                         value=value,
-                        layout=widgets.Layout(width="170px", display="none")
+                        layout=widgets.Layout(width=column_widths[idx], display="none", justify_content="center", align_items="center")
                     )
                     self.subtype_widgets[ind] = subtype_text
                     self.grid_body[ind2, idx] = subtype_text

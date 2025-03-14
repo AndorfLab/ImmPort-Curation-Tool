@@ -236,6 +236,48 @@ class ImmPort_Data:
             protocols_schema = json.load(fh)
             self.schemaVersion=protocols_schema['properties']['schemaVersion']['enum'][0]
 
+
+class SchemaEnumExtractor:
+    """Extracts enum values from labTests.MetaData.json"""
+
+    def __init__(self, schemaFile='labTests.MetaData.json'):
+        self.schemaFile = schemaFile
+        self.enums = self.load_enum_values()
+
+    def load_enum_values(self):
+        """Reads the labTests.MetaData.json and extracts enum values that will be used in the ui editable table dropdowns"""
+        
+        schema_path = os.path.join(json_schema_template_path_full, self.schemaFile)
+    
+        try:
+            with open(schema_path, "r") as file:
+                schema = json.load(file)
+
+            extracted_enums = {}
+            for key, properties in schema.get("properties", {}).items():
+                if "enum" in properties:
+                    extracted_enums[key] = properties["enum"]
+            
+            return extracted_enums
+
+        except Exception as e:
+            ig.main_logger.write(
+                level="error",
+                message=f"Error loading in labTests.MetaData.json file",      
+                flush=True)
+                
+            return {}
+    
+    def get_enum(self, field_name):
+        """Returns enum options"""
+
+        options = self.enums.get(field_name, [])
+    
+        if "--Select--" not in options:
+            options.insert(0, "--Select--")
+    
+        return options
+    
 class Assessment(ImmPort_Data):
     filename="assessments.json"
     name="assessments"
