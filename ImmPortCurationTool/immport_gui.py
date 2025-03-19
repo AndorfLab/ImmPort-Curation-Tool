@@ -334,6 +334,9 @@ class GUI(GUI_Object):
         if "filechooser_study_files" in self.objects:
             self.objects["filechooser_study_files"].reset("", "")  
 
+        if "filechooser_protocol_files" in self.objects:
+            self.objects["filechooser_protocol_files"].reset("", "")  
+
         if "error_message_study_files" in self.objects:
             self.objects["error_message_study_files"].show_hide_element(display="none")
 
@@ -342,6 +345,9 @@ class GUI(GUI_Object):
 
         if "error_message_study_tab_file" in self.objects:
             self.objects["error_message_study_tab_file"].show_hide_element(display="none")
+
+        if "error_message_protocol_files" in self.objects:
+            self.objects["error_message_protocol_files"].show_hide_element(display="none")
 
         if "text_study_id" in self.objects:
             self.objects["text_study_id"].reset()
@@ -580,6 +586,14 @@ class GUI(GUI_Object):
 
             self.objects["file_chooser_study_files_with_error"] = widgets.HBox([self.objects["filechooser_study_files"].get(), self.objects["error_message_study_files"].get()])
 
+            self.objects["filechooser_protocol_files"] = File_Chooser(name="filechooser_protocol_files", title='<b><span style="font-size:18px;">📁 Select the ImmPort protocol file</span></b>', tooltip='Load a protocol file',multiple=False,filter_pattern=['*.csv'], style=dict(description_width='initial'))
+            self.objects["filechooser_protocol_files"].set_onclick(self, callback_function=self.load_protocol_file, callback_data = {})
+
+            self.objects["error_message_protocol_files"] = HTML(html_text="<span style='color: red; font-size: 16px;'>⚠️ Please select a valid protocol file </span>", description="")
+            self.objects["error_message_protocol_files"].show_hide_element(display="none")
+
+            self.objects["file_chooser_protocol_files_with_error"] = widgets.HBox([self.objects["filechooser_protocol_files"].get(), self.objects["error_message_protocol_files"].get()])
+
             self.objects["label_study_id"] = widgets.HTML(
                 "<b><span style='font-size:18px;'>🆔 Input the study ID</span></b>"
             )
@@ -626,6 +640,10 @@ class GUI(GUI_Object):
 
             box_study_files = VBox(name='box_study_files')
             box_study_files.set_children([self.objects['file_chooser_study_files_with_error']])
+
+            box_protocol_files = VBox(name='box_protocol_files')
+            box_protocol_files.set_children([self.objects['file_chooser_protocol_files_with_error']])
+
 
             self.objects["toggle_non_tab_files"] = ToggleButtons(description='<b><span style="font-size:18px;">Do you want to amend the Tab file with new planned visits and/or study files?</span></b>', options=[('Yes',1),('No',0)], value=0, tooltips=[], style=dict(description_width='initial',button_width='auto'))
 
@@ -705,6 +723,8 @@ class GUI(GUI_Object):
                 spacer,
                 box_study_files.get(),
                 spacer,
+                box_protocol_files.get(),
+                spacer,
                 study_visit_list_section,
                 spacer, 
                 bottom_buttons_1, 
@@ -714,13 +734,13 @@ class GUI(GUI_Object):
             self.objects["toggle_current_immport_study"].set_observe(callback_function=self.toggle_show_hide, callback_data={
                 "toggle":{
                     1:[box_immport_study_yes], 
-                    0:[box_immport_study_no,box_planned_visits,box_study_files] #,box_immport_download_instructions]
+                    0:[box_immport_study_no,box_planned_visits,box_study_files, box_protocol_files] #,box_immport_download_instructions]
                     }
                 })
 
             self.objects["toggle_non_tab_files"].set_observe(callback_function=self.toggle_show_hide, callback_data={
                 "toggle":{
-                    1:[box_planned_visits,box_study_files], #,box_immport_download_instructions], 
+                    1:[box_planned_visits,box_study_files,box_protocol_files], #,box_immport_download_instructions], 
                     0:[]
                     }
                 })
@@ -775,9 +795,77 @@ class GUI(GUI_Object):
             
         self.objects["help_text_1"].value = new_help_text
 
+    # def on_select_study_tab_file_with_error_handling(self, value, gui=None, fc_name=None):
+    #     try:
+    #         if value.description == "Change":
+    #             gui.data["planned_visit"] = cf.readFileFromZip(
+    #                 gui.objects[fc_name].widget.selected_path,
+    #                 gui.objects[fc_name].widget.selected_filename,
+    #                 "planned_visit.txt"
+    #             )
+
+    #             if gui.data["planned_visit"] is None:
+    #                 raise ValueError("Missing required file 'planned_visit.txt' in the Tab ZIP file.")
+
+    #             gui.data["study_files"] = cf.readFileFromZip(
+    #                 gui.objects[fc_name].widget.selected_path,
+    #                 gui.objects[fc_name].widget.selected_filename,
+    #                 "study_file.txt"
+    #             )
+
+    #             if gui.data["study_files"] is None:
+    #                 raise ValueError("Missing required file 'study_file.txt' in the Tab ZIP file.")
+
+    #             gui.data["study"] = cf.readFileFromZip(
+    #                 gui.objects[fc_name].widget.selected_path,
+    #                 gui.objects[fc_name].widget.selected_filename,
+    #                 "study.txt"
+    #             )
+
+    #             if gui.data["study"] is None:
+    #                 raise ValueError("Missing required file 'study.txt' in the Tab ZIP file.")
+
+    #             visit_names = get_planned_visits(gui.data["planned_visit"], nameonly=True, returnType="list")
+
+    #             if "dropdown_study_visit_list" in gui.objects:
+    #                 gui.objects["dropdown_study_visit_list"].set_options(visit_names)
+
+    #                 if "study_visit_list_section" in gui.objects:
+    #                     gui.objects["study_visit_list_section"].children = [
+    #                         gui.objects["label_study_visit_list"],
+    #                         gui.objects["dropdown_study_visit_list"].get()
+    #                     ]
+
+    #             protocol_names = get_protocols(gui.data["protocol"], nameonly=True, returnType="list")
+
+    #             if "dropdown_protocol_list" in gui.objects:
+    #                 gui.objects["dropdown_protocol_list"].set_options(protocol_names)
+
+    #                 if "protocol_list_section" in gui.objects:
+    #                     gui.objects["protocol_list_section"].children = [
+    #                         gui.objects["label_protocol_list"],
+    #                         gui.objects["dropdown_protocol_list"].get()
+    #                     ]
+
+
+    #             gui.objects["error_message_study_tab_file"].show_hide_element(display="none")
+
+    #     except Exception as e:
+    #         gui.objects["error_message_study_tab_file"].show_hide_element(display="")
+    #         gui.log(message=f"Error loading ImmPort study Tab file: {str(e)}", level="error", flush=True)
+    #         gui.flush_log()
+
     def on_select_study_tab_file_with_error_handling(self, value, gui=None, fc_name=None):
         try:
+         #   if gui is None:
+         #       raise ValueError("GUI reference is missing!")
+
+
+                    # Debug: Print value.description
+            print(f"on_select_study_tab_file_with_error_handling: value.description = {value.description}")
+
             if value.description == "Change":
+                # Read planned_visit.txt
                 gui.data["planned_visit"] = cf.readFileFromZip(
                     gui.objects[fc_name].widget.selected_path,
                     gui.objects[fc_name].widget.selected_filename,
@@ -787,6 +875,7 @@ class GUI(GUI_Object):
                 if gui.data["planned_visit"] is None:
                     raise ValueError("Missing required file 'planned_visit.txt' in the Tab ZIP file.")
 
+                # Read study_file.txt
                 gui.data["study_files"] = cf.readFileFromZip(
                     gui.objects[fc_name].widget.selected_path,
                     gui.objects[fc_name].widget.selected_filename,
@@ -796,6 +885,7 @@ class GUI(GUI_Object):
                 if gui.data["study_files"] is None:
                     raise ValueError("Missing required file 'study_file.txt' in the Tab ZIP file.")
 
+                # Read study.txt
                 gui.data["study"] = cf.readFileFromZip(
                     gui.objects[fc_name].widget.selected_path,
                     gui.objects[fc_name].widget.selected_filename,
@@ -805,7 +895,18 @@ class GUI(GUI_Object):
                 if gui.data["study"] is None:
                     raise ValueError("Missing required file 'study.txt' in the Tab ZIP file.")
 
-                visit_names = get_planned_visits(gui.data["planned_visit"], nameonly=True, returnType="list")
+                # # ✅ Read protocol.txt from ZIP
+                gui.data["protocol"] = cf.readFileFromZip(
+                    gui.objects[fc_name].widget.selected_path,
+                    gui.objects[fc_name].widget.selected_filename,
+                    "protocol.txt"
+                )
+                
+                if gui.data["protocol"] is None:
+                    raise ValueError("Missing required file 'protocol.txt' in the Tab ZIP file.")
+
+                # ✅ Read and update study visits
+                visit_names = gui.get_planned_visits(nameonly=True, returnType="list")
 
                 if "dropdown_study_visit_list" in gui.objects:
                     gui.objects["dropdown_study_visit_list"].set_options(visit_names)
@@ -814,6 +915,17 @@ class GUI(GUI_Object):
                         gui.objects["study_visit_list_section"].children = [
                             gui.objects["label_study_visit_list"],
                             gui.objects["dropdown_study_visit_list"].get()
+                        ]
+
+                protocol_names = gui.get_protocols(nameonly=True, returnType="list")
+
+                if "dropdown_protocol_list" in gui.objects:
+                    gui.objects["dropdown_protocol_list"].set_options(protocol_names)
+
+                    if "protocol_list_section" in gui.objects:
+                        gui.objects["protocol_list_section"].children = [
+                            gui.objects["label_protocol_list"],
+                            gui.objects["dropdown_protocol_list"].get()
                         ]
 
                 gui.objects["error_message_study_tab_file"].show_hide_element(display="none")
@@ -865,7 +977,6 @@ class GUI(GUI_Object):
             self.log(message=f"Error loading study file: {str(e)}", level="error", flush=True)
             self.flush_log()
 
-
     def load_planned_visit_file(self, value):
         try:
             if value.description == "Change":
@@ -913,6 +1024,57 @@ class GUI(GUI_Object):
             self.objects["error_message_planned_visits"].show_hide_element(display="")
             self.log(message=f"Error loading planned visits file: {str(e)}", level="error", flush=True)
             self.flush_log()
+
+
+    def load_protocol_file(self, value):
+        try:
+            print(f"load_protocol_file: value.description = {value.description}")
+
+            if value.description == "Change":
+                protocol_filename = self.objects["filechooser_protocol_files"].get_filepath()
+                with open(protocol_filename, 'r') as pv:
+                    if protocol_filename.endswith(".csv"):
+                        sep = ","
+                    else:
+                        sep = "\t"
+
+                    self.data["protocol"] = pd.read_csv(pv, sep=sep)
+
+                    mandatory_column = [
+                        "Protocol Accession"
+                    ]
+
+                    missing_column = [col for col in mandatory_column if col not in self.data["protocol"].columns]
+
+                    if missing_column:
+                        raise ValueError(f"The following mandatory columns are missing: {', '.join(missing_column)}")
+
+                    rename_map={
+                        "Protocol Accession":"PROTOCOL_ACCESSION",
+                        "Name":"NAME",
+                        "Description":"DESCRIPTION",
+                        "File Name":"FILE_NAME",
+                        "Original File Name": "ORIGINAL_FILE_NAME",
+                        "Type": "TYPE",
+                        "Workspace ID": "WORKSPACE_ID"}
+                    
+
+                    for col in list(rename_map.keys()):
+                        if col not in self.data["protocol"].columns:
+                            del rename_map[col]
+
+                    self.data["protocol"].rename(columns=rename_map, inplace=True)
+
+                protocol_names = self.get_protocols(self.data["protocol"],nameonly=True, returnType="list")
+                self.objects["dropdown_protocol_list"].set_options(protocol_names)
+
+                self.objects["error_message_protocol_files"].show_hide_element(display="none")
+
+        except Exception as e:
+            self.objects["error_message_protocol_files"].show_hide_element(display="")
+            self.log(message=f"Error loading protocol file: {str(e)}", level="error", flush=True)
+            self.flush_log()
+
 
     def load_data_dictionary(self,gui):
         self.objects["button_filechooser_data_dictionary_load"].button_change(button=self.objects["button_filechooser_data_dictionary_load"], style='warning', text='Loading',tooltip='The data dictionary file is being loaded',disabled=False, icon='spinner')
@@ -1041,6 +1203,8 @@ class GUI(GUI_Object):
             self.template_widgets = {}
         if not hasattr(self, 'default_visit_widgets'):
             self.default_visit_widgets = {}
+        if not hasattr(self, 'protocol_widgets'):
+            self.protocol_widgets = {}
 
         for index in self.data["file_list_df"].index:
             if index in self.table_code_widgets:
@@ -1049,6 +1213,9 @@ class GUI(GUI_Object):
                 self.data["file_list_df"].at[index, "Template"] = self.template_widgets[index].value
             if index in self.default_visit_widgets:
                 self.data["file_list_df"].at[index, "Default Visit"] = self.default_visit_widgets[index].value
+            if index in self.default_visit_widgets:
+                self.data["file_list_df"].at[index, "Protocol"] = self.protocol_widgets[index].value
+
 
         my_assessments = {}
         study_id = self.get_study_id()
@@ -1078,8 +1245,8 @@ class GUI(GUI_Object):
         for index, study_file_row in self.data['file_list_df'].iterrows():
             table_code = str(study_file_row["Table Code"]).strip() if pd.notna(study_file_row["Table Code"]) else ""
             template = str(study_file_row["Template"]).strip() if pd.notna(study_file_row["Template"]) else ""
-            default_visit = str(study_file_row["Default Visit"]).strip() if pd.notna(study_file_row["Default Visit"]) else ""
-            assessment_name = str(study_file_row["Assessment Name"]).strip() if pd.notna(study_file_row["Assessment Name"]) else ""
+         #   default_visit = str(study_file_row["Default Visit"]).strip() if pd.notna(study_file_row["Default Visit"]) else ""
+         #   assessment_name = str(study_file_row["Assessment Name"]).strip() if pd.notna(study_file_row["Assessment Name"]) else ""
 
             if table_code == '' and template == '':
                 self.log(
@@ -1218,7 +1385,7 @@ class GUI(GUI_Object):
                 study_files.sort()
 
                 if "file_list_df" not in self.data:
-                    self.data["file_list_df"] = pd.DataFrame(columns=["Filename", "Table Code", "Assessment Name", "Template", "Default Visit", "Name Reported"])
+                    self.data["file_list_df"] = pd.DataFrame(columns=["Filename", "Table Code", "Assessment Name", "Template", "Default Visit", "Protocol", "Name Reported"])
                 else:
                     if "Name Reported" not in self.data["file_list_df"].columns:
                         self.data["file_list_df"]["Name Reported"] = "" 
@@ -1252,6 +1419,14 @@ class GUI(GUI_Object):
                     categories=self.get_planned_visits(nameonly=True, returnType="list")
                 )
 
+                self.data["file_list_df"]["Protocol"] = [''] * num_rows
+
+                self.data["file_list_df"]["Protocol"] = pd.Categorical(
+                    self.data["file_list_df"]["Protocol"],
+                    ordered=True,
+                    categories=self.get_protocols(nameonly=True, returnType="list")
+                )
+
                 self.data["file_list_df"]["Filename"] = study_files
 
                 self.data['file_list_df'] = self.data['file_list_df'].merge(self.data["study_files"][["FILE_NAME","DESCRIPTION"]], left_on="Filename", right_on="FILE_NAME", how="left")
@@ -1260,11 +1435,11 @@ class GUI(GUI_Object):
                 if "Name Reported" not in self.data["file_list_df"].columns:
                     self.data["file_list_df"]["Name Reported"] = ""
 
-                self.data["file_list_df"] = self.data["file_list_df"][["Filename", "Description", "Table Code", "Assessment Name", "Template", "Default Visit", "Name Reported"]]
+                self.data["file_list_df"] = self.data["file_list_df"][["Filename", "Description", "Table Code", "Assessment Name", "Template", "Default Visit", "Name Reported", "Protocol"]]
 
                 self.log(message="Generating DF Table", level='debug',flush=True)
 
-                column_widths=["300px", "300px", "250px", "300px", "250px", "250px", "250px", "250px", "250px"]
+                column_widths=["300px", "300px", "250px", "300px", "250px", "250px", "250px", "250px", "250px", "250px"]
 
                 if len(self.data["file_list_df"].columns) > len(column_widths):
                     column_widths.extend(["150px"] * (len(self.data["file_list_df"].columns) - len(column_widths)))
@@ -1365,21 +1540,25 @@ class GUI(GUI_Object):
         template_value = change["new"]  
 
         if template_value == "Assessment":
+            self.protocol_widgets[row].layout.display = "none"
             self.name_reported_widgets[row].layout.display = "none"  
             self.type_widgets[row].layout.display = "none" 
             self.subtype_widgets[row].layout.display = "none" 
             self.assessment_name_widgets[row].layout.display = "block" 
         elif template_value == "Lab Test":
+            self.protocol_widgets[row].layout.display = "block"
             self.name_reported_widgets[row].layout.display = "block"  
             self.type_widgets[row].layout.display = "block"  
             self.subtype_widgets[row].layout.display = "none" 
             self.assessment_name_widgets[row].layout.display = "none"  
         elif template_value == "Assessment & Lab Test":
+            self.protocol_widgets[row].layout.display = "block"
             self.name_reported_widgets[row].layout.display = "block"  
             self.type_widgets[row].layout.display = "block" 
             self.subtype_widgets[row].layout.display = "none"  
             self.assessment_name_widgets[row].layout.display = "block"  
         else:
+            self.protocol_widgets[row].layout.display = "none"
             self.name_reported_widgets[row].layout.display = "none"  
             self.type_widgets[row].layout.display = "none"  
             self.subtype_widgets[row].layout.display = "none"  
@@ -1408,12 +1587,13 @@ class GUI(GUI_Object):
         self.default_visit_widgets = {}
         self.template_widgets = {}
         self.assessment_name_widgets = {}
+        self.protocol_widgets = {}
         self.name_reported_widgets = {}
         self.type_widgets = {}
         self.subtype_widgets = {}
 
         if "file_list_df" not in self.data:
-            self.data["file_list_df"] = pd.DataFrame(columns=["Filename", "Description", "Table Code", "Default Visit", "Template", "Assessment Name", "Name Reported", "Type", "Subtype"])
+            self.data["file_list_df"] = pd.DataFrame(columns=["Filename", "Description", "Table Code", "Default Visit", "Template", "Assessment Name", "Protocol", "Name Reported", "Type", "Subtype"])
         else:
             self.data["file_list_df"] = self.data["file_list_df"].copy()
 
@@ -1422,7 +1602,7 @@ class GUI(GUI_Object):
                     self.data["file_list_df"][col] = self.data["file_list_df"][col].astype(str)
             self.data["file_list_df"] = self.data["file_list_df"].fillna("")
 
-        required_columns = ["Filename", "Description", "Table Code", "Default Visit", "Template", "Assessment Name", "Name Reported", "Type", "Subtype"]
+        required_columns = ["Filename", "Description", "Table Code", "Default Visit", "Template", "Assessment Name", "Protocol", "Name Reported", "Type", "Subtype"]
         for col in required_columns:
             if col not in self.data["file_list_df"].columns:
                 self.data["file_list_df"][col] = "" 
@@ -1512,6 +1692,25 @@ class GUI(GUI_Object):
                     self.assessment_name_widgets[ind] = assessment_name_text
                     self.grid_body[ind2, idx] = assessment_name_text
 #column_widths[idx]
+
+                elif column_title == "Protocol":
+                    protocol_options = self.get_protocols(nameonly=True, returnType="list")  
+                    protocol_options.insert(0, "--Select--")  
+                    initial_value = value if value in visit_options else "--Select--"
+                 
+                #    if "protocol" in self.data and not self.data["protocol"].empty:
+                #        protocol_options.extend(self.data["protocol"].get("NAME", []))
+
+                    protocol_dropdown = widgets.Dropdown(
+                        options=protocol_options,
+                        value=initial_value,
+                        layout=widgets.Layout(width=column_widths[idx], display="none", justify_content="center", align_items="center") 
+                    )
+
+                    protocol_dropdown.row = ind  
+                    self.protocol_widgets[ind] = protocol_dropdown  
+                    self.grid_body[ind2, idx] = protocol_dropdown 
+       
                 elif column_title == "Name Reported":
                     name_reported_options = schema_extractor.get_enum("nameReported")
                     name_reported_dropdown = widgets.Dropdown(
@@ -1652,6 +1851,19 @@ class GUI(GUI_Object):
                 return names.tolist()
             return names
         return self.data["planned_visit"][["PLANNED_VISIT_ACCESSION","NAME"]]
+    
+    def get_protocols(self, nameonly=False, returnType=None):
+
+        if "protocol" not in self.data or self.data["protocol"].empty:
+            return [] 
+        
+        if nameonly:
+            names = self.data["protocol"]["NAME"]
+            if returnType == 'list':
+                return names.tolist()
+            return names
+        return self.data["protocol"][["PROTOCOL_ACCESSION","NAME"]]
+
 
     def toggle_show_hide(self, value, toggle):
         """Toggle the study immport tab"""
@@ -2182,6 +2394,8 @@ def on_select_study_tab_file(value, gui=None, fc_name=None):
 
         gui.data["study"] = cf.readFileFromZip(gui.objects[fc_name].widget.selected_path, gui.objects[fc_name].widget.selected_filename, "study.txt")
 
+        gui.data["protocol"] = cf.readFileFromZip(gui.objects[fc_name].widget.selected_path, gui.objects[fc_name].widget.selected_filename, "protocol.txt")
+
         visit_names = get_planned_visits(gui.data["planned_visit"],nameonly=True, returnType="list")
         
         if "dropdown_study_visit_list" in gui.objects:
@@ -2193,6 +2407,17 @@ def on_select_study_tab_file(value, gui=None, fc_name=None):
                     gui.objects["dropdown_study_visit_list"].get()  
                 ]
 
+        protocol_names = get_protocols(gui.data["protocol"],nameonly=True, returnType="list")
+        
+        if "dropdown_protocol_list" in gui.objects:
+            gui.objects["dropdown_protocol_list"].set_options(protocol_names)
+
+            if "protocol_list_section" in gui.objects:
+                gui.objects["protocol_list_section"].children = [
+                    gui.objects["label_protocol_list"], 
+                    gui.objects["dropdown_protocol_list"].get()  
+                ]
+
 def get_planned_visits(planned_visits, nameonly=False, returnType=None):
     #TODO move into gui and wrap try/except with logging
     if nameonly:
@@ -2201,4 +2426,15 @@ def get_planned_visits(planned_visits, nameonly=False, returnType=None):
             return names.tolist()
         return names
     return planned_visits[["PLANNED_VISIT_ACCESSION","NAME"]]
+
+def get_protocols(self, nameonly=False, returnType=None):
+    
+    if nameonly:
+        names = self.data["protocol"]["NAME"]
+        if returnType == 'list':
+            return names.tolist()
+        return names
+    return self.data["protocol"][["PROTOCOL_ACCESSION","NAME"]]
+
+
 
