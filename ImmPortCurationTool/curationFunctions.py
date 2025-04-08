@@ -11,37 +11,65 @@ from zipfile import ZipFile
 import ImmPortCurationTool.immport_gui as ig
 import urllib.parse
 
+from IPython.display import display
+
 pd.options.display.max_columns = 400
 pd.options.display.max_rows = 200
 
 missingVisits_all = {}
 
-def writePanelComponentTemplate(panel, component, header, filepath):
+def writePanelComponentTemplate(panel, component, header, filepath, template):
     panel["Result Separator Column"]=""
-    df_temp = panel.merge(component, left_on='Assessment Panel ID', right_on='ASSESSMENT_PANEL_ACCESSION')
-    df_temp["Subject ID"]=df_temp["User Defined ID"]
-    df_temp["User Defined ID"]=df_temp.index+0
-    df_temp.drop(columns=["ASSESSMENT_PANEL_ACCESSION","component_group_id","WORKSPACE_ID"], inplace=True, errors='ignore')
+
+    if template == "assessments":
+
+        df_temp = panel.merge(component, left_on='Assessment Panel ID', right_on='ASSESSMENT_PANEL_ACCESSION')
+        df_temp["Subject ID"]=df_temp["User Defined ID"]
+        df_temp["User Defined ID"]=df_temp.index+0
+        df_temp.drop(columns=["ASSESSMENT_PANEL_ACCESSION","component_group_id","WORKSPACE_ID"], inplace=True, errors='ignore')
+
+    elif template == "labTests":
+
+        df_temp = panel.merge(component, left_on='Lab Test Panel ID', right_on='LAB_TEST_PANEL_ACCESSION')
+
+        print(f"df_temp {df_temp}")
+
+        if 'Planned Visit ID_y' in df_temp.columns:
+            df_temp['Planned Visit ID'] = df_temp['Planned Visit ID_y']
+        elif 'Planned Visit ID' in df_temp.columns:
+            pass  
+
+        df_temp["Subject ID"]=df_temp["User Defined ID"]
+        df_temp["User Defined ID"]=df_temp.index+0
+        df_temp.drop(columns=["LAB_TEST_PANEL_ACCESSION","component_group_id","WORKSPACE_ID"], inplace=True, errors='ignore')
+
     colNames = list(map(lambda s: s.replace("_x","").replace("_y",""),df_temp.columns.to_list()))
 
-    #Need separator as | as it is not in string and allows correct output of data.
+    df_temp.columns = colNames
+
     header.to_csv(filepath, sep="|",index=False, encoding='utf-8')
 
     df_temp.to_csv(filepath, sep="\t", mode='a',header=False, index=False)
 
 
-def processStudyFile(table_list,directory,dictionary,planned_visits,study_files,assessment_panel_template,study_id,assessment_components_template,table_metadata,workspace_id):    
-    for table_set in table_list:
-        filename = table_metadata.loc[table_metadata.table_name.isin(table_set["tables"])]["table_file"].values[0]
-        filepath = directory+"StudyFiles/"+filename
+def processStudyFile(table_list,directory,dictionary,planned_visits,study_files,panel_template,study_id,components_template,table_metadata,workspace_id,template):    
 
-        datafile = readAndModifyStudyFile(filepath,table_set,dictionary,planned_visits)
-        [assessment_panel_template,panel_id] = getAssessmentPanelID([filename],study_files,assessment_panel_template,study_id,table_set["assessment_type"])
-        panel=getAssessmentPanelByID(panel_id,assessment_panel_template)
-        
-        assessment_components_template=datafileToComponents(datafile,dictionary,table_set["tables"],assessment_components_template,panel_id,workspace_id)
+    if template == "assessments":
 
-    return [assessment_panel_template,assessment_components_template]
+        for table_set in table_list:
+            filename = table_metadata.loc[table_metadata.table_name.isin(table_set["tables"])]["table_file"].values[0]
+            filepath = directory+"StudyFiles/"+filename
+
+            datafile = readAndModifyStudyFile(filepath,table_set,dictionary,planned_visits)
+            [panel_template,panel_id] = getAssessmentPanelID([filename],study_files,panel_template,study_id,table_set["assessment_type"])
+            panel=getAssessmentPanelByID(panel_id,panel_template)
+            
+            components_template=datafileToComponents(datafile,dictionary,table_set["tables"],components_template,template,panel_id,workspace_id)
+
+        components_template.to_csv('processStudyFile_assessment_component_template.csv', index=False)
+        panel_template.to_csv('processStudyFile_assessment_panel_template.csv', index=False)
+
+        return [panel_template, components_template]
 
 def readFileFromZip(dir,zip,file):
     if zip.endswith('.zip'):
@@ -73,9 +101,14 @@ def addVisitAccessionFromName(planned_visits, table, visit_col,dictionary,file_t
     global missingVisits_all    
     table_column = getColumnName(dictionary, file_table,visit_col)
 
-    #dict_visits is a dictionary of planned visits. Keys are names, values are IDs
     dict_visits=dict(zip(planned_visits["NAME"],planned_visits["PLANNED_VISIT_ACCESSION"]))
-    
+
+        # ADD DEBUG PRINT STATEMENTS HERE
+    display(f"DEBUG Mapping visits for table: {file_table}")
+    display(f"DEBUG Visit column: {visit_col}")
+    display(f"DEBUG First 5 visit values: {table[visit_col].head()}")
+    display(f"DEBUG Planned visits mapping: {dict_visits}")
+        
     if(table_column is None):
         if(default_visit is not None):
             table["PLANNED_VISIT_ID"]=dict_visits.get(default_visit,"")
@@ -173,27 +206,29 @@ def getAssessmentPanelByID(panel_ID,assessment_panel_df):
     return assessment_panel_df[assessment_panel_df["Assessment Panel ID"]==panel_ID]
 
 def readTemplate(template, template_path="templates/txt-templates/"):
-    if(template == 'assessments'):
-        template_file_path = os.path.abspath(os.path.join(template_path,"assessments.txt"))
 
-        assessment_template_header = pd.read_csv(template_file_path,nrows=2)
-        assessments = pd.read_csv(template_file_path, sep='\t', skiprows=2,nrows=0)
+    if template == 'assessments':
+        template_file_path = os.path.abspath(os.path.join(template_path, "assessments.txt"))
+
+        assessment_template_header = pd.read_csv(template_file_path, nrows=2)
+        assessments = pd.read_csv(template_file_path, sep='\t', skiprows=2, nrows=0)
+
         split_on_col = assessments.columns.get_loc("Result Separator Column")
-        assessment_panel_template = assessments.iloc[: , :split_on_col-1]
-        assessment_components_template = assessments.iloc[: , split_on_col+1:].copy()
-        assessment_components_template.rename(columns={"Name Reported.1":"Name Reported"}, inplace=True)
+        panel_template = assessments.iloc[:, :split_on_col-1]
+        components_template = assessments.iloc[:, split_on_col+1:].copy()
 
-        print(f"read panel template assessment {assessment_panel_template} component {assessment_components_template} header {assessment_template_header}")
-        return assessment_panel_template,assessment_components_template,assessment_template_header
+        return panel_template, components_template, assessment_template_header
     
-    if(template == 'labPanels'):
+    if template == 'labTests':
         template_file_path = os.path.abspath(os.path.join(template_path,"labTests.txt"))
 
         labTest_template_header = pd.read_csv(template_file_path,nrows=2)
+
         labTests = pd.read_csv(template_file_path, sep='\t', skiprows=2,nrows=0)
         split_on_col = labTests.columns.get_loc("Result Separator Column")
         labTest_panel_template = labTests.iloc[: , :split_on_col-1]
         labTest_components_template = labTests.iloc[: , split_on_col+1:].copy()
+
         labTest_components_template.rename(columns={"Name Reported.1":"Name Reported"}, inplace=True)
 
         return labTest_panel_template,labTest_components_template,labTest_template_header
@@ -205,108 +240,230 @@ def createColumnMappingDict(dictionary,table_name):
             continue
 
         mappings[col]=mapping
+
     return mappings
 
-def datafileToComponents(datafile,dictionary,table_name_array,assessment_components_template,panel_id=-1,workspace_id=9999,col_units={}):
-    #Remove any records of this table already loaded into the components table.
-    assessment_components_template.drop(assessment_components_template[assessment_components_template["ASSESSMENT_PANEL_ACCESSION"] == panel_id].index, inplace=True)
-    for table_name in table_name_array:
-        col_mappings = createColumnMappingDict(dictionary,table_name)
+def datafileToComponents(datafile,dictionary,table_name_array,components_template,template,panel_id=-1,workspace_id=9999,col_units={}):
+   
+    if template == "assessments":
+   
+        #Remove any records of this table already loaded into the components table.
+        components_template.drop(components_template[components_template["ASSESSMENT_PANEL_ACCESSION"] == panel_id].index, inplace=True)
+        for table_name in table_name_array:
+            col_mappings = createColumnMappingDict(dictionary,table_name)
 
-        question_id = 0
-        datafile.rename(columns=col_mappings,inplace=True)
-    
-        #Limit to fields that have a "true" value for the "question" field as specified when loading the data dictionary
-        question_cols = (dict(filter(lambda col: col[1]["question"],dictionary["tables"][table_name]["fields"].items())))
+            question_id = 0
+            datafile.rename(columns=col_mappings,inplace=True)
+        
+            #Limit to fields that have a "true" value for the "question" field as specified when loading the data dictionary
+            question_cols = (dict(filter(lambda col: col[1]["question"],dictionary["tables"][table_name]["fields"].items())))
 
-        set_columns = list(col_mappings.values())
-
-        datacolumns = question_cols.keys()
-        for col in datacolumns:
-            df_slim = datafile[set_columns].copy()
-            # This is processing entire rows of data files, it is not iterating over each cell
-            # Need to check to see if this is an actual question or a property (Age of Onset, Location, Date, etc) of another question.
-            col_name= dictionary["tables"][table_name]["fields"][col]["description"]
-            if col in datafile:
-                question_id = question_id + 1
-                component_id = f"{panel_id}_{question_id}"
-
-                try:
-                    df_slim["component_group_id"]=component_id
-                    df_slim["Name Reported"]=col_name
-                    df_slim["Result Value Reported"]=datafile[col]
-                    df_slim["ASSESSMENT_PANEL_ACCESSION"]=panel_id
-                    df_slim["WORKSPACE_ID"]=workspace_id
-                except Exception as e:
-                    ig.main_logger.write(level="error",message=f"Error with column {col_name} in {table_name}- {str(e)}\n{traceback.format_exc()}", flush=True)
-                    raise
-
-                df_slim.loc[(df_slim["Result Value Reported"] == "<NA>"), "Result Value Reported"] = np.nan
+            display(f"question_cols {question_cols}")
             
-                if dictionary["tables"][table_name]["fields"][col]["unit"] != "":
-                    if dictionary["tables"][table_name]["fields"][col]["unit"].upper() == "[SPLIT]":
-                        #Need to split Result Unit Reported into result and unit
-                        df_slim.loc[
-                            ~df_slim["Result Value Reported"].isna() &
-                            df_slim["Result Value Reported"].str.contains(" ")
-                            , ["Result Value Reported","Result Unit Reported"]
-                        ] = df_slim.loc[
-                            ~df_slim["Result Value Reported"].isna() &
-                            df_slim["Result Value Reported"].str.contains(" ")
-                            , "Result Value Reported"].str.split(" ", n=1, expand=True)
-                    elif dictionary["tables"][table_name]["fields"][col]["unit"].startswith("[") and dictionary["tables"][table_name]["fields"][col]["unit"].endswith("]"):
-                        lookup_col = dictionary["tables"][table_name]["fields"][col]["unit"][1:-1]  #remove '[' and ']'
-                        lookup_col_name = dictionary["tables"][table_name]["fields"][lookup_col]["description"]
-    
-                        df_slim["Result Unit Reported"]= datafile[lookup_col]
 
-                    else:
-                        # Need to see if the value is "[Split]"
-                        df_slim.loc[~df_slim["Result Value Reported"].isna(), "Result Unit Reported"] = dictionary["tables"][table_name]["fields"][col]["unit"]
+            set_columns = list(col_mappings.values())
 
-                df_slim["Verbatim Question"] = dictionary["tables"][table_name]["fields"][col]["verbatim_question"]
-                df_slim["Who Is Assessed"] = dictionary["tables"][table_name]["fields"][col]["who_is_assessed"]
+            display(f"set_columns {set_columns}")
 
-                if(dictionary["tables"][table_name]["fields"][col]["age_onset"] != ""):
-                    # Need to create subset (iloc) where age_onset has value
-                    
-                    lookup_col = dictionary["tables"][table_name]["fields"][col]["age_onset"]
-                    lookup_col_name = dictionary["tables"][table_name]["fields"][lookup_col]["description"]
-                    ig.main_logger.write(level='info', message=f"\tUsing field {lookup_col} for 'Age At Onset Reported' for {col} with unit: {dictionary['tables'][table_name]['fields'][col]['age_onset_unit']}")
+            datacolumns = question_cols.keys()
 
-                    df_slim["Age At Onset Reported"]= datafile[lookup_col]
-                    df_slim.loc[~df_slim["Age At Onset Reported"].isna(), "Age At Onset Unit Reported"] = dictionary["tables"][table_name]["fields"][col]["age_onset_unit"]
+            display(f"datacolumns {datacolumns}")
 
-                #If location is not empty, and value is a column in the data/study file, then use the value from the corresponding field
-                if(dictionary["tables"][table_name]["fields"][col]["location"] != ""):
-                    # Need to create subset (iloc) where age_onset has value
-                    
-                    lookup_col = dictionary["tables"][table_name]["fields"][col]["location"]
+            for col in datacolumns:
+                df_slim = datafile[set_columns].copy()
+                # This is processing entire rows of data files, it is not iterating over each cell
+                # Need to check to see if this is an actual question or a property (Age of Onset, Location, Date, etc) of another question.
+                col_name= dictionary["tables"][table_name]["fields"][col]["description"]
+                if col in datafile:
+                    question_id = question_id + 1
+                    component_id = f"{panel_id}_{question_id}"
 
-                    if lookup_col in datafile:
-                        ig.main_logger.write(level='info', message=f"\tUsing field {lookup_col} for 'Location of Finding Reported' for {col}")
-                        df_slim["Location Of Finding Reported"]= datafile[lookup_col]
-                    else:
-                        ig.main_logger.write(level='info', message=f"\tUsing value {lookup_col} for 'Location of Finding Reported' for {col}")
-                        df_slim["Location Of Finding Reported"]= lookup_col
+                    try:
+                        df_slim["component_group_id"]=component_id
+                        df_slim["Name Reported"]=col_name
+                        df_slim["Result Value Reported"]=datafile[col]
+
+                        display(f"col {col}")
+                        display(f"datafile[col] {datafile[col]}")
+
+                        df_slim["ASSESSMENT_PANEL_ACCESSION"]=panel_id
+                        df_slim["WORKSPACE_ID"]=workspace_id
+                    except Exception as e:
+                        ig.main_logger.write(level="error",message=f"Error with column {col_name} in {table_name}- {str(e)}\n{traceback.format_exc()}", flush=True)
+                        raise
+
+                    display(f"df_slim[Result Value Reported] {df_slim["Result Value Reported"]}")
+
+                    df_slim.loc[(df_slim["Result Value Reported"] == "<NA>"), "Result Value Reported"] = np.nan
                 
-                if( dictionary["tables"][table_name]["fields"][col]["study_day"] != ""):
-                    # Need to create subset (iloc) where age_onset has value
-                    
-                    lookup_col = dictionary["tables"][table_name]["fields"][col]["study_day"]
-                    if lookup_col == "[Self]":
-                        lookup_col = col
-                    lookup_col_name = dictionary["tables"][table_name]["fields"][lookup_col]["description"]
-                    ig.main_logger.write(level='info', message=f"\tUsing field {lookup_col} for 'Study Day' value for {col}")
+                    if dictionary["tables"][table_name]["fields"][col]["unit"] != "":
+                        if dictionary["tables"][table_name]["fields"][col]["unit"].upper() == "[SPLIT]":
+                            #Need to split Result Unit Reported into result and unit
+                            df_slim.loc[
+                                ~df_slim["Result Value Reported"].isna() &
+                                df_slim["Result Value Reported"].str.contains(" ")
+                                , ["Result Value Reported","Result Unit Reported"]
+                            ] = df_slim.loc[
+                                ~df_slim["Result Value Reported"].isna() &
+                                df_slim["Result Value Reported"].str.contains(" ")
+                                , "Result Value Reported"].str.split(" ", n=1, expand=True)
+                        elif dictionary["tables"][table_name]["fields"][col]["unit"].startswith("[") and dictionary["tables"][table_name]["fields"][col]["unit"].endswith("]"):
+                            lookup_col = dictionary["tables"][table_name]["fields"][col]["unit"][1:-1]  #remove '[' and ']'
+                            lookup_col_name = dictionary["tables"][table_name]["fields"][lookup_col]["description"]
+        
+                            df_slim["Result Unit Reported"]= datafile[lookup_col]
 
-                    df_slim["Study Day"]= datafile[lookup_col]
-                #Need to take df_slim and remove rows that have no actual data. 
+                        else:
+                            # Need to see if the value is "[Split]"
+                            df_slim.loc[~df_slim["Result Value Reported"].isna(), "Result Unit Reported"] = dictionary["tables"][table_name]["fields"][col]["unit"]
+
+                    df_slim["Verbatim Question"] = dictionary["tables"][table_name]["fields"][col]["verbatim_question"]
+                    df_slim["Who Is Assessed"] = dictionary["tables"][table_name]["fields"][col]["who_is_assessed"]
+
+                    if(dictionary["tables"][table_name]["fields"][col]["age_onset"] != ""):
+                        # Need to create subset (iloc) where age_onset has value
+                        
+                        lookup_col = dictionary["tables"][table_name]["fields"][col]["age_onset"]
+                        lookup_col_name = dictionary["tables"][table_name]["fields"][lookup_col]["description"]
+                        ig.main_logger.write(level='info', message=f"\tUsing field {lookup_col} for 'Age At Onset Reported' for {col} with unit: {dictionary['tables'][table_name]['fields'][col]['age_onset_unit']}")
+
+                        df_slim["Age At Onset Reported"]= datafile[lookup_col]
+                        df_slim.loc[~df_slim["Age At Onset Reported"].isna(), "Age At Onset Unit Reported"] = dictionary["tables"][table_name]["fields"][col]["age_onset_unit"]
+
+                    #If location is not empty, and value is a column in the data/study file, then use the value from the corresponding field
+                    if(dictionary["tables"][table_name]["fields"][col]["location"] != ""):
+                        # Need to create subset (iloc) where age_onset has value
+                        
+                        lookup_col = dictionary["tables"][table_name]["fields"][col]["location"]
+
+                        if lookup_col in datafile:
+                            ig.main_logger.write(level='info', message=f"\tUsing field {lookup_col} for 'Location of Finding Reported' for {col}")
+                            df_slim["Location Of Finding Reported"]= datafile[lookup_col]
+                        else:
+                            ig.main_logger.write(level='info', message=f"\tUsing value {lookup_col} for 'Location of Finding Reported' for {col}")
+                            df_slim["Location Of Finding Reported"]= lookup_col
+                    
+                    if( dictionary["tables"][table_name]["fields"][col]["study_day"] != ""):
+                        # Need to create subset (iloc) where age_onset has value
+                        
+                        lookup_col = dictionary["tables"][table_name]["fields"][col]["study_day"]
+                        if lookup_col == "[Self]":
+                            lookup_col = col
+                        lookup_col_name = dictionary["tables"][table_name]["fields"][lookup_col]["description"]
+                        ig.main_logger.write(level='info', message=f"\tUsing field {lookup_col} for 'Study Day' value for {col}")
+
+                        df_slim["Study Day"]= datafile[lookup_col]
+                    #Need to take df_slim and remove rows that have no actual data. 
+            
+                   # assessment_components_template = pd.concat([assessment_components_template, df_slim[~df_slim["Result Value Reported"].isnull()]], ignore_index=True)
+                    components_template = pd.concat([components_template, df_slim[~df_slim["Result Value Reported"].isnull()]], ignore_index=True)
+  
+                else:
+                    ig.main_logger.write(level='critical', message=f"Table Field not found in file: {col_name} in {table_name}", flush=True)
+ 
+    elif template == "labTests":
+        components_template.drop(
+            components_template[components_template["LAB_TEST_PANEL_ACCESSION"] == panel_id].index,
+            inplace=True
+        )
         
-                assessment_components_template = pd.concat([assessment_components_template, df_slim[~df_slim["Result Value Reported"].isnull()]], ignore_index=True)
-            else:
-                ig.main_logger.write(level='critical', message=f"Table Field not found in file: {col_name} in {table_name}", flush=True)
+        for table_name in table_name_array:
+            # Create column mappings
+            col_mappings = createColumnMappingDict(dictionary, table_name)
+            datafile.rename(columns=col_mappings, inplace=True)
+            
+            # Get planned visit ID - prioritize 'Planned Visit ID' column, fall back to 'PLANNED_VISIT_ID'
+            planned_visit_col = 'Planned Visit ID' if 'Planned Visit ID' in datafile.columns else 'PLANNED_VISIT_ID'
+            planned_visit_id = datafile[planned_visit_col].iloc[0] if planned_visit_col in datafile.columns else "None"
+            
+            display(f"planned_visit_col! {planned_visit_col}")
+
+            # Get all question fields from dictionary
+            question_cols = dict(
+                filter(lambda col: col[1]["question"], 
+                    dictionary["tables"][table_name]["fields"].items())
+            )
+
+           # study_time_collected_col = getColumnMapping(dictionary, table_name, "[Study Day]")
+            study_time_collected_col = 'Study Time Collected' if 'Study Time Collected' in datafile.columns else 'STUDY_TIME_COLLECTED'
+            study_time_collected_id = datafile[study_time_collected_col].iloc[0] if study_time_collected_col in datafile.columns else "None"
         
-    return assessment_components_template
+            display(f"study_time_collected_col! {study_time_collected_col}")
+
+            # Process each question field
+            for col, col_props in question_cols.items():
+                if col in datafile:
+
+                    if not pd.api.types.is_numeric_dtype(datafile[col]):
+                        try:
+                            # Try converting to numeric
+                            datafile[col] = pd.to_numeric(datafile[col], errors='coerce')
+                        except:
+                            # Skip this column if conversion fails
+                            ig.main_logger.write(
+                                level="warn",
+                                message=f"Skipping non-numeric column: {col} with value: {datafile[col].iloc[0]}"
+                            )
+                            continue
+
+                    # Create slim dataframe with just the needed columns
+                    df_slim = datafile[['User Defined ID', planned_visit_col]].copy()
+                    df_slim.rename(columns={planned_visit_col: 'Planned Visit ID'}, inplace=True)
+                    
+                    # Add required columns
+                    df_slim['LAB_TEST_PANEL_ACCESSION'] = panel_id
+                    df_slim['WORKSPACE_ID'] = workspace_id
+                    df_slim['Name Reported'] = col_props["description"]
+                    df_slim['Result Value Reported'] = datafile[col]
+                    
+                    # Handle units
+                    unit_info = col_props.get("unit", "")
+                    if unit_info:
+                        if unit_info.upper() == "[SPLIT]":
+                            # Split values like "5 mg" into value and unit
+                            split_values = df_slim['Result Value Reported'].str.split(" ", n=1, expand=True)
+                            df_slim['Result Value Reported'] = split_values[0]
+                            df_slim['Result Unit Reported'] = split_values[1]
+                        elif unit_info.startswith("[") and unit_info.endswith("]"):
+                            # Unit comes from another column
+                            unit_col = unit_info[1:-1]
+                            if unit_col in datafile:
+                                df_slim['Result Unit Reported'] = datafile[unit_col]
+                            else:
+                                df_slim['Result Unit Reported'] = ""
+                        else:
+                            # Static unit value
+                            df_slim['Result Unit Reported'] = unit_info
+                    
+                    # Handle numeric values
+                    if pd.api.types.is_numeric_dtype(df_slim['Result Value Reported']):
+                        df_slim['Result Value Reported'] = pd.to_numeric(
+                            df_slim['Result Value Reported'], errors='coerce'
+                        )
+                    
+                    # Drop NA values
+                    df_slim = df_slim[~df_slim['Result Value Reported'].isna()]
+
+
+                    if study_time_collected_col and study_time_collected_col in datafile.columns:
+                        df_slim['Study Time Collected'] = datafile[study_time_collected_col]
+
+                    display(f"df_slim {df_slim}")
+                  
+                    # Add to components template
+                    if not df_slim.empty:
+                        components_template = pd.concat(
+                            [components_template, df_slim],
+                            ignore_index=True
+                        )
+                else:
+                    ig.main_logger.write(
+                        level='critical', 
+                        message=f"Table Field not found in file: {col_props['description']} in {table_name}",
+                        flush=True
+                    )
+                    
+    return components_template
 
 def getColumnMapping(dictionary,table_name,mapping):
     if(mapping in dictionary["tables"][table_name]["mappings"]):
@@ -316,22 +473,28 @@ def getColumnName(dictionary, table_name, column_id):
     if column_id in dictionary["tables"][table_name]["fields"]:
         return dictionary["tables"][table_name]["fields"][column_id]["description"]
 
-
 def readAndModifyStudyFile(filepath,file_tables,dictionary,planned_visits):
-
-    print(f"filepath{filepath}")
-
-    print(f"file_tables{file_tables}")
-
-    print(f"dictionary{dictionary}")
-
-    print(f"planned_visits{planned_visits}")
 
     full_datafile = pd.DataFrame()
 
     for file_table in file_tables["tables"]:
         datafile = readStudyFile(filepath,file_table,dictionary)
         visit_col = getColumnMapping(dictionary, file_table,"[Visit]")
+        study_date_col = getColumnMapping(dictionary, file_table, "[Study Day]")
+
+        # 2. DEBUG: Print column mapping info
+        display(f"DEBUG Processing table: {file_table}")
+        display(f"DEBUG Visit column mapping: {visit_col}")
+        display(f"DEBUG Study date mapping: {study_date_col}")
+        display(f"DEBUG Actual columns in data: {datafile.columns.tolist()}")
+        
+        if visit_col and visit_col not in datafile.columns:
+            available = "\n\t".join(datafile.columns)
+            raise ValueError(
+                f"CRITICAL: Dictionary requires column '{visit_col}' "
+                f"but it's missing in {os.path.basename(filepath)}\n"
+                f"Available columns:\n\t{available}"
+            )
 
         table_visits = addVisitAccessionFromName(planned_visits,datafile,visit_col,dictionary,file_table,file_tables.get("visit",None))
         table_visits[table_visits["plannedVisit"] == ""]
@@ -339,17 +502,22 @@ def readAndModifyStudyFile(filepath,file_tables,dictionary,planned_visits):
         planned_visit_data = datafile["PLANNED_VISIT_ID"]
         datafile=datafile.drop(columns=["PLANNED_VISIT_ID"])
         datafile.insert(loc=3, column="PLANNED_VISIT_ID",value=planned_visit_data)
+
+        if study_date_col and study_date_col in datafile.columns:
+            datafile["Study Time Collected"] = datafile[study_date_col]
+
         
         dd_ID = getColumnMapping(dictionary,file_table,"User Defined ID")
         dd_ID_col = getColumnName(dictionary, file_table,dd_ID)
         
-        if(dd_ID_col not in datafile.columns):
-            if("Accession" in datafile.columns):
+        if dd_ID_col not in datafile.columns:
+            if "Accession" in datafile.columns:
                 datafile.rename(columns={"Accession":"User Defined ID"},inplace=True)
 
         full_datafile = pd.concat([full_datafile, datafile], ignore_index=True)
-        
-    print(f"full_datafile {full_datafile}")
+
+    display(f"full_datafile {full_datafile}")
+
     return full_datafile
 
 def getAssessmentPanelID(crf_Files,study_files,assessment_panel_df,study_id,assessment_type):

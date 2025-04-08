@@ -74,7 +74,6 @@ custom_css = """
 
 display(HTML(custom_css))
 
-
 main_logger=''
 
 #TODO potentially move to external file
@@ -438,13 +437,11 @@ class GUI(GUI_Object):
             spacer,
             self.objects["tab_row_study_files_filechooser"], 
             spacer,
-         #   self.objects["reset_tab3_button"].get(),
             self.objects["bottom_buttons_3"],
             spacer
         ]
 
     def generate_gui(self):
-
         self.objects["title"] = widgets.HTML(value="<h1 style='text-align:center; color:#3E6962; font-size:30px;'>ImmPort Curation Tool</h1>") 
 
         tab_titles = ["Overview", "1. ImmPort Files", "2. Data Dictionary", "3. Study Files", "Logs"]
@@ -461,6 +458,13 @@ class GUI(GUI_Object):
         content_area = widgets.Output()
 
         def on_tab_click(button):
+            for btn in tab_buttons:
+                btn.style.border = "none"
+                btn.layout.border = "none"
+            
+            button.style.border = "2px solid #3E6962"  
+            button.layout.border = "2px solid #3E6962"
+            
             with content_area:
                 content_area.clear_output(wait=True)
                 display(tab_contents[button.description])
@@ -469,28 +473,40 @@ class GUI(GUI_Object):
         for i, title in enumerate(tab_titles):
             button = widgets.Button(
                 description=title,
-                style={"button_color": tab_colors[i]},  
-                layout=widgets.Layout(width="auto",flex="1", height="40px") 
+                style={"button_color": tab_colors[i]},
+                layout=widgets.Layout(
+                    width="auto",
+                    flex="1",
+                    height="40px",
+                    border="none"  
+                )
             )
             button.on_click(on_tab_click)
-            tab_buttons = tab_buttons + [button]
+            tab_buttons.append(button)
 
-        button_container = widgets.HBox(tab_buttons, layout=widgets.Layout(
-            width="100%",  
-            display="flex",
-            justify_content="space-between" 
-        ))
+        if tab_buttons:
+            tab_buttons[0].style.border = "2px solid #3E6962"
+            tab_buttons[0].layout.border = "2px solid #3E6962"
+
+        button_container = widgets.HBox(
+            tab_buttons,
+            layout=widgets.Layout(
+                width="100%",
+                display="flex",
+                justify_content="space-between"
+            )
+        )
 
         with content_area:
             display(tab_contents[tab_titles[0]])
 
         ui = widgets.VBox([
-            self.objects["title"],  
-            button_container,  
-            content_area  
+            self.objects["title"],
+            button_container,
+            content_area
         ], layout=widgets.Layout(margin="0px", padding="0px"))
 
-        return ui  
+        return ui
     
     def clear_console(self,b):
         self.loggers['console'].widget.clear_output()
@@ -795,77 +811,10 @@ class GUI(GUI_Object):
             
         self.objects["help_text_1"].value = new_help_text
 
-    # def on_select_study_tab_file_with_error_handling(self, value, gui=None, fc_name=None):
-    #     try:
-    #         if value.description == "Change":
-    #             gui.data["planned_visit"] = cf.readFileFromZip(
-    #                 gui.objects[fc_name].widget.selected_path,
-    #                 gui.objects[fc_name].widget.selected_filename,
-    #                 "planned_visit.txt"
-    #             )
-
-    #             if gui.data["planned_visit"] is None:
-    #                 raise ValueError("Missing required file 'planned_visit.txt' in the Tab ZIP file.")
-
-    #             gui.data["study_files"] = cf.readFileFromZip(
-    #                 gui.objects[fc_name].widget.selected_path,
-    #                 gui.objects[fc_name].widget.selected_filename,
-    #                 "study_file.txt"
-    #             )
-
-    #             if gui.data["study_files"] is None:
-    #                 raise ValueError("Missing required file 'study_file.txt' in the Tab ZIP file.")
-
-    #             gui.data["study"] = cf.readFileFromZip(
-    #                 gui.objects[fc_name].widget.selected_path,
-    #                 gui.objects[fc_name].widget.selected_filename,
-    #                 "study.txt"
-    #             )
-
-    #             if gui.data["study"] is None:
-    #                 raise ValueError("Missing required file 'study.txt' in the Tab ZIP file.")
-
-    #             visit_names = get_planned_visits(gui.data["planned_visit"], nameonly=True, returnType="list")
-
-    #             if "dropdown_study_visit_list" in gui.objects:
-    #                 gui.objects["dropdown_study_visit_list"].set_options(visit_names)
-
-    #                 if "study_visit_list_section" in gui.objects:
-    #                     gui.objects["study_visit_list_section"].children = [
-    #                         gui.objects["label_study_visit_list"],
-    #                         gui.objects["dropdown_study_visit_list"].get()
-    #                     ]
-
-    #             protocol_names = get_protocols(gui.data["protocol"], nameonly=True, returnType="list")
-
-    #             if "dropdown_protocol_list" in gui.objects:
-    #                 gui.objects["dropdown_protocol_list"].set_options(protocol_names)
-
-    #                 if "protocol_list_section" in gui.objects:
-    #                     gui.objects["protocol_list_section"].children = [
-    #                         gui.objects["label_protocol_list"],
-    #                         gui.objects["dropdown_protocol_list"].get()
-    #                     ]
-
-
-    #             gui.objects["error_message_study_tab_file"].show_hide_element(display="none")
-
-    #     except Exception as e:
-    #         gui.objects["error_message_study_tab_file"].show_hide_element(display="")
-    #         gui.log(message=f"Error loading ImmPort study Tab file: {str(e)}", level="error", flush=True)
-    #         gui.flush_log()
-
     def on_select_study_tab_file_with_error_handling(self, value, gui=None, fc_name=None):
         try:
-         #   if gui is None:
-         #       raise ValueError("GUI reference is missing!")
-
-
-                    # Debug: Print value.description
-            print(f"on_select_study_tab_file_with_error_handling: value.description = {value.description}")
 
             if value.description == "Change":
-                # Read planned_visit.txt
                 gui.data["planned_visit"] = cf.readFileFromZip(
                     gui.objects[fc_name].widget.selected_path,
                     gui.objects[fc_name].widget.selected_filename,
@@ -875,7 +824,6 @@ class GUI(GUI_Object):
                 if gui.data["planned_visit"] is None:
                     raise ValueError("Missing required file 'planned_visit.txt' in the Tab ZIP file.")
 
-                # Read study_file.txt
                 gui.data["study_files"] = cf.readFileFromZip(
                     gui.objects[fc_name].widget.selected_path,
                     gui.objects[fc_name].widget.selected_filename,
@@ -885,7 +833,6 @@ class GUI(GUI_Object):
                 if gui.data["study_files"] is None:
                     raise ValueError("Missing required file 'study_file.txt' in the Tab ZIP file.")
 
-                # Read study.txt
                 gui.data["study"] = cf.readFileFromZip(
                     gui.objects[fc_name].widget.selected_path,
                     gui.objects[fc_name].widget.selected_filename,
@@ -895,7 +842,6 @@ class GUI(GUI_Object):
                 if gui.data["study"] is None:
                     raise ValueError("Missing required file 'study.txt' in the Tab ZIP file.")
 
-                # # ✅ Read protocol.txt from ZIP
                 gui.data["protocol"] = cf.readFileFromZip(
                     gui.objects[fc_name].widget.selected_path,
                     gui.objects[fc_name].widget.selected_filename,
@@ -905,7 +851,6 @@ class GUI(GUI_Object):
                 if gui.data["protocol"] is None:
                     raise ValueError("Missing required file 'protocol.txt' in the Tab ZIP file.")
 
-                # ✅ Read and update study visits
                 visit_names = gui.get_planned_visits(nameonly=True, returnType="list")
 
                 if "dropdown_study_visit_list" in gui.objects:
@@ -1028,7 +973,6 @@ class GUI(GUI_Object):
 
     def load_protocol_file(self, value):
         try:
-            print(f"load_protocol_file: value.description = {value.description}")
 
             if value.description == "Change":
                 protocol_filename = self.objects["filechooser_protocol_files"].get_filepath()
@@ -1075,7 +1019,6 @@ class GUI(GUI_Object):
             self.log(message=f"Error loading protocol file: {str(e)}", level="error", flush=True)
             self.flush_log()
 
-
     def load_data_dictionary(self,gui):
         self.objects["button_filechooser_data_dictionary_load"].button_change(button=self.objects["button_filechooser_data_dictionary_load"], style='warning', text='Loading',tooltip='The data dictionary file is being loaded',disabled=False, icon='spinner')
 
@@ -1107,6 +1050,7 @@ class GUI(GUI_Object):
         
     def get_study_file_attribute(self, filename, attribute):
         """Get the study file attribute"""
+
         if attribute.upper() not in list(self.data["study_files"].columns):
             raise NotImplementedError(f"Attribute {attribute} not found in study file { list(self.data['study_files'].columns())}")
         return self.data["study_files"][self.data["study_files"]["FILE_NAME"]==filename][attribute].values[0]
@@ -1124,11 +1068,8 @@ class GUI(GUI_Object):
         self.objects["tables_section"].layout.display = 'none'
 
         self.objects["tab_row_study_files_filechooser"] = widgets.HBox([self.objects["filechooser_study_file_directory"].get(), self.objects["button_filechooser_study_file_directory_load"].get()])
-        
-        #self.objects["box_study_files_table"]=VBox(name="box_study_files_table")
 
         self.objects["box_study_files_table"] = VBox(name="box_study_files_table", layout=widgets.Layout(width="100%"))
-
 
         self.objects["reset_tab3_button"] = Button(text="Reset Tab", tooltip="Reset all inputs in Tab 3", style="warning", callback=self.reset_tab3, width="140px", icon="trash")
 
@@ -1201,23 +1142,40 @@ class GUI(GUI_Object):
             self.table_code_widgets = {}
         if not hasattr(self, 'template_widgets'):
             self.template_widgets = {}
+        if not hasattr(self, 'assessment_name_widgets'):
+            self.assessment_name_widgets = {}
         if not hasattr(self, 'default_visit_widgets'):
             self.default_visit_widgets = {}
         if not hasattr(self, 'protocol_widgets'):
             self.protocol_widgets = {}
+        if not hasattr(self, 'name_reported_widgets'):
+            self.name_reported_widgets = {}
+        if not hasattr(self, 'type_widgets'):
+            self.type_widgets = {}
+        if not hasattr(self, 'subtype_widgets'):
+            self.subtype_widgets = {}
 
         for index in self.data["file_list_df"].index:
             if index in self.table_code_widgets:
                 self.data["file_list_df"].at[index, "Table Code"] = self.table_code_widgets[index].value
             if index in self.template_widgets:
                 self.data["file_list_df"].at[index, "Template"] = self.template_widgets[index].value
+            if index in self.assessment_name_widgets:
+                self.data["file_list_df"].at[index, "Assessment Name"] = self.assessment_name_widgets[index].value
             if index in self.default_visit_widgets:
                 self.data["file_list_df"].at[index, "Default Visit"] = self.default_visit_widgets[index].value
-            if index in self.default_visit_widgets:
+            if index in self.protocol_widgets:
                 self.data["file_list_df"].at[index, "Protocol"] = self.protocol_widgets[index].value
-
-
+            if index in self.name_reported_widgets:
+                self.data["file_list_df"].at[index, "Name Reported"] = self.name_reported_widgets[index].value
+            if index in self.type_widgets:
+                self.data["file_list_df"].at[index, "Type"] = self.type_widgets[index].value
+            if index in self.subtype_widgets:
+                self.data["file_list_df"].at[index, "Subtype"] = self.subtype_widgets[index].value
+    
         my_assessments = {}
+        my_labtests = {}
+
         study_id = self.get_study_id()
 
         study_files_dir = self.objects["filechooser_study_file_directory"].get_filepath()
@@ -1243,39 +1201,68 @@ class GUI(GUI_Object):
         errors_occurred = False
 
         for index, study_file_row in self.data['file_list_df'].iterrows():
-            table_code = str(study_file_row["Table Code"]).strip() if pd.notna(study_file_row["Table Code"]) else ""
-            template = str(study_file_row["Template"]).strip() if pd.notna(study_file_row["Template"]) else ""
-         #   default_visit = str(study_file_row["Default Visit"]).strip() if pd.notna(study_file_row["Default Visit"]) else ""
-         #   assessment_name = str(study_file_row["Assessment Name"]).strip() if pd.notna(study_file_row["Assessment Name"]) else ""
+            table_code = str(study_file_row["Table Code"]).strip()
+            template = str(study_file_row["Template"]).strip()
 
-            if table_code == '' and template == '':
+            name_reported = str(study_file_row["Name Reported"]).strip() 
+            labtest_type = str(study_file_row["Type"]).strip() 
+            labtest_subtype = str(study_file_row["Subtype"]).strip()
+
+            if table_code != '--Select--' and template == '--Select--':
                 self.log(
-                    message=f"Error in row {index+1}: A Template and Table Code must be selected", 
+                    message=f"Error in row {index+1}: A 'Template' must be selected for Table Code '{table_code}'", 
                     level='error', 
                     flush=True
                 )
                 self.flush_log()
                 errors_occurred = True
 
-            if table_code != '' and template == '':
+            if table_code == '--Select--' and template != '--Select--':
                 self.log(
-                    message=f"Error in row {index+1}: A Template must be selected for Table Code '{table_code}'", 
+                    message=f"Error in row {index+1}: A 'Table Code' must be selected for the '{template}' template", 
                     level='error', 
                     flush=True
                 )
                 self.flush_log()
                 errors_occurred = True
 
-            if table_code == '' and template != '':
+            if template == 'Lab Test' and name_reported == '--Select--' and labtest_type != '--Select--':
                 self.log(
-                    message=f"Error in row {index+1}: A Table Code must be selected for '{template}'", 
+                    message=f"Error in row {index+1}: A 'Name Reported' must be selected for the '{template}' template", 
                     level='error', 
                     flush=True
                 )
                 self.flush_log()
-                errors_occurred = True
+                errors_occurred = True        
 
-            if template == "Assessment" and table_code != '':
+            if template == 'Lab Test' and name_reported != '--Select--' and labtest_type == '--Select--':
+                self.log(
+                    message=f"Error in row {index+1}: A 'Type' must be selected for the '{template}' template", 
+                    level='error', 
+                    flush=True
+                )
+                self.flush_log()
+                errors_occurred = True        
+
+            if template == 'Lab Test' and name_reported == '--Select--' and labtest_type == '--Select--':
+                self.log(
+                    message=f"Error in row {index+1}: A 'Type' and a 'Name Reported' must be selected for the '{template}' template", 
+                    level='error', 
+                    flush=True
+                )
+                self.flush_log()
+                errors_occurred = True   
+            
+            if template == 'Lab Test' and labtest_type == 'Other' and labtest_subtype == '':
+                self.log(
+                    message=f"Error in row {index+1}: A 'Subtype' must be included if 'Other' is chosen as 'Type'", 
+                    level='error', 
+                    flush=True
+                )
+                self.flush_log()
+                errors_occurred = True        
+        
+            if template == "Assessment" and table_code != '--Select--':
                 try:
                     filename = study_file_row.to_dict().get("Filename")
 
@@ -1300,8 +1287,50 @@ class GUI(GUI_Object):
                         name_reported=self.get_study_file_attribute(filename, "DESCRIPTION"),
                     )
 
-                    my_assessments[table_code].export_to_txt(filename=f"{results_folder}/{study_id}_{table_code}.txt")
-                    my_assessments[table_code].export_to_json(filename=f"{results_folder}/{study_id}_{table_code}.json")
+                    my_assessments[table_code].export_to_txt(filename=f"{results_folder}/{study_id}_{table_code}_assessment.txt")
+                    my_assessments[table_code].export_to_json(filename=f"{results_folder}/{study_id}_{table_code}_assessment.json")
+
+                except Exception as err:
+                    errors_occurred = True
+                    self.log(message=f"❌ Error processing {table_code} - {err}", level='error', flush=True)
+
+            
+            if template == "Lab Test" and table_code != '':
+                try:
+                    filename = study_file_row.to_dict().get("Filename")
+
+                    self.objects["button_generate_files"].button_change(
+                        button=self.objects["button_generate_files"], 
+                        style='warning', 
+                        text=f'Generating... {table_code}', 
+                        tooltip='The files are being generated. This could take a few minutes', 
+                        disabled=False, 
+                        icon='spinner'
+                    )
+
+                    display("check 1")
+
+                    my_labtests[table_code] = sf.labTests()
+
+                    display("check 2")
+
+                    protocols_df = self.get_protocols(nameonly=False, returnType="df")
+
+                    my_labtests[table_code].process_study_file(
+                        study_file_info=study_file_row.to_dict(), 
+                        study_file_directory=self.objects["filechooser_study_file_directory"].get_filepath(),
+                        data_dictionary=self.dictionary,
+                        planned_visits=self.data["planned_visit"],
+                        study_id=study_id,
+                        protocols_df = protocols_df,
+                        workspace_id=self.get_workspace_id(),
+                        name_reported=self.get_study_file_attribute(filename, "DESCRIPTION"),
+                    )
+
+                    display("check 3")
+
+                    my_labtests[table_code].export_to_txt(filename=f"{results_folder}/{study_id}_{table_code}_labTest.txt")
+                    my_labtests[table_code].export_to_json(filename=f"{results_folder}/{study_id}_{table_code}_labTest.json")
 
                 except Exception as err:
                     errors_occurred = True
@@ -1386,6 +1415,10 @@ class GUI(GUI_Object):
 
                 if "file_list_df" not in self.data:
                     self.data["file_list_df"] = pd.DataFrame(columns=["Filename", "Table Code", "Assessment Name", "Template", "Default Visit", "Protocol", "Name Reported"])
+
+              
+                    self.data["file_list_df"].style.set_sticky(axis="columns")
+                    
                 else:
                     if "Name Reported" not in self.data["file_list_df"].columns:
                         self.data["file_list_df"]["Name Reported"] = "" 
@@ -1421,11 +1454,17 @@ class GUI(GUI_Object):
 
                 self.data["file_list_df"]["Protocol"] = [''] * num_rows
 
+                protocols_df = self.get_protocols(nameonly=False, returnType="df")  
+                protocol_mapping = dict(zip(protocols_df["NAME"], protocols_df["PROTOCOL_ACCESSION"]))  
+
+                protocol_names = list(protocol_mapping.keys())  
+                protocol_names.insert(0, "--Select--")  
+                
                 self.data["file_list_df"]["Protocol"] = pd.Categorical(
-                    self.data["file_list_df"]["Protocol"],
+                    self.data["file_list_df"]["Protocol"],  
                     ordered=True,
-                    categories=self.get_protocols(nameonly=True, returnType="list")
-                )
+                    categories=protocol_names)  
+
 
                 self.data["file_list_df"]["Filename"] = study_files
 
@@ -1518,6 +1557,9 @@ class GUI(GUI_Object):
             if selected_value == "--Select--":
                 template_dropdown.layout.display = "none"
 
+                if ind in self.protocol_widgets:
+                    self.protocol_widgets[ind].layout.display = "none"
+        
                 if ind in self.name_reported_widgets:
                     self.name_reported_widgets[ind].layout.display = "none"
 
@@ -1551,12 +1593,12 @@ class GUI(GUI_Object):
             self.type_widgets[row].layout.display = "block"  
             self.subtype_widgets[row].layout.display = "none" 
             self.assessment_name_widgets[row].layout.display = "none"  
-        elif template_value == "Assessment & Lab Test":
-            self.protocol_widgets[row].layout.display = "block"
-            self.name_reported_widgets[row].layout.display = "block"  
-            self.type_widgets[row].layout.display = "block" 
-            self.subtype_widgets[row].layout.display = "none"  
-            self.assessment_name_widgets[row].layout.display = "block"  
+        # elif template_value == "Assessment & Lab Test":
+        #     self.protocol_widgets[row].layout.display = "block"
+        #     self.name_reported_widgets[row].layout.display = "block"  
+        #     self.type_widgets[row].layout.display = "block" 
+        #     self.subtype_widgets[row].layout.display = "none"  
+        #     self.assessment_name_widgets[row].layout.display = "block"  
         else:
             self.protocol_widgets[row].layout.display = "none"
             self.name_reported_widgets[row].layout.display = "none"  
@@ -1575,7 +1617,6 @@ class GUI(GUI_Object):
         else:
             self.subtype_widgets[row].layout.display = "none"  
 
-   
     def generate_df_table(self, column_widths=["300px", "300px", "250px", "300px", "250px", "250px", "250px", "250px", "250px"], readonly=["Filename", "Description"]):
         """Generate a DataFrame-based table with interactive dropdowns and inputs."""
 
@@ -1594,6 +1635,9 @@ class GUI(GUI_Object):
 
         if "file_list_df" not in self.data:
             self.data["file_list_df"] = pd.DataFrame(columns=["Filename", "Description", "Table Code", "Default Visit", "Template", "Assessment Name", "Protocol", "Name Reported", "Type", "Subtype"])
+        
+      #      self.data["file_list_df"].style.set_sticky(axis="columns")
+
         else:
             self.data["file_list_df"] = self.data["file_list_df"].copy()
 
@@ -1612,14 +1656,10 @@ class GUI(GUI_Object):
         shape = (self.data["file_list_df"].shape[0], len(header_names))
         self.grid_body = widgets.GridspecLayout(shape[0] + 1, shape[1])  
 
-   #     if len(header_names) > len(column_widths):
-   #         column_widths.extend(["150px"] * (len(header_names) - len(column_widths)))
-
         for idx, title in enumerate(header_names):
-      #      self.grid_body[0, idx] = widgets.HTML(f"<div style='font-size:16px; font-weight:bold; text-align:center; '>{title}</div>")
-      #      self.grid_body[0, idx].layout = widgets.Layout(width=column_widths[idx])
 
                 self.grid_body[0, idx] = widgets.HTML(f"<div style='font-size:16px; font-weight:bold; text-align:center; '>{title}</div>", layout=widgets.Layout(width=column_widths[idx], justify_content="center", align_items="center"))
+
 
         for ind in self.data["file_list_df"].index:
             ind2 = ind + 1  
@@ -1634,8 +1674,7 @@ class GUI(GUI_Object):
                 value = str(cell_value).strip() if pd.notna(cell_value) else ""
 
                 if column_title in ["Filename", "Description"]:
-                   # self.grid_body[ind2, idx] = widgets.HTML(value= f"<span style='font-size:14px; '>{value}</span>", layout=widgets.Layout(width=column_widths[idx], color="black"))
-
+     
                     self.grid_body[ind2, idx] = widgets.HTML(value=f"<span style='font-size:14px; text-align:center; display:block;'>{value}</span>", layout=widgets.Layout(width=column_widths[idx], justify_content="center", align_items="center"))
                         
                 elif column_title == "Table Code":
@@ -1669,7 +1708,7 @@ class GUI(GUI_Object):
                     self.default_visit_widgets[ind] = default_visit_dropdown  
 
                 elif column_title == "Template":
-                    options = ["--Select--", "Assessment", "Lab Test", "Assessment & Lab Test"]
+                    options = ["--Select--", "Assessment", "Lab Test"]
                     initial_value = value if value in options else options[0]
 
                     template_dropdown = widgets.Dropdown(
@@ -1691,16 +1730,12 @@ class GUI(GUI_Object):
                     ) #not taking up full space for some reason
                     self.assessment_name_widgets[ind] = assessment_name_text
                     self.grid_body[ind2, idx] = assessment_name_text
-#column_widths[idx]
 
                 elif column_title == "Protocol":
                     protocol_options = self.get_protocols(nameonly=True, returnType="list")  
                     protocol_options.insert(0, "--Select--")  
                     initial_value = value if value in visit_options else "--Select--"
                  
-                #    if "protocol" in self.data and not self.data["protocol"].empty:
-                #        protocol_options.extend(self.data["protocol"].get("NAME", []))
-
                     protocol_dropdown = widgets.Dropdown(
                         options=protocol_options,
                         value=initial_value,
@@ -1741,13 +1776,6 @@ class GUI(GUI_Object):
                     )
                     self.subtype_widgets[ind] = subtype_text
                     self.grid_body[ind2, idx] = subtype_text
-
-         #       else:
-         #           self.grid_body[ind2, idx] = widgets.Text(
-         #               value=value,
-         #               disabled=readonly_bool,
-         #               layout=widgets.Layout(width="170px")
-         #           )
 
         box_body = widgets.VBox([self.grid_body], layout=widgets.Layout(height="450px", overflow_y="auto"))
         box = widgets.VBox([box_body], layout=widgets.Layout(height="510px"))
@@ -1935,9 +1963,6 @@ class Tab(GUI_Object):
         else:
             self.widget =widgets.Box(children=[], layout=box_layout)
 
-        # if callback is not None:
-        #     self.widget.on_click(callback)
-        
 class Button(GUI_Object):
     """Button class"""
     def __init__(self, text, style=None, icon="", tooltip="", state=False, callback=None, display=True, width="auto", margin=""):
@@ -2230,7 +2255,6 @@ class Log_Output(GUI_Object):
             "debug":10
             }
         
-          # ✅ Ensure `clear_button` always exists
         self.clear_button = Button(
             text="Clear Log",
             tooltip="Clear the main logger",
@@ -2240,9 +2264,6 @@ class Log_Output(GUI_Object):
             width="120px"
         )
         self.clear_button.show_hide_element(display="none")
-
-    ##Add history to the log output
-    ##Add a button to write from history with certain level
 
     def write(self,message=None, level=None, flush=False):
         level = level.lower()
@@ -2296,7 +2317,7 @@ class Log_Output(GUI_Object):
 
     def clear_output(self,b):
         self.widget.clear_output()
-        self.clear_button.show_hide_element(display="none")
+   #     self.clear_button.show_hide_element(display="none")
 
     def add_clear_button(self, description="Clear Log", tooltip="Clear the main logger", icon="trash", style="", width="auto"):
         button = Button(
@@ -2355,7 +2376,7 @@ immport_data = {'tab_data':{},'config':{}}
 ####Keep
 
 def get_immport_template_names():
-    return ['--Select--',"Assessment", "Lab Test", "Assessment & Lab Test"]
+    return ['--Select--',"Assessment", "Lab Test"]
 
 
 def update_dataframe_from_table(value,row=None, column=None, column_name=None, dataframe=None):
@@ -2435,6 +2456,4 @@ def get_protocols(self, nameonly=False, returnType=None):
             return names.tolist()
         return names
     return self.data["protocol"][["PROTOCOL_ACCESSION","NAME"]]
-
-
 

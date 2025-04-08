@@ -1,6 +1,7 @@
 import csv
 import regex
 import ImmPortCurationTool.immport_gui as ig
+#import immport_gui as ig
 import json
 import urllib.parse
 # TODO
@@ -12,6 +13,9 @@ import urllib.parse
 
 #TODO Create Class DataDictionary
 #TODO Create Class DataFile
+
+
+from IPython.display import display
 
 def parseCodeListValues(valueString):
     #regex : split on ", " where the next characters are either digits or a "word" followed by a =
@@ -75,9 +79,28 @@ def parseDictionaryRow(row, dictionary, formatted_columns):
         else:
             dictionary["tables"][table_name]["fields"][field_name][key]=""
 
+    study_day_col = row[formatted_columns["Study Day"]]  
     col_mapping = row[formatted_columns["Column Mappings"]]
+
+#### edit at some point to handle dates
+    if study_day_col.upper() == "[SELF]":
+        dictionary["tables"][table_name]["fields"][field_name]["study_day_ref"] = field_name
+        dictionary["tables"][table_name]["fields"][field_name]["study_day_type"] = "number"
+    elif study_day_col:
+        dictionary["tables"][table_name]["fields"][field_name]["study_day_ref"] = study_day_col
+        dictionary["tables"][table_name]["fields"][field_name]["study_day_type"] = "number"
+    elif col_mapping.upper() == "STUDY DAY":
+        dictionary["tables"][table_name]["mappings"]["[Study Day]"] = field_name
+        dictionary["tables"][table_name]["fields"][field_name]["is_study_day"] = True  
+        dictionary["tables"][table_name]["fields"][field_name]["study_day_type"] = "number"
+
     if col_mapping.upper() == "VISIT":
         col_mapping = "[Visit]"
+
+
+
+    display(f"col_mapping {col_mapping}")
+
 
     if(col_mapping):
         dictionary["tables"][table_name]["mappings"][col_mapping]=field_name
@@ -96,6 +119,11 @@ def parseDataDictionary(filename, gui_object):
 
         formatted_columns = {column.title(): i for i, column in enumerate(header)}
         dictionary["columns"] = formatted_columns  
+
+
+
+
+        
 
         required_dictionary_columns=[
             "Table Name",
@@ -127,12 +155,6 @@ def parseDataDictionary(filename, gui_object):
                 gui_object.log(level="critical", message=f"Error processing Data Dictionary row {i}. {e}", flush=True)
                 raise NotImplementedError("")
 
-        #Iterate through fields, and check if the field is used in other mappings:
-
-# my_gui.dictionary['tables']['ADF']['mappings']['[Visit]']
-# my_gui.dictionary['tables']['ADF']['fields']['VISNO']['values']
-# my_gui.dictionary['tables']['ADF'].keys()
-
         for table_name in dictionary["tables"].keys():
             if "[Visit]" in dictionary["tables"][table_name]["mappings"]:
                 visit_col = dictionary['tables'][table_name]['mappings']['[Visit]']
@@ -145,6 +167,17 @@ def parseDataDictionary(filename, gui_object):
                     except Exception as e:
                         ig.main_logger.write(level="error", message=f"Invalid JSON for Map to Planned Visit column on table {table_name} for {visit_col}. Try using <a href='https://jsonlint.com?json={urllib.parse.quote(str(map_to_visit_str))}'>jsonlint.com</a> to find the errors.", flush=True)
 
+
+            for field_name, field_data in dictionary["tables"][table_name]["fields"].items():
+                if "study_day_ref" in field_data:
+                    ref_col = field_data["study_day_ref"]
+                    if ref_col not in dictionary["tables"][table_name]["fields"]:
+                        gui_object.log(
+                            level="error",
+                            message=f"Invalid Study Day reference in {table_name}.{field_name}: column '{ref_col}' not found",
+                            flush=True
+                        )
+            
             for field in dictionary["tables"][table_name]["fields"].keys():
                 possible_fields = []
                 for col in ["unit","who_is_assessed","age_onset","age_onset_unit","location","study_day"]:
