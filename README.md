@@ -15,7 +15,7 @@ The [*Lab Tests*](https://docs.immport.org/datasubmission/templatedocumentation/
 
 # 📂 Table of Contents
 - **Installation**
-- **Example Data**
+- [**Example Data**](documentation/Example-Files-Overview.md)
 - **Preparing and Preprocessing Files**
   - Generating ImmPort Files
   - Curating the Data Dictionary
