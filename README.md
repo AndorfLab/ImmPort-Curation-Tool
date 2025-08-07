@@ -1,3 +1,36 @@
+# ImmPort Curation Tool
+This tool was developed to support the generation of the [ImmPort repository’s  ]( https://immport.org/shared/home) *Lab Tests* and *Assessments* templates. Featuring a user-friendly graphical interface, it automates the mapping of study variables using ImmPort files, study-specific data, and a curated data dictionary. By streamlining the submission process, the tool enhances data quality, reduces contributor burden, and improves the reusability of datasets within ImmPort.
+
+
+![overviewl](./documentation/images/Overview.png)
+
+
+## 📂 Table of Contents
+- **Installation**
+- **Example Data**
+- **Preparing and Preprocessing Files**
+  - Generating ImmPort Files
+  - Curating the Data Dictionary
+  - Gathering Study Files
+- **Using the Application**
+  - Uploading ImmPort Files
+  - Uploading the Data Dictionary
+  - Uploading Study Files
+- **Common Errors**
+- **FAQ**
+
+
+
+
+
+
+
+
+
+
+
+
+
 # ImmPort-Curation-Tool
 
 ## Purpose of this tool
