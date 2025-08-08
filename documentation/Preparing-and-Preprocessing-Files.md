@@ -47,7 +47,7 @@ Below are examples of the ImmPort files that are required by the Curation tool. 
 ## Curating the Data Dictionary
 The tool also requires a data dictionary that has been curated to conform to certain standards. This data dictionary links variables in the study files to fields in the *Assessments* and *Lab Tests* templates. While many clinical trials already include a data dictionary, some additional curation is required for use with this tool.
 
-The data dictionary should either be a TXT or CSV file. The data dictionary template can be downloaded [here](~/Templates/data-dictionary-template.csv). 
+The data dictionary should either be a TXT or CSV file. The data dictionary template can be downloaded [here](../Templates/data-dictionary-template.csv). 
 
 ### Required Columns
 The first six columns are required and must be present in the curated data dictionary. However, the last three ("Code List Values", "Mappings", and "Unit") only need to be filled in when relevant. For example, if a field has no coded values or a unit, those cells can be left blank.
