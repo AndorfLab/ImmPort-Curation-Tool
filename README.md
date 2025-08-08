@@ -16,11 +16,11 @@ The [*Lab Tests*](https://docs.immport.org/datasubmission/templatedocumentation/
 # 📂 Table of Contents
 - **Installation**
 - [**Example Data**](documentation/Example-Files-Overview.md)
-- **Preparing and Preprocessing Files**
+- [**Preparing and Preprocessing Files**](documentation/Preparing-and-Preprocessing-Files.md)
   - Generating ImmPort Files
   - Curating the Data Dictionary
   - Gathering Study Files
-- **Using the Application**
+- [**Using the Application**](documentation/Using-the-Application.md)
   - Uploading ImmPort Files
   - Uploading the Data Dictionary
   - Uploading Study Files
