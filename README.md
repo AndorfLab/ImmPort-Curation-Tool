@@ -17,13 +17,13 @@ The [*Lab Tests*](https://docs.immport.org/datasubmission/templatedocumentation/
 - **Installation**
 - [**Example Data**](documentation/Example-Files-Overview.md)
 - [**Preparing and Preprocessing Files**](documentation/Preparing-and-Preprocessing-Files.md)
-  - Generating ImmPort Files
-  - Curating the Data Dictionary
-  - Gathering Study Files
+  - [Generating ImmPort Files](documentation/Preparing-and-Preprocessing-Files.md#Curating-the-Data-Dictionary)
+  - [Curating the Data Dictionary](documentation/Preparing-and-Preprocessing-Files.md#Generating-ImmPort-Files)
+  - [Gathering Study Files](documentation/Preparing-and-Preprocessing-Files.md#Gathering-Study-Files)
 - [**Using the Application**](documentation/Using-the-Application.md)
-  - Uploading ImmPort Files
-  - Uploading the Data Dictionary
-  - Uploading Study Files
+  - [Uploading ImmPort Files](documentation/Using-the-Application.md#Uploading-ImmPort-Files)
+  - [Uploading the Data Dictionary](documentation/Using-the-Application.md#Uploading-the-Data-Dictionary)
+  - [Uploading Study Files](documentation/Using-the-Application.md#Uploading-Study-Files)
 - **Common Errors**
 - **FAQ**
 
