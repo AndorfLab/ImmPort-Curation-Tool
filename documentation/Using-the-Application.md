@@ -15,8 +15,12 @@ The *1. ImmPort Files* tab is where the previously completed ImmPort templates s
 Please find more information about the required file formats in the [Generating ImmPort Files section](Preparing-and-Preprocessing-Files.md#Generating-ImmPort-Files). 
 
 ## Uploading the Data Dictionary
-The middle tab, *2. Data Dictionary*, is where the curated data dictionary should be uploaded. Please find more information about how to curate the data dictionary in the Curating the Data Dictionary section.
+The middle tab, *2. Data Dictionary*, is where the curated data dictionary should be uploaded. 
+
+Please find more information about how to curate the data dictionary in the [Curating the Data Dictionary section](Preparing-and-Preprocessing-Files.md#Curating-the-Data-Dictionary). 
 
 ## Uploading Study Files
-The next tab, *3. Study Files*, is where the study specific files are uploaded. Please find more information about the study files in the Gathering Study Files section.
+The next tab, *3. Study Files*, is where the study specific files are uploaded. 
+
+Please find more information about the study files in the [Gathering Study Files section](Preparing-and-Preprocessing-Files.md#Gathering-Study-Files).
 
