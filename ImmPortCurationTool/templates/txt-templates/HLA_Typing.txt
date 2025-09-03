@@ -1,4 +1,0 @@
-hla_typing	Schema Version 3.36
-Please do not delete or edit this column
-Column Name	Expsample ID	Ancestral Population	HLA-A Allele 1	HLA-A Allele 2	HLA-B Allele 1	HLA-B Allele 2	HLA-C Allele 1	HLA-C Allele 2	HLA-DPA1 Allele 1	HLA-DPA1 Allele 2	HLA-DPB1 Allele 1	HLA-DPB1 Allele 2	HLA-DQA1 Allele 1	HLA-DQA1 Allele 2	HLA-DQB1 Allele 1	HLA-DQB1 Allele 2	HLA-DRB1 Allele 1	HLA-DRB1 Allele 2	HLA-DRB3 Allele 1	HLA-DRB3 Allele 2	HLA-DRB4 Allele 1	HLA-DRB4 Allele 2	HLA-DRB5 Allele 1	HLA-DRB5 Allele 2	Comments
-																									

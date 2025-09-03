@@ -1,4 +1,0 @@
-reagent_sets	Schema Version 3.36
-Please do not delete or edit this column
-Column Name	User Defined ID	Reagent ID(s)	Description	Name	Type
-					
