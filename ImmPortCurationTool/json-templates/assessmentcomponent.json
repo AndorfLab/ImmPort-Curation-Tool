@@ -1,0 +1,36 @@
+{
+  "$schema":"http://json-schema.org/draft-04/schema",
+  "title":"assessmentcomponent.json template schema",
+  "description": "The assessment an be either new or pre-defined in this template. Any combination is acceptable. The only restriction is that the assessment panel id is the key to the template and must be unique within the template.",
+  "type":"object",
+  "properties":{
+      "fileName":{
+	  "type":"string",
+	  "enum":["assessmentcomponent.json"]
+      },
+     "name":{
+	  "type":"string",
+	  "enum":["assessmentcomponent"]
+      },
+     "schemaVersion":{
+	  "type":"string",
+	  "enum":["3.37"]
+      },
+     "templateType":{
+	  "type":"string",
+	  "enum":["single"]
+      },
+     "validationLevel":{
+	  "type":"string"
+      },
+     "data": {
+       "type":"array",
+       "items":{
+         "$ref":"assessmentcomponent.Datum.json#"
+       },
+       "minItems":1
+     }
+  },
+  "additionalProperties":false,
+  "required":["fileName","name","schemaVersion","templateType","data"]
+}

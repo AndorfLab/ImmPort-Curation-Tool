@@ -1,0 +1,21 @@
+{
+  "$schema":"http://json-schema.org/draft-04/schema",
+  "title":" template schema",
+  "description":"",
+  "type":"object",
+  "properties":{
+    "externalId":{
+    "type":"string","maxLength":200
+    },
+    "category":{
+    "type":"string","enum":["NIH","OTHER"]
+    },
+    "name":{
+    "type":"string","maxLength":1000
+    },
+    "link":{
+    "type":"string","maxLength":2000
+    }
+    },
+  "required":["externalId","link"]
+}

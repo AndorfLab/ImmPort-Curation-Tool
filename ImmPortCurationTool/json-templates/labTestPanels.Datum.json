@@ -1,0 +1,21 @@
+{
+  "$schema":"http://json-schema.org/draft-04/schema",
+  "title":"labTestPanels.json template schema",
+  "description":"The lab test panels template is a legacy template that defines and annotates the collection of lab tests applied to a sample (but not the lab test results). The function of this template is also captured in the lab tests template. This template will continue to be supported for the foreseeable future to support backward compatibility.",
+  "type":"object",
+  "properties":{
+    "userDefinedId":{
+    "type":"string","maxLength":100
+    },
+    "nameReported":{
+    "type":"string","enum":["Autoimmune liver disease panel","Blood Cell Count","Blood Cell Count with Differential","Blood Flow Cytometry","Blood Measurement","Chemistry Test","Comprehensive Metabolic Panel","Drug Test","Fasting Lipid Profile","Hormone measurement","Immunology Test","Laboratory test related to hemostasis","Mixed-Meal Tolerance Test","Protein or Enzyme Type Measurement","Renal Function Test","serum antibody level","Serum protein electrophoresis","Thyroid Panel","Total Protein Measurement","Urinalysis","Vitamin measurement"]
+    },
+    "studyId":{
+    "type":"string"
+    },
+    "protocolIds":{
+    "type":"array","items":{"type":"string"}
+    }
+    },
+  "required":["userDefinedId","nameReported","studyId","protocolIds"]
+}

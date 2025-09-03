@@ -1,0 +1,12 @@
+{
+  "$schema":"http://json-schema.org/draft-04/schema",
+  "title":" template schema",
+  "description":"",
+  "type":"object",
+  "properties":{
+    "researchFocus":{
+    "type":"string","enum":["Atopy/Allergy","Autoimmune","Cardiovascular system disease","Cell Biology","Computational Modelling","Development","Epidemiology","Exposome","Immune Response","Infection Response","Method Development","Molecular Biology","No Research Focus Specified","Oncology","Other","Pregnancy","Preterm Birth","Psychopathology","Radiation Biology","Transplantation","Vaccine Development","Vaccine Response"]
+    }
+    },
+  "required":["researchFocus"]
+}

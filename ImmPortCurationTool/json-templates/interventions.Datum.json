@@ -1,0 +1,72 @@
+{
+  "$schema":"http://json-schema.org/draft-04/schema",
+  "title":"interventions.json template schema",
+  "description":"The Intervention Template records the study interventions, concomitant medications, and anything else that was reported as entering a subject.",
+  "type":"object",
+  "properties":{
+    "userDefinedId":{
+    "type":"string","maxLength":200
+    },
+    "subjectId":{
+    "type":"string"
+    },
+    "studyId":{
+    "type":"string"
+    },
+    "nameReported":{
+    "type":"string","maxLength":125
+    },
+    "compoundNameReported":{
+    "type":"string","maxLength":250
+    },
+    "compoundRole":{
+    "type":"string","enum":["Concomitant Medication","Intervention","Other","Substance Use"]
+    },
+    "doseReported":{
+    "type":"string","maxLength":150
+    },
+    "startDay":{
+    "type":"string","maxLength":40
+    },
+    "endDay":{
+    "type":"string","maxLength":40
+    },
+    "status":{
+    "type":"string","maxLength":40
+    },
+    "reportedIndication":{
+    "type":"string","maxLength":255
+    },
+    "formulation":{
+    "type":"string","maxLength":125
+    },
+    "dose":{
+    "type":"number"
+    },
+    "doseUnits":{
+    "type":"string","maxLength":40
+    },
+    "doseFreqPerInterval":{
+    "type":"string","maxLength":40
+    },
+    "routeOfAdminReported":{
+    "type":"string","maxLength":40
+    },
+    "isOngoing":{
+    "type":"string","maxLength":40
+    },
+    "startTime":{
+    "type":"string","maxLength":40
+    },
+    "endTime":{
+    "type":"string","maxLength":40
+    },
+    "duration":{
+    "type":"string","maxLength":40
+    },
+    "durationUnit":{
+    "type":"string","enum":["d.p.c.","Days","Hours","Minutes","Months","Not Specified","Seconds","Weeks","Years"]
+    }
+    },
+  "required":["userDefinedId","subjectId","studyId","nameReported","compoundNameReported","compoundRole","doseReported"]
+}

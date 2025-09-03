@@ -1,0 +1,20 @@
+{
+  "$schema":"http://json-schema.org/draft-04/schema",
+  "title":"assessments.json template schema",
+  "description": "The assessment panels template defines and annotates the assessment panels and the assessment components (results) defines and annotates the assessment for the panel. Assessment panels are often encoded in Case Report Forms (CRFs) and these are linked to a study. Assessment components are the answers to questions or assessments recorded in a CRF for a given subject within a study. The assessment template enables you to define the panel and its components in a single form.  The assessment panel can be either new or pre-defined in this template. Any combination is acceptable. The only restriction is that the assessment panel id is the key to the template and must be unique within the template.",
+  "type":"object",
+  "properties":{
+    "metaData":{
+     "$ref":"assessments.MetaData.json#"
+    },
+    "resultData":{
+      "type":"array",
+      "items":{
+        "$ref":"assessments.ResultData.json#"
+      },
+      "minItems":1
+    }
+  },
+  "additionalProperties":false,
+  "required":["metaData","resultData"]
+}

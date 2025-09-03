@@ -1,0 +1,57 @@
+{
+  "$schema":"http://json-schema.org/draft-04/schema",
+  "title":"controlSamples.json template schema",
+  "description":"The control sample template defines and annotates the control samples included in MBAA assays. Control samples are not assumed to be of biologic origin. This template requires that the control sample be always new, while the experiment can be new or pre-defined. The control sample is the key to the templates and must be unique within the template.",
+  "type":"object",
+  "properties":{
+    "controlSampleId":{
+    "type":"string","maxLength":100
+    },
+    "source":{
+    "type":"string","maxLength":100
+    },
+    "catalogId":{
+    "type":"string","maxLength":100
+    },
+    "dilutionFactor":{
+    "type":"string","maxLength":100
+    },
+    "assayId":{
+    "type":"string","maxLength":100
+    },
+    "assayGroupId":{
+    "type":"string","maxLength":100
+    },
+    "immportTemplate":{
+    "type":"string","enum":["No","Yes"]
+    },
+    "resultFileName":{
+    "type":"string","maxLength":240
+    },
+    "lotNumber":{
+    "type":"string","maxLength":100
+    },
+    "additionalResultFileNames":{
+    "type":"array","items":{"type":"string","maxLength":240}
+    },
+    "experimentId":{
+    "type":"string","maxLength":100
+    },
+    "studyId":{
+    "type":"string"
+    },
+    "protocolIds":{
+    "type":"array","items":{"type":"string"}
+    },
+    "name":{
+    "type":"string","maxLength":500
+    },
+    "description":{
+    "type":"string","maxLength":4000
+    },
+    "measurementTechnique":{
+    "type":"string","enum":["10x feature barcode (CRISPR screening)","16S rRNA gene sequencing","1D Gel","2D Gel","Array","B cell receptor repertoire sequencing assay","Bio-layer Interferometry Assay","Bulk RNA-seq assay","Cell Culture","Cell Mediated Immunoassay","Chemiluminescent Assay","Circular Dichroism","CITE-Seq","Colorimetric Cell Viability Assay","CRISPR Screening","Cryo-Electron Microscopy","CyTOF","Cytokine Assay","Cytometric Bead Array Assay","DNA methylation profiling assay","DNA microarray","ELISA","ELISPOT","EMSA","Exome Sequencing","Flow Cytometry","Fluorescence Resonance Energy Transfer","Fluorescent Antibody Procedure","GC_MS","Genotyping Assay","Glycan profiling","Hemagglutination Inhibition","High-Resolution Mass Spectrometry","Histological Assay","Histopathology","HLA Typing","HPLC","IgH Sequencing","Immune Repertoire Deep Sequencing","Immunoblot","Immunohistochemistry","Immunoprecipitation","in situ Hybridization","Intracellular Cytokine Stain Flow Cytometric Assay","Iontrap_MS","KIR Typing","Lateral Flow Assay","LC_MS","Line Probe Assay","Liquid Chromatography","Luminex xMAP","Mass Spectrometry","Meso Scale Discovery ECL","Methylation Sequencing","Microneutralization Assay","microRNA profiling assay","Microscopy","Mixed Lymphocyte Reaction","Molecular Cloning","MS_MS","Multiplex Bead Array Assay","Multiplex Immunoassay","Nanostring","Nanostring nCounter miRNA expression assay","Neuraminidase Inhibition Assay","Neutralizing Antibody Titer Assay","NMR","Northern Blot","Not Specified","Olink assay","Other","PCR","phage display binding assay","Plaque Reduction Neutralization Assay","Protein microarray","Pseudovirus Neutralization Assay","Q-PCR","Real time polymerase chain reaction assay","Respiratory Pathogen Panel","RNA sequencing","Rnase Protection Assay","SARS-CoV-2 Virus Sequencing","scRNA-seq","Sequencing","Single-Molecule Array (SIMOA)","SNP microarray","SOMAscan assay","Southern Blot","Spectral Flow Cytometry","Surface Plasmon Resonance","T cell receptor repertoire sequencing assay","TCID50","Transcription profiling assay","Transcription profiling by array","Transcription Profiling by NanoString","Virus Neutralization","Virus Plaque Assay","Western Blot","Whole Genome Sequencing","Whole Virome Sequencing Assay","X-Ray Crystallography","Yeast Two Hybrid"]
+    }
+    },
+  "required":["controlSampleId","experimentId"]
+}
