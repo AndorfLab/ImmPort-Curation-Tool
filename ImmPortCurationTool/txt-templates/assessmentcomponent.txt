@@ -1,0 +1,4 @@
+assessmentcomponent	Schema Version 3.37
+Please do not delete or edit this column
+Column Name	User Defined ID	Assessment Panel ID	Subject ID	Planned Visit ID	Name Reported	Study Day	Result Value Reported	Result Unit Reported	Result Value Category	Age At Onset Reported	Age At Onset Unit Reported	Is Clinically Significant	Location Of Finding Reported	Organ Or Body System Reported	Subject Position Reported	Time Of Day	Verbatim Question	Who Is Assessed
+																		
