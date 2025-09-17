@@ -14,7 +14,7 @@ The [*Lab Tests*](https://docs.immport.org/datasubmission/templatedocumentation/
 - Urinalysis
 
 # 📂 Table of Contents
-- [**Installation**](documentation/installation.md)
+- [**Installation**](documentation/Installation.md)
 - [**Example Data**](documentation/Example-Files-Overview.md)
 - [**Preparing and Preprocessing Files**](documentation/Preparing-and-Preprocessing-Files.md)
   - [Generating ImmPort Files](documentation/Preparing-and-Preprocessing-Files.md#Generating-ImmPort-Files)
