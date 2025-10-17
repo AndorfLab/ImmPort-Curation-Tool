@@ -82,7 +82,7 @@ Use Voilà to launch the interactive tool:
 ```
 voila forms.ipynb  
 ```
-This will open a browser window with the application interface.  
+This will open a browser window with the application interface. On most machines, Voilà can be exited by pressing Ctrl + C in the terminal where it is running.
 
 The tool can also be run on other platforms. If you want to stay within the Jupyter environment, type:
 ```
