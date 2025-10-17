@@ -925,6 +925,19 @@ def datafileToComponents(datafile, dictionary, table_name_array, components_temp
             if df_slim_list:
                 components_template = pd.concat([components_template] + df_slim_list, ignore_index=True)
 
+                components_template = components_template.replace(
+                    ['<NA>', 'NA', 'N/A', 'nan', 'NaN', 'None', 'NONE', np.nan],
+                    ''
+                )
+
+                if "Age At Onset Reported" in components_template.columns and "Age At Onset Unit Reported" in components_template.columns:
+                    mask = components_template["Age At Onset Reported"].astype(str).str.strip() == ''
+                    components_template.loc[mask, "Age At Onset Unit Reported"] = ''
+
+                components_template = components_template.loc[
+                    ~(components_template.apply(lambda row: all(str(v).strip() == '' for v in row), axis=1))
+                ].reset_index(drop=True)
+
     if template == "labTests":
 
         components_template.drop(
@@ -1287,6 +1300,15 @@ def datafileToComponents(datafile, dictionary, table_name_array, components_temp
 
                     if not df_slim.empty:
                         components_template = pd.concat([components_template, df_slim[~df_slim["Result Value Reported"].isnull()]], ignore_index=True)
+
+                        components_template = components_template.replace(
+                            ['<NA>', 'NA', 'N/A', 'nan', 'NaN', 'None', 'NONE', np.nan],
+                            ''
+                        )
+
+                        components_template = components_template.loc[
+                            ~(components_template.apply(lambda row: all(str(v).strip() == '' for v in row), axis=1))
+                        ].reset_index(drop=True)
 
     return components_template
 
