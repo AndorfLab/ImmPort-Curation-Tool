@@ -1,16 +1,13 @@
+import ImmPortCurationTool.immport_gui as ig
+
 import pandas as pd
 import io
 import os
-import subprocess
 import re
-import traceback
 import json
 import numpy as np
-from io import StringIO
-from zipfile import ZipFile
-import ImmPortCurationTool.immport_gui as ig
-import urllib.parse
-
+import zipfile 
+import gc
 from IPython.display import display
 
 pd.options.display.max_columns = 400
@@ -18,192 +15,185 @@ pd.options.display.max_rows = 200
 
 missingVisits_all = {}
 
-def writePanelComponentTemplate(panel, component, header, filepath, template):
-    panel["Result Separator Column"]=""
 
-    if template == "assessments":
+def apply_visit_mapping(df_column, planned_visit_map=None, default_visit=None):
 
-        df_temp = panel.merge(component, left_on='Assessment Panel ID', right_on='ASSESSMENT_PANEL_ACCESSION')
-        df_temp["Subject ID"]=df_temp["User Defined ID"]
-        df_temp["User Defined ID"]=df_temp.index+0
-        df_temp.drop(columns=["ASSESSMENT_PANEL_ACCESSION","component_group_id","WORKSPACE_ID"], inplace=True, errors='ignore')
+    df_column = df_column.fillna("").astype(str)
+    if planned_visit_map is None:
+        planned_visit_map = {}
 
-    elif template == "labTests":
+    def mapper(val):
 
-        df_temp = panel.merge(component, left_on='Lab Test Panel ID', right_on='LAB_TEST_PANEL_ACCESSION')
+        val_strip = val.strip()
 
-        print(f"df_temp {df_temp}")
-
-        if 'Planned Visit ID_y' in df_temp.columns:
-            df_temp['Planned Visit ID'] = df_temp['Planned Visit ID_y']
-        elif 'Planned Visit ID' in df_temp.columns:
-            pass  
-
-        df_temp["Subject ID"]=df_temp["User Defined ID"]
-        df_temp["User Defined ID"]=df_temp.index+0
-        df_temp.drop(columns=["LAB_TEST_PANEL_ACCESSION","component_group_id","WORKSPACE_ID"], inplace=True, errors='ignore')
-
-    colNames = list(map(lambda s: s.replace("_x","").replace("_y",""),df_temp.columns.to_list()))
-
-    df_temp.columns = colNames
-
-    header.to_csv(filepath, sep="|",index=False, encoding='utf-8')
-
-    df_temp.to_csv(filepath, sep="\t", mode='a',header=False, index=False)
-
-
-def processStudyFile(table_list,directory,dictionary,planned_visits,study_files,panel_template,study_id,components_template,table_metadata,workspace_id,template):    
-
-    if template == "assessments":
-
-        for table_set in table_list:
-            filename = table_metadata.loc[table_metadata.table_name.isin(table_set["tables"])]["table_file"].values[0]
-            filepath = directory+"StudyFiles/"+filename
-
-            datafile = readAndModifyStudyFile(filepath,table_set,dictionary,planned_visits)
-            [panel_template,panel_id] = getAssessmentPanelID([filename],study_files,panel_template,study_id,table_set["assessment_type"])
-            panel=getAssessmentPanelByID(panel_id,panel_template)
-            
-            components_template=datafileToComponents(datafile,dictionary,table_set["tables"],components_template,template,panel_id,workspace_id)
-
-        components_template.to_csv('processStudyFile_assessment_component_template.csv', index=False)
-        panel_template.to_csv('processStudyFile_assessment_panel_template.csv', index=False)
-
-        return [panel_template, components_template]
-
-def readFileFromZip(dir,zip,file):
-    if zip.endswith('.zip'):
-        zip = zip.replace('.zip','')
-    if not dir.endswith('/'):
-        dir += "/"
-    try:
-        with ZipFile(f"{dir}{zip}.zip") as myzip:
-            with myzip.open(f"{zip}/Tab/{file}") as myfile:
-                myfile_contents = pd.read_csv(io.BytesIO(myfile.read()), encoding='utf8', sep="\t")
-                return myfile_contents
-            
-    except KeyError:
-        return None
-    except Exception as e:
-        raise NotImplementedError("Zip extract went wrong")
-
-def get_studyfile_line_count(directory):
-    result = pd.read_csv(StringIO(subprocess.getoutput(f"wc --lines {directory}/*.txt")),encoding='utf8',header=None,names=["wc result"])
-
-    df = result["wc result"].str.split("\s+", expand=True)
-    df.columns=["blank","line_count","FILE_NAME"]
-    df["FILE_NAME"].replace(to_replace=f'{directory}/',value="",regex=True, inplace=True)
-    df.drop(columns=["blank"], inplace=True)
-
-    return df
-
-def addVisitAccessionFromName(planned_visits, table, visit_col,dictionary,file_table,default_visit):
-    global missingVisits_all    
-    table_column = getColumnName(dictionary, file_table,visit_col)
-
-    dict_visits=dict(zip(planned_visits["NAME"],planned_visits["PLANNED_VISIT_ACCESSION"]))
-
-        # ADD DEBUG PRINT STATEMENTS HERE
-    display(f"DEBUG Mapping visits for table: {file_table}")
-    display(f"DEBUG Visit column: {visit_col}")
-    display(f"DEBUG First 5 visit values: {table[visit_col].head()}")
-    display(f"DEBUG Planned visits mapping: {dict_visits}")
-        
-    if(table_column is None):
-        if(default_visit is not None):
-            table["PLANNED_VISIT_ID"]=dict_visits.get(default_visit,"")
-            table_visit = pd.DataFrame(data={'plannedVisit':['']})
-            return table_visit
+        if val_strip in planned_visit_map:
+            return planned_visit_map[val_strip]
+        elif default_visit is not None:
+            return default_visit
         else:
-            raise ValueError(f"No default visit has been defiled for {file_table}")
+            return np.nan  
 
-    table_visits = table.groupby([visit_col], as_index=False).agg('nunique')
+    return df_column.map(mapper)
 
-    table_visits.drop(table_visits.columns.difference([visit_col]),axis=1, inplace=True)
-    table_visits["plannedVisit"] = ""
-    for index, row in table_visits.iterrows():
-        for key in dict_visits.keys():
-            if(key.startswith(row[visit_col])):
-                table_visits.loc[index,"plannedVisit"]=dict_visits[key]
-            elif(row[visit_col].isnumeric() & ("Visit "+row[visit_col] in key)):
-                table_visits.loc[index,"plannedVisit"]=dict_visits[key]
-            elif(row[visit_col].isnumeric() & ("Visit 0"+row[visit_col] in key)):
-                table_visits.loc[index,"plannedVisit"]=dict_visits[key]
-            elif(row[visit_col][0:-1].isnumeric() & ("Visit "+row[visit_col][0:-1] in key)):
-                table_visits.loc[index,"plannedVisit"]=dict_visits[key]
-            elif(row[visit_col][0:-2].isnumeric() & ("Visit "+row[visit_col][0:-2] in key)):
-                table_visits.loc[index,"plannedVisit"]=dict_visits[key]
-            elif(~row[visit_col][0:1].isnumeric() & row[visit_col][1:].isnumeric() & ("Visit "+row[visit_col][1:] in key)):
-                table_visits.loc[index,"plannedVisit"]=dict_visits[key]
-            # else: #TODO write to log
-            #     logging.warn(f"Cannot find planned visit for {key}")
-            #     ig.unique_logging_buffer_load(level="warn", message=f"Cannot find planned visit for {key}")
+def readFileFromZip(dir, zip, file, gui=None, case_sensitive=False):
+
+    from itertools import islice
+
+    if zip.endswith('.zip'):
+        zip = zip[:-4]
+    dir = os.path.normpath(dir) + os.sep
+    zip_path = f"{dir}{zip}.zip"
+
+    ENCODINGS = ['utf-8', 'utf-16', 'cp1252']
+
+    try:
+        with zipfile.ZipFile(zip_path) as myzip:
+         
+            target_file = None
+            for actual_path in myzip.namelist():
+                actual_file = os.path.basename(actual_path)
+
+                if (case_sensitive and actual_file == file) or \
+                   (not case_sensitive and actual_file.lower() == file.lower()):
+                    target_file = actual_path
+                    break
+
+            if not target_file:
+
+                if gui:
+                    gui.log(f"File '{file}' not found in ZIP", level="error")
+
+                return None
+
+            with myzip.open(target_file) as myfile:
+                raw_content = myfile.read()
+
+                content_str = None
+                for encoding in ENCODINGS:
+                    try:
+                        content_str = raw_content.decode(encoding)
+                        break
+                    except UnicodeDecodeError:
+                        continue
+
+                if content_str is None:
+
+                    if gui:
+                        gui.log(f"Failed to decode {file} with common encodings", level="error")
+
+                    return None
+
+                sample = '\n'.join(list(islice(io.StringIO(content_str), 5)))
+                tab_count = sample.count('\t')
+                comma_count = sample.count(',')
+
+                delimiter = '\t' if tab_count > 0 else ','
+
+                if gui:
+                    gui.log(f"Reading {file} with delimiter={repr(delimiter)}", level="debug")
+
+                return pd.read_csv(
+                    io.StringIO(content_str),
+                    sep=delimiter,
+                    engine='python',
+                    on_bad_lines='warn'
+                )
+
+    except zipfile.BadZipFile:
+        if gui:
+            gui.log(f"Invalid ZIP file: {zip_path}", level="error")
+        return None
     
-        dict_visits2=dict(zip(table_visits[visit_col],table_visits["plannedVisit"]))
-    ig.main_logger.flush()
+    except Exception as e:
+        if gui:
+            gui.log(f"Error reading {file}: {str(e)}", level="error")
+        return None
 
-    if "map_to_visit" in dictionary["tables"][file_table]["fields"][visit_col] and len(dictionary["tables"][file_table]["fields"][visit_col]["map_to_visit"])>0:
-        #TODO: possible look at this when reading in the dictionary. If the column is not blank, check if its valid JSON and a DICT.
+def addVisitAccessionFromName(planned_visits, table, visit_col, dictionary, file_table, default_visit):
+
+    global missingVisits_all
+
+    dict_visits = dict(zip(
+        planned_visits["NAME"].astype(str).str.strip().str.lower(),
+        planned_visits["PLANNED_VISIT_ACCESSION"].astype(str)
+    ))
+
+    if visit_col not in table.columns:
+        raise ValueError(f"'{visit_col}' not found in table {file_table}")
+
+    table_visits = table[[visit_col]].drop_duplicates().copy()
+    table_visits["plannedVisit"] = ""
+
+    dict_field = dictionary["tables"].get(file_table, {}).get("fields", {}).get(visit_col, {})
+    visit_map = dict_field.get("map_to_visit") or {}
+    code_values = dict_field.get("values") or {}
+
+    if isinstance(visit_map, str):
         try:
-            visit_map_dict = json.loads(dictionary["tables"][file_table]["fields"][visit_col]["map_to_visit"])
+            visit_map = json.loads(visit_map)
         except Exception as e:
-            map_to_visit_str = dictionary["tables"][file_table]["fields"][visit_col]["map_to_visit"]
-            ig.main_logger.write(level="error", message=f"Invalid JSON for Map to Planned Visit column on table {table_column}. Try using <a href='https://jsonlint.com?json={urllib.parse.quote(map_to_visit_str)}'>jsonlint.com</a> to find the errors.", flush=True)
-            raise e
-        #create dictionary of visit_mappings to planned visit IDs
-        dict_visits_mapped = dict(map(lambda x: (x[0],dict_visits[x[1]]), visit_map_dict.items()))
-        dict_visits2.update(dict_visits_mapped)
+            visit_map = {}
 
-    missingVisits = dict(filter(lambda visit: visit[1] == "", dict_visits2.items()))
+    for idx, row in table_visits.iterrows():
+        raw_value = str(row[visit_col]).strip()
+        mapped_value = raw_value
 
-    if(len(missingVisits)>0):
-        sep = "\n\t"
-        ig.main_logger.write(level="error",message=f"Unable to find planned visits for the following visit names{sep}{sep.join(list(missingVisits.keys()))}")
-        ig.main_logger.write(level="error",message=f"Available Visits{sep}{sep.join(list(dict_visits.keys()))}")
+        seen = set()
+        
+        while mapped_value in visit_map and mapped_value not in seen:
+            seen.add(mapped_value)
+            mapped_value = visit_map[mapped_value]
 
-    table["PLANNED_VISIT_ID"]=table[visit_col].apply(lambda v: dict_visits2[v])
+        if mapped_value not in dict_visits and raw_value in code_values:
+            intermediate = code_values.get(raw_value, raw_value)
+            mapped_value = visit_map.get(intermediate, intermediate)
+
+        planned_visit_accession = dict_visits.get(mapped_value.lower())
+        
+        if not planned_visit_accession and default_visit:
+            planned_visit_accession = dict_visits.get(default_visit.lower())
+        if not planned_visit_accession:
+            planned_visit_accession = "UnknownVisit"
+
+        table_visits.at[idx, "plannedVisit"] = planned_visit_accession
+
+    visit_lookup = dict(zip(
+        table_visits[visit_col].astype(str).str.strip().str.lower(),
+        table_visits["plannedVisit"]
+    ))
+    
+    table["PLANNED_VISIT_ID"] = table[visit_col].astype(str).str.strip().str.lower().map(visit_lookup).fillna("UnknownVisit")
 
     return table_visits
 
-def addVisitAccessionFromName_old(planned_visits, table, table_column):
-    dict_visits=dict(zip(planned_visits["NAME"],planned_visits["PLANNED_VISIT_ACCESSION"]))
+def readStudyFile(filepath, file_table, dictionary):
 
-    table["PLANNED_VISIT_ID"]=table[table_column].apply(lambda v: dict_visits[[ key for key in dict_visits.keys() if key.startswith(v) ][0]])
+    raw_mappings = dictionary["tables"][file_table].get("mappings", {})
 
-def getStudyFileDescription(crf,study_files):
-    return list(study_files[study_files["FILE_NAME"]==crf]["DESCRIPTION"])[0]
+    mappings = {}
+    for k, v in raw_mappings.items():
+        if isinstance(k, list):
+            k_str = ",".join(str(x) for x in k)
+        else:
+            k_str = str(k)
 
-def readStudyFile(filepath, table, dictionary, sep="\t"):
-    #Read in datafile
-    datafile = pd.read_csv(filepath, sep=sep)
+        if isinstance(v, list):
+            v_safe = [str(item) for item in v]  
+        else:
+            v_safe = str(v)
 
-    #get the columns that utlize a key/value schema
-    dictionary_columns = list(filter(lambda x: x in dictionary["tables"][table]["fields"] and "values" in dictionary["tables"][table]["fields"][x], datafile.columns.tolist()))
+        mappings[k_str] = v_safe
 
-    #For columns that have dictionary values
-    for column in dictionary_columns:
-        # If float or int, need to convert to string. Also, if its a float, go to int first to remove any decimals (1.0 -> 1)
-        if(datafile[column].dtypes == "float64" or datafile[column].dtypes == "int64"):
-            datafile[column]=datafile[column].astype('Int64').astype(str)
-        #For each key in the dictionary
-        for key,value in dictionary["tables"][table]["fields"][column]["values"].items():
-            subset = (datafile[column] == key)  #525
-            
-            #get the dictionary key value, and set it to the subset of the column that has the key as the cell value
-            datafile.loc[subset, column]= value
-            key_no_leading_zeros = re.sub(r"^0+(\d+)$",r"\1",key)
+    if filepath.lower().endswith(".txt"):
+        datafile = pd.read_csv(filepath, sep="\t")
+    elif filepath.lower().endswith(".csv"):
+        datafile = pd.read_csv(filepath)
+    elif filepath.lower().endswith(".xlsx"):
+        datafile = pd.read_excel(filepath)
+    else:
+        raise ValueError(f"Unsupported file type: {filepath}")
 
-            subset = (datafile[column] == key_no_leading_zeros)  #525
-            
-            #get the dictionary key value, and set it to the subset of the column that has the key as the cell value
-            datafile.loc[subset, column]= value
-
-    #Rename columns with the description that is in the data dictionary
-    # datafile.rename(columns=lambda c: dictionary["tables"][table]["fields"][c]["description"] if c in dictionary["tables"][table]["fields"] else c, inplace=True)
     return datafile
-
-def getAssessmentPanelByID(panel_ID,assessment_panel_df):
-    return assessment_panel_df[assessment_panel_df["Assessment Panel ID"]==panel_ID]
 
 def readTemplate(template, template_path="templates/txt-templates/"):
 
@@ -233,310 +223,1123 @@ def readTemplate(template, template_path="templates/txt-templates/"):
 
         return labTest_panel_template,labTest_components_template,labTest_template_header
 
-def createColumnMappingDict(dictionary,table_name):
-    mappings={"PLANNED_VISIT_ID":"Planned Visit ID"}
-    for mapping, col in dictionary["tables"][table_name]["mappings"].items():
-        if(mapping == "[NA]" or mapping == "[Visit]"):
-            continue
+def createColumnMappingDict(dictionary, table_name):
 
-        mappings[col]=mapping
+    mappings = {
+        "PLANNED_VISIT_ID": "Planned Visit ID"
+    }
+
+    if table_name not in dictionary["tables"]:
+        
+        return mappings
+
+    table_data = dictionary["tables"][table_name]
+    dd_mappings = table_data.get("mappings", {})
+
+    for key, original_col in dd_mappings.items():
+
+        if not original_col or str(original_col).strip().upper() == "NA":
+            continue 
+
+        if isinstance(original_col, list):
+            if len(original_col) > 0:
+                original_col = original_col[0]
+            else:
+                continue
+
+        clean_key = key.strip("[]")
+        clean_key_upper = clean_key.upper()
+
+        if clean_key_upper == "STUDY DAY":
+            mappings[str(original_col)] = "Study Day"
+        elif clean_key_upper == "VISIT":
+            mappings[str(original_col)] = "Visit"
+        elif clean_key_upper == "CATEGORY":
+            continue  
+        elif clean_key_upper == "USER DEFINED ID":
+            mappings[str(original_col)] = "User Defined ID"
+        elif clean_key_upper == "STUDY TIME":
+            mappings[str(original_col)] = "Study Time"
+        else:
+            mappings[str(original_col)] = clean_key
 
     return mappings
 
-def datafileToComponents(datafile,dictionary,table_name_array,components_template,template,panel_id=-1,workspace_id=9999,col_units={}):
+def datafileToComponents(datafile, dictionary, table_name_array, components_template, template, panel_id=-1, workspace_id=9999, planned_visits=None, col_units={}, default_visit_name=None):
+
+    def is_valid_date(date_str):
+        date_patterns = [
+            r'^\d{1,2}-\d{1,2}-\d{2,4}$',
+            r'^\d{1,2}/\d{1,2}/\d{2,4}$',
+            r'^\d{1,2}\.\d{1,2}\.\d{2,4}$',
+            r'^\d{1,2} \d{1,2} \d{2,4}$',
+            r'^\d{4}-\d{1,2}-\d{1,2}$',
+            r'^\d{4}/\d{1,2}/\d{1,2}$',
+            r'^\d{1,2}-[A-Za-z]{3,9}-\d{2,4}$',
+            r'^\d{1,2}/[A-Za-z]{3,9}/\d{2,4}$',
+            r'^[A-Za-z]{3,9}-\d{1,2}-\d{2,4}$',
+            r'^[A-Za-z]{3,9} \d{1,2}, \d{4}$',
+            r'^\d{6}$',
+            r'^\d{8}$',
+            r'^\d{1,2}-[A-Za-z]{3,9}$',
+            r'^[A-Za-z]{3,9}-\d{4}$',
+            r'^\d{4}$',
+            r'^\d{1,2}-\d{1,2}-\d{2,4} \d{1,2}:\d{2}$',
+            r'^\d{4}-\d{1,2}-\d{1,2}T\d{2}:\d{2}:\d{2}$'
+        ]
+        return any(re.match(pattern, date_str) for pattern in date_patterns)
+    
+    def normalize_for_mapping(val):
+
+        if pd.isna(val):
+            return val
+        
+        if isinstance(val, float) and val.is_integer():
+            return str(int(val))
+        
+        return str(val).strip()
+    
+    def extract_candidates(val):
+
+        if val is None:
+            return []
+        
+        if isinstance(val, list):
+            candidates = []
+
+            for v in val:
+                candidates.extend(extract_candidates(v))
+
+            return candidates
+        
+        if isinstance(val, dict):
+            candidates = []
+
+            for k, v in val.items():
+                candidates.extend(extract_candidates(k))
+                candidates.extend(extract_candidates(v))
+
+            return candidates
+       
+        s = str(val).strip()
+
+        if not s:
+            return []
+      
+        s = s.strip()
    
+        if s.startswith("[") and s.endswith("]"):
+            s = s[1:-1].strip()
+
+        parts = re.split(r'[,\;\|/]', s)
+        candidates = []
+
+        for p in parts:
+            p2 = p.strip()
+
+            if not p2:
+                continue
+
+            candidates.append(p2)
+
+        return candidates
+
     if template == "assessments":
-   
-        #Remove any records of this table already loaded into the components table.
-        components_template.drop(components_template[components_template["ASSESSMENT_PANEL_ACCESSION"] == panel_id].index, inplace=True)
+
+        components_template.drop(
+            components_template[components_template["ASSESSMENT_PANEL_ACCESSION"] == panel_id].index,
+            inplace=True
+        )
+
+        datafile = datafile.replace(['<NA>', 'NA', 'N/A', 'nan', 'NaN'], np.nan)
+
         for table_name in table_name_array:
-            col_mappings = createColumnMappingDict(dictionary,table_name)
 
-            question_id = 0
-            datafile.rename(columns=col_mappings,inplace=True)
-        
-            #Limit to fields that have a "true" value for the "question" field as specified when loading the data dictionary
-            question_cols = (dict(filter(lambda col: col[1]["question"],dictionary["tables"][table_name]["fields"].items())))
+            df_slim_list = [] 
+            valid_columns = set(dictionary["tables"][table_name]["fields"].keys())
 
-            display(f"question_cols {question_cols}")
-            
+            fields_dict = dictionary["tables"][table_name]["fields"]
 
-            set_columns = list(col_mappings.values())
+            prop_keys_to_check = [
+                "unit",
+                "study_day",        
+                "study_day_ref",
+                "study_time",
+                "study_time_ref",
+                "verbatim_question",
+                "who_is_assessed",
+                "age_onset",
+                "age_onset_unit",
+                "location"
+            ]
 
-            display(f"set_columns {set_columns}")
+            valid_cols_lc = {c.strip().lower() for c in valid_columns}
 
-            datacolumns = question_cols.keys()
+            referenced_fields = set()
 
-            display(f"datacolumns {datacolumns}")
+            for fname, fprops in fields_dict.items():
 
-            for col in datacolumns:
-                df_slim = datafile[set_columns].copy()
-                # This is processing entire rows of data files, it is not iterating over each cell
-                # Need to check to see if this is an actual question or a property (Age of Onset, Location, Date, etc) of another question.
-                col_name= dictionary["tables"][table_name]["fields"][col]["description"]
-                if col in datafile:
-                    question_id = question_id + 1
-                    component_id = f"{panel_id}_{question_id}"
+                if not isinstance(fprops, dict):
+                    continue
 
-                    try:
-                        df_slim["component_group_id"]=component_id
-                        df_slim["Name Reported"]=col_name
-                        df_slim["Result Value Reported"]=datafile[col]
+                for prop_key in prop_keys_to_check:
+   
+                    if prop_key in fprops:
+                        val = fprops.get(prop_key)
+                    else:
+                        val = fprops.get(prop_key.lower(), fprops.get(prop_key.upper(), None))
 
-                        display(f"col {col}")
-                        display(f"datafile[col] {datafile[col]}")
+                    if val is None:
+                        continue
 
-                        df_slim["ASSESSMENT_PANEL_ACCESSION"]=panel_id
-                        df_slim["WORKSPACE_ID"]=workspace_id
-                    except Exception as e:
-                        ig.main_logger.write(level="error",message=f"Error with column {col_name} in {table_name}- {str(e)}\n{traceback.format_exc()}", flush=True)
-                        raise
+                    for cand in extract_candidates(val):
+                        cand_norm = cand.strip().lower()
 
-                    display(f"df_slim[Result Value Reported] {df_slim["Result Value Reported"]}")
+                        if cand_norm.startswith("[") and cand_norm.endswith("]"):
+                            cand_norm = cand_norm[1:-1].strip()
 
-                    df_slim.loc[(df_slim["Result Value Reported"] == "<NA>"), "Result Value Reported"] = np.nan
-                
-                    if dictionary["tables"][table_name]["fields"][col]["unit"] != "":
-                        if dictionary["tables"][table_name]["fields"][col]["unit"].upper() == "[SPLIT]":
-                            #Need to split Result Unit Reported into result and unit
-                            df_slim.loc[
-                                ~df_slim["Result Value Reported"].isna() &
-                                df_slim["Result Value Reported"].str.contains(" ")
-                                , ["Result Value Reported","Result Unit Reported"]
-                            ] = df_slim.loc[
-                                ~df_slim["Result Value Reported"].isna() &
-                                df_slim["Result Value Reported"].str.contains(" ")
-                                , "Result Value Reported"].str.split(" ", n=1, expand=True)
-                        elif dictionary["tables"][table_name]["fields"][col]["unit"].startswith("[") and dictionary["tables"][table_name]["fields"][col]["unit"].endswith("]"):
-                            lookup_col = dictionary["tables"][table_name]["fields"][col]["unit"][1:-1]  #remove '[' and ']'
-                            lookup_col_name = dictionary["tables"][table_name]["fields"][lookup_col]["description"]
-        
-                            df_slim["Result Unit Reported"]= datafile[lookup_col]
+                        if cand_norm in valid_cols_lc:
+                            referenced_fields.add(cand_norm)
 
-                        else:
-                            # Need to see if the value is "[Split]"
-                            df_slim.loc[~df_slim["Result Value Reported"].isna(), "Result Unit Reported"] = dictionary["tables"][table_name]["fields"][col]["unit"]
+            raw_category_fields = dictionary["tables"][table_name]["mappings"].get("[Category]", [])
 
-                    df_slim["Verbatim Question"] = dictionary["tables"][table_name]["fields"][col]["verbatim_question"]
-                    df_slim["Who Is Assessed"] = dictionary["tables"][table_name]["fields"][col]["who_is_assessed"]
+            if isinstance(raw_category_fields, str):
+                raw_category_fields = [raw_category_fields]
+            elif not isinstance(raw_category_fields, list):
+                raw_category_fields = []
 
-                    if(dictionary["tables"][table_name]["fields"][col]["age_onset"] != ""):
-                        # Need to create subset (iloc) where age_onset has value
-                        
-                        lookup_col = dictionary["tables"][table_name]["fields"][col]["age_onset"]
-                        lookup_col_name = dictionary["tables"][table_name]["fields"][lookup_col]["description"]
-                        ig.main_logger.write(level='info', message=f"\tUsing field {lookup_col} for 'Age At Onset Reported' for {col} with unit: {dictionary['tables'][table_name]['fields'][col]['age_onset_unit']}")
+            category_fields = {}
+            for cat_field in raw_category_fields:
+                if cat_field in dictionary["tables"][table_name]["fields"]:
+                    cat_meta = dictionary["tables"][table_name]["fields"][cat_field]
+                    values_dict = {str(k): v for k, v in cat_meta.get("values", {}).items()}
+                    category_fields[cat_field] = {'description': cat_meta["description"], 'values': values_dict}
 
-                        df_slim["Age At Onset Reported"]= datafile[lookup_col]
-                        df_slim.loc[~df_slim["Age At Onset Reported"].isna(), "Age At Onset Unit Reported"] = dictionary["tables"][table_name]["fields"][col]["age_onset_unit"]
+            col_mappings = createColumnMappingDict(dictionary, table_name)
+            for cat_field in category_fields:
+                if cat_field in col_mappings:
+                    del col_mappings[cat_field]
 
-                    #If location is not empty, and value is a column in the data/study file, then use the value from the corresponding field
-                    if(dictionary["tables"][table_name]["fields"][col]["location"] != ""):
-                        # Need to create subset (iloc) where age_onset has value
-                        
-                        lookup_col = dictionary["tables"][table_name]["fields"][col]["location"]
+            renamed_datafile = datafile.rename(columns=col_mappings)
 
-                        if lookup_col in datafile:
-                            ig.main_logger.write(level='info', message=f"\tUsing field {lookup_col} for 'Location of Finding Reported' for {col}")
-                            df_slim["Location Of Finding Reported"]= datafile[lookup_col]
-                        else:
-                            ig.main_logger.write(level='info', message=f"\tUsing value {lookup_col} for 'Location of Finding Reported' for {col}")
-                            df_slim["Location Of Finding Reported"]= lookup_col
+            if "Planned Visit ID" in renamed_datafile.columns and planned_visits is not None:
+             
+                def normalize_visit_name(name):
                     
-                    if( dictionary["tables"][table_name]["fields"][col]["study_day"] != ""):
-                        # Need to create subset (iloc) where age_onset has value
-                        
-                        lookup_col = dictionary["tables"][table_name]["fields"][col]["study_day"]
-                        if lookup_col == "[Self]":
-                            lookup_col = col
-                        lookup_col_name = dictionary["tables"][table_name]["fields"][lookup_col]["description"]
-                        ig.main_logger.write(level='info', message=f"\tUsing field {lookup_col} for 'Study Day' value for {col}")
+                    if pd.isna(name):
+                        return None
+                    
+                    return str(name).strip().lower()
 
-                        df_slim["Study Day"]= datafile[lookup_col]
-                    #Need to take df_slim and remove rows that have no actual data. 
-            
-                   # assessment_components_template = pd.concat([assessment_components_template, df_slim[~df_slim["Result Value Reported"].isnull()]], ignore_index=True)
-                    components_template = pd.concat([components_template, df_slim[~df_slim["Result Value Reported"].isnull()]], ignore_index=True)
-  
+                renamed_datafile["Planned Visit ID"] = renamed_datafile["Planned Visit ID"].astype(str)
+
+                visit_col_props = dictionary["tables"][table_name]["fields"].get("event", {})
+                value_map = visit_col_props.get("map_to_visit", {})
+
+                if value_map:
+                    mapped_visits = renamed_datafile["Planned Visit ID"].map(value_map).fillna(renamed_datafile["Planned Visit ID"])
                 else:
-                    ig.main_logger.write(level='critical', message=f"Table Field not found in file: {col_name} in {table_name}", flush=True)
- 
-    elif template == "labTests":
+                    mapped_visits = renamed_datafile["Planned Visit ID"]
+
+                def is_accession(val):
+                    
+                    if pd.isna(val):
+                        return False
+                    
+                    return re.match(r"^PV\d+$", str(val)) is not None
+
+                planned_visit_map = {normalize_visit_name(k): v for k, v in zip(planned_visits["NAME"], planned_visits["PLANNED_VISIT_ACCESSION"])}
+
+                final_pv = []
+                
+                for val in mapped_visits:
+                    if is_accession(val):
+                        final_pv.append(val)
+                    else:
+                        final_pv.append(planned_visit_map.get(normalize_visit_name(val), "UnknownVisit"))
+
+                renamed_datafile["Planned Visit ID"] = final_pv
+
+            na_mapped_columns = set()
+            raw_na = dictionary["tables"][table_name]["mappings"].get("NA", [])
+            
+            def flatten_to_str_list(x):
+                
+                if isinstance(x, list):
+                    result = []
+                    for item in x:
+                        result.extend(flatten_to_str_list(item))
+                    return result
+                else:
+                    return [str(x).strip().upper()]
+                
+            for item in flatten_to_str_list(raw_na):
+                na_mapped_columns.add(item)
+
+            # Question field 
+            question_cols = {field: props for field, props in dictionary["tables"][table_name]["fields"].items()
+                            if props.get("question", False)}
+
+            for col, col_props in question_cols.items():
+                col_upper = col.strip().upper()
+                
+                if col_upper in na_mapped_columns:
+                    continue
+
+                if col.strip().lower() in referenced_fields:
+                    continue
+    
+                if col in renamed_datafile and col not in category_fields:
+
+                    required_cols = ['User Defined ID', 'Planned Visit ID', col] + list(category_fields.keys())
+                    required_cols = [str(x) for x in required_cols]
+
+                    df_slim = renamed_datafile[required_cols].copy()
+
+                    df_slim.rename(columns={'Planned Visit ID': 'Planned Visit ID'}, inplace=True)
+
+                    if col in df_slim.columns:
+                        series = df_slim[col]
+                        
+                        try:
+                            series_str = series.astype("string")
+                        except Exception as e:
+                            continue
+                        
+                        try:
+                            stripped = series_str.str.strip()
+                        except Exception as e:
+                            continue
+                        
+                        stripped = stripped.replace(
+                            {"nan": pd.NA, "NaN": pd.NA, "None": pd.NA, "<NA>": pd.NA}
+                        )
+                        
+                        non_empty = stripped.dropna()
+                        
+                        if non_empty.empty:
+                            continue
+                    else:
+                        continue
+                        
+                    # Map to Planned Visit
+                    map_to_visit_val = col_props.get("map_to_visit")
+
+                    if not map_to_visit_val or str(map_to_visit_val).strip() == "":
+                        planned_visit_map = {}
+                    else:
+                        try:
+                            planned_visit_map = json.loads(map_to_visit_val)
+                    
+                        except json.JSONDecodeError:
+                            planned_visit_map = {}
+
+                    value_map = col_props.get("values", {})
+
+                    if value_map and planned_visit_map and col in df_slim.columns:
+                        intermediate_series = df_slim[col].astype(str).map(value_map).fillna(df_slim[col])
+                        remapped = intermediate_series.map(planned_visit_map)
+                        
+                        if remapped.notna().any():
+                            df_slim["Planned Visit ID"] = remapped.combine_first(df_slim["Planned Visit ID"])
+
+                    # Study time
+                    override_study_time = col_props.get("study_time", "").strip()
+                    study_time_ref = col_props.get("study_time_ref", "").strip()
+                    study_time_value = None
+
+                    if override_study_time.lower() in ["same", "self"]:
+                        mapped_col = dictionary["tables"][table_name]["mappings"].get("[Study Time]", "")
+                        resolved_col = col_mappings.get(mapped_col, mapped_col)
+                        
+                        if resolved_col in renamed_datafile.columns:
+                            study_time_value = renamed_datafile[resolved_col]
+                            
+                    elif override_study_time in renamed_datafile.columns:
+                        study_time_value = renamed_datafile[override_study_time]
+                    elif override_study_time:
+                        study_time_value = override_study_time
+                    elif study_time_ref:
+                        resolved_col = col_mappings.get(study_time_ref, study_time_ref)
+                        
+                        if resolved_col in renamed_datafile.columns:
+                            study_time_value = renamed_datafile[resolved_col]
+                            
+                    elif "[Study Time]" in dictionary["tables"][table_name]["mappings"]:
+                        mapped_col = dictionary["tables"][table_name]["mappings"]["[Study Time]"]
+                        
+                        if mapped_col in datafile.columns:
+                            study_time_value = datafile[mapped_col]
+
+                    if isinstance(study_time_value, pd.Series):
+                        df_slim["Time Of Day"] = study_time_value
+                    elif isinstance(study_time_value, str) and study_time_value.strip():
+                        df_slim["Time Of Day"] = study_time_value
+
+                    # Study day
+                    override_study_day = col_props.get("study_day", "").strip()
+                    study_day_value = None
+
+                    if override_study_day.lower() in ["same", "self"]:
+                        mapped_col = dictionary["tables"][table_name]["mappings"].get("[Study Day]", "")
+                        resolved_col = col_mappings.get(mapped_col, mapped_col)
+
+                        if resolved_col in renamed_datafile.columns:
+                            study_day_value = renamed_datafile[resolved_col]
+                            
+                    elif override_study_day in renamed_datafile.columns:
+                        study_day_value = renamed_datafile[override_study_day]
+                    elif override_study_day:
+                        study_day_value = override_study_day
+                    elif "[Study Day]" in dictionary["tables"][table_name]["mappings"]:
+                        mapped_col = dictionary["tables"][table_name]["mappings"]["[Study Day]"]
+                        resolved_col = col_mappings.get(mapped_col, mapped_col)
+                        
+                        if resolved_col in renamed_datafile.columns:
+                            study_day_value = renamed_datafile[resolved_col]
+
+                    planned_visits_ids = planned_visits["PLANNED_VISIT_ACCESSION"].astype(str).str.strip().str.upper()
+                    visit_map = dict(zip(planned_visits_ids, planned_visits["MIN_START_DAY"]))
+
+                    if isinstance(study_day_value, pd.Series):
+                        mask = study_day_value.isna()
+                        study_day_value.loc[mask] = (
+                            df_slim.loc[mask, "Planned Visit ID"]
+                            .astype(str)
+                            .str.strip()
+                            .str.upper()
+                            .map(visit_map)
+                        )
+                    else:
+                        df_slim["Study Day"] = 99999
+                        study_day_value = df_slim["Study Day"]
+
+                    if isinstance(study_day_value, pd.Series):
+                        df_slim["Study Day"] = study_day_value
+                    elif isinstance(study_day_value, str) and study_day_value.strip():
+                        df_slim["Study Day"] = study_day_value
+                        
+                    df_slim["Study Day"] = df_slim["Study Day"].fillna(99999)
+
+                    col_props = dictionary["tables"][table_name]["fields"][col]
+
+                    def normalize_key_for_codelist(k):
+                        try:
+                            f = float(k)
+                            
+                            if f.is_integer():
+                                return str(int(f))
+                            else:
+                                return str(f).rstrip('0').rstrip('.') if '.' in str(f) else str(f)
+                     
+                        except Exception:
+                            return str(k).strip()
+
+                    codelist_raw = col_props.get("values", {}) or {}
+                    
+                    if not isinstance(codelist_raw, dict):
+                        try:
+                            codelist_raw = dict(codelist_raw)
+                        except Exception:
+                            codelist_raw = {}
+
+                    codelist = { normalize_key_for_codelist(k): str(v).strip() for k, v in codelist_raw.items() }
+
+                    def normalize_for_mapping(val):
+
+                        if pd.isna(val):
+                            return None
+
+                        if isinstance(val, float) and val.is_integer():
+                            return str(int(val))
+                        
+                        try:
+                            s = str(val).strip()
+                            f = float(s)
+                            if f.is_integer():
+                                return str(int(f))
+                            s2 = str(f)
+                            
+                            if '.' in s2:
+                                s2 = s2.rstrip('0').rstrip('.')
+                                
+                            return s2
+                        
+                        except Exception:
+                            return str(val).strip()
+
+                    norm_series = df_slim[col].apply(normalize_for_mapping)
+
+                    mapped = norm_series.map(codelist)  
+
+                    fallback = norm_series.apply(lambda x: str(x).strip() if x is not None else x)
+
+                    df_slim["Result Value Reported"] = mapped.fillna(fallback)
+
+                    df_slim["Result Value Reported"] = df_slim["Result Value Reported"].astype(object)  
+
+                    df_slim = df_slim[~df_slim["Result Value Reported"].isna()]                  
+                    df_slim = df_slim[df_slim["Result Value Reported"].apply(lambda x: str(x).strip() != "")]  
+
+                    df_slim["Result Value Reported"] = df_slim["Result Value Reported"].astype(str)
+
+                    if not df_slim.empty:
+
+                        # Name Reported
+                        name_parts = []
+                        for cat_field, cat_data in category_fields.items():
+                            code_values = df_slim[cat_field].apply(lambda x: cat_data["values"].get(str(x), str(x)))
+                            name_parts.append(code_values.astype(str).str.lower())
+
+                        field_desc = col_props["description"].lower().replace(" ", "-")
+                        name_parts.append(field_desc)
+
+                        df_slim["Name Reported"] = df_slim.index.map(
+                            lambda i: "-".join([str(part[i]) if isinstance(part, pd.Series) else str(part) for part in name_parts])
+                        )
+
+                        # Verbatim Question
+                        verbatim_q = (col_props.get("verbatim_question", "") or col_props.get("verbatim question", ""))
+                        verbatim_q = verbatim_q.strip() if isinstance(verbatim_q, str) else ""
+
+                        if verbatim_q:
+                            
+                            if verbatim_q.lower() == "same":
+                                df_slim["Verbatim Question"] = col_props["description"]
+                            else:
+                                match = next((c for c in renamed_datafile.columns if c.lower() == verbatim_q.lower()), None)
+
+                                if match:
+                                    raw_values = renamed_datafile[match]
+
+                                    fields_dict = dictionary["tables"][table_name]["fields"]
+                                    referenced_col_props = next(
+                                        (props for field_name, props in fields_dict.items() if field_name.lower() == verbatim_q.lower()),
+                                        {}
+                                    )
+
+                                    values_dict = {str(k).strip().lower(): v for k, v in referenced_col_props.get("values", {}).items()}
+
+                                    if values_dict:
+                                        normalized_raw = (
+                                            raw_values.astype(str)
+                                            .str.replace(r"\.0$", "", regex=True)
+                                            .str.strip()
+                                            .str.lower()
+                                        )
+                                        
+                                        mapped_values = normalized_raw.map(values_dict).fillna(raw_values)
+                                        df_slim["Verbatim Question"] = mapped_values
+            
+                                    else:
+                                        df_slim["Verbatim Question"] = raw_values
+    
+                                else:
+                      
+                                    df_slim["Verbatim Question"] = verbatim_q
+            
+                        # Who is Assessed
+                        who_assessed = (col_props.get("who_is_assessed", "") or col_props.get("who is assessed", ""))
+                        who_assessed = who_assessed.strip() if isinstance(who_assessed, str) else ""
+
+                        if who_assessed:
+             
+                            match = next((c for c in renamed_datafile.columns if c.lower() == who_assessed.lower()), None)
+
+                            if match:
+                                raw_values = renamed_datafile[match]
+
+                                fields_dict = dictionary["tables"][table_name]["fields"]
+                                referenced_col_props = next(
+                                    (props for field_name, props in fields_dict.items() if field_name.lower() == who_assessed.lower()),
+                                    {}
+                                )
+
+                                values_dict = {str(k).strip().lower(): v for k, v in referenced_col_props.get("values", {}).items()}
+
+                                if values_dict:
+                                    normalized_raw = (
+                                        raw_values.astype(str)
+                                        .str.replace(r"\.0$", "", regex=True)
+                                        .str.strip()
+                                        .str.lower()
+                                    )
+                                    mapped_values = normalized_raw.map(values_dict).fillna(raw_values)
+                                    df_slim["Who Is Assessed"] = mapped_values
+                                else:
+                                    df_slim["Who Is Assessed"] = raw_values
+                            else:
+                                df_slim["Who Is Assessed"] = who_assessed
+
+                        # Location
+                        location_field = col_props.get("location", "").strip()
+
+                        if location_field:
+            
+                            match = next((col for col in renamed_datafile.columns if col.lower() == location_field.lower()), None)
+
+                            if match:
+                                raw_values = renamed_datafile[match]
+
+                                fields_dict = dictionary["tables"][table_name]["fields"]
+                                referenced_col_props = next(
+                                    (props for field_name, props in fields_dict.items() if field_name.lower() == location_field.lower()),
+                                    {}
+                                )
+
+                                values_dict = {str(k).strip().lower(): v for k, v in referenced_col_props.get("values", {}).items()}
+
+                                if values_dict:
+                                    normalized_raw = (
+                                        raw_values.astype(str)
+                                        .str.replace(r"\.0$", "", regex=True)
+                                        .str.strip()
+                                        .str.lower()
+                                    )
+                                    mapped_values = normalized_raw.map(values_dict).fillna(raw_values)
+                                    df_slim["Organ Or Body System Reported"] = mapped_values
+                                else:
+                                    df_slim["Organ Or Body System Reported"] = raw_values
+                            else:
+                                df_slim["Organ Or Body System Reported"] = location_field
+
+                        # Age At Onset 
+                        age_onset_field = col_props.get("age_onset", "").strip()
+   
+                        if age_onset_field:
+                            match = next((c for c in renamed_datafile.columns if c.lower() == age_onset_field.lower()), None)
+
+                            if match:
+                                raw_values = renamed_datafile[match]
+
+                                fields_dict = dictionary["tables"][table_name]["fields"]
+                                referenced_col_props = next(
+                                    (props for field_name, props in fields_dict.items() if field_name.lower() == age_onset_field.lower()),
+                                    {}
+                                )
+
+                                values_dict = {str(k).strip().lower(): v for k, v in referenced_col_props.get("values", {}).items()}
+
+                                if values_dict:
+                                    normalized_raw = (
+                                        raw_values.astype(str)
+                                        .str.replace(r"\.0$", "", regex=True)
+                                        .str.strip()
+                                        .str.lower()
+                                    )
+                                    mapped_values = normalized_raw.map(values_dict).fillna(raw_values)
+                                    df_slim["Age At Onset Reported"] = mapped_values
+        
+                                else:
+                                    df_slim["Age At Onset Reported"] = raw_values
+            
+                            else:
+                                df_slim["Age At Onset Reported"] = age_onset_field
+              
+                        # Age At Onset Unit
+                        age_onset_unit_field = col_props.get("age_onset_unit", "").strip()
+   
+                        if age_onset_unit_field:
+               
+                            match = next((c for c in renamed_datafile.columns if c.lower() == age_onset_unit_field.lower()), None)
+
+                            if match:
+                                raw_values = renamed_datafile[match]
+
+                                fields_dict = dictionary["tables"][table_name]["fields"]
+                                referenced_col_props = next(
+                                    (props for field_name, props in fields_dict.items() if field_name.lower() == age_onset_unit_field.lower()),
+                                    {}
+                                )
+
+                                values_dict = {str(k).strip().lower(): v for k, v in referenced_col_props.get("values", {}).items()}
+
+                                if values_dict:
+                                    normalized_raw = (
+                                        raw_values.astype(str)
+                                        .str.replace(r"\.0$", "", regex=True)
+                                        .str.strip()
+                                        .str.lower()
+                                    )
+                                    mapped_values = normalized_raw.map(values_dict).fillna(raw_values)
+                                    df_slim["Age At Onset Unit Reported"] = mapped_values
+                                else:
+                                    df_slim["Age At Onset Unit Reported"] = raw_values
+                            else:
+                            
+                                df_slim["Age At Onset Unit Reported"] = age_onset_unit_field
+
+                        # Unit
+                        unit_info = col_props.get("unit", "").strip()
+                        
+                        if unit_info:
+                            if unit_info in valid_columns:
+                                df_slim['Result Unit Reported'] = renamed_datafile[unit_info]
+                            elif unit_info.upper().strip("[]") == "SPLIT":
+                                split_values = df_slim['Result Value Reported'].str.split(" ", n=1, expand=True)
+                                df_slim['Result Value Reported'] = split_values[0]
+                                df_slim['Result Unit Reported'] = split_values[1]
+                            elif unit_info.startswith("[") and unit_info.endswith("]"):
+                                unit_col = unit_info[1:-1]
+                                
+                                if unit_col in renamed_datafile:
+                                    df_slim['Result Unit Reported'] = renamed_datafile[unit_col]
+                                else:
+                                    df_slim['Result Unit Reported'] = ""
+                            else:
+                                df_slim['Result Unit Reported'] = unit_info
+                        else:
+                            code_mapping = col_props.get("values", {})
+                         
+                            code_descriptions = set(str(v).upper() for v in code_mapping.values())
+                            
+                            if {'YES', 'NO'}.issubset(code_descriptions):
+                                df_slim['Result Unit Reported'] = 'Yes, No, or Unknown Response'
+                            elif {'MALE', 'FEMALE'}.issubset(code_descriptions):
+                                df_slim['Result Unit Reported'] = 'Gender'
+                            elif len(code_descriptions) == 2:
+                                df_slim['Result Unit Reported'] = 'Boolean'
+                            elif code_descriptions:
+                                df_slim['Result Unit Reported'] = 'categorical'
+                            else:
+                                df_slim['Result Unit Reported'] = ''
+
+                        if "User Defined ID" in df_slim.columns:
+                            df_slim = df_slim[
+                                df_slim["User Defined ID"]
+                                .astype(str)
+                                .str.strip()
+                                .replace({"nan": "", "None": "", "NONE": ""})
+                                != ""
+                            ]
+
+                        for col in components_template.columns:
+                            if col not in df_slim.columns:
+                                df_slim[col] = ""  
+                        
+                        df_slim_list.append(df_slim)
+
+                        del df_slim
+                        gc.collect()
+
+            if df_slim_list:
+                components_template = pd.concat([components_template] + df_slim_list, ignore_index=True)
+
+    if template == "labTests":
+
         components_template.drop(
             components_template[components_template["LAB_TEST_PANEL_ACCESSION"] == panel_id].index,
             inplace=True
         )
-        
+
+        datafile = datafile.replace(['<NA>', 'NA', 'N/A', '', 'nan', 'NaN'], np.nan)
+
         for table_name in table_name_array:
-            # Create column mappings
+
+            raw_category_fields = dictionary["tables"][table_name]["mappings"].get("[Category]", [])
+
+            if isinstance(raw_category_fields, str) and raw_category_fields:
+                raw_category_fields = [raw_category_fields]
+            elif not isinstance(raw_category_fields, list):
+                raw_category_fields = []
+
+            category_fields = {}
+            for cat_field in raw_category_fields:
+                
+                if cat_field in dictionary["tables"][table_name]["fields"]:
+                    cat_meta = dictionary["tables"][table_name]["fields"][cat_field]
+                    values_dict = {str(k): v for k, v in cat_meta.get("values", {}).items()}
+                    category_fields[cat_field] = {
+                        'description': cat_meta["description"],
+                        'values': values_dict
+                    }
+
             col_mappings = createColumnMappingDict(dictionary, table_name)
+
+            for cat_field in category_fields:
+                if cat_field in col_mappings:
+                    del col_mappings[cat_field]
+
             datafile.rename(columns=col_mappings, inplace=True)
+  
+            cols_to_drop = [col for col in datafile.columns if col.strip().upper() == 'NA']
             
-            # Get planned visit ID - prioritize 'Planned Visit ID' column, fall back to 'PLANNED_VISIT_ID'
+            if cols_to_drop:
+                datafile.drop(columns=cols_to_drop, inplace=True)
+
             planned_visit_col = 'Planned Visit ID' if 'Planned Visit ID' in datafile.columns else 'PLANNED_VISIT_ID'
-            planned_visit_id = datafile[planned_visit_col].iloc[0] if planned_visit_col in datafile.columns else "None"
+
+            raw_na = dictionary["tables"][table_name]["mappings"].get("NA", [])
+
+            def flatten_to_str_list(x):
+                
+                if isinstance(x, list):
+                    result = []
+                    for item in x:
+                        result.extend(flatten_to_str_list(item))
+                    return result
+                else:
+                    return [str(x).strip().upper()]
+
+            na_mapped_fields = set(flatten_to_str_list(raw_na))
+
+            table_fields = dictionary["tables"].get(table_name, {}).get("fields", {})
             
-            display(f"planned_visit_col! {planned_visit_col}")
+            if not isinstance(table_fields, dict):
+                ig.main_logger.write(level="error", message=f"❌ 'fields' missing or not a dict for table {table_name}")
+                continue  
 
-            # Get all question fields from dictionary
-            question_cols = dict(
-                filter(lambda col: col[1]["question"], 
-                    dictionary["tables"][table_name]["fields"].items())
-            )
+            prop_keys_to_check = [
+                "unit",
+                "study_day",
+                "study_day_ref",
+                "study_time",
+                "study_time_ref"
+            ]
 
-           # study_time_collected_col = getColumnMapping(dictionary, table_name, "[Study Day]")
-            study_time_collected_col = 'Study Time Collected' if 'Study Time Collected' in datafile.columns else 'STUDY_TIME_COLLECTED'
-            study_time_collected_id = datafile[study_time_collected_col].iloc[0] if study_time_collected_col in datafile.columns else "None"
-        
-            display(f"study_time_collected_col! {study_time_collected_col}")
-
-            # Process each question field
-            for col, col_props in question_cols.items():
-                if col in datafile:
-
-                    if not pd.api.types.is_numeric_dtype(datafile[col]):
-                        try:
-                            # Try converting to numeric
-                            datafile[col] = pd.to_numeric(datafile[col], errors='coerce')
-                        except:
-                            # Skip this column if conversion fails
-                            ig.main_logger.write(
-                                level="warn",
-                                message=f"Skipping non-numeric column: {col} with value: {datafile[col].iloc[0]}"
-                            )
-                            continue
-
-                    # Create slim dataframe with just the needed columns
-                    df_slim = datafile[['User Defined ID', planned_visit_col]].copy()
-                    df_slim.rename(columns={planned_visit_col: 'Planned Visit ID'}, inplace=True)
+            valid_cols_lc = {c.strip().lower() for c in table_fields.keys()}
+            referenced_fields = set()
+            
+            for fname, fprops in table_fields.items():
+                
+                if not isinstance(fprops, dict):
+                    continue
+                
+                for prop_key in prop_keys_to_check:
+                    if prop_key in fprops:
+                        val = fprops.get(prop_key)
+                    else:
+                        val = None
+                        
+                    if val is None:
+                        continue
                     
-                    # Add required columns
+                    for cand in extract_candidates(val):
+                        
+                        cand_norm = cand.strip().lower()
+                        
+                        if cand_norm.startswith("[") and cand_norm.endswith("]"):
+                            cand_norm = cand_norm[1:-1].strip()
+                            
+                        if cand_norm in valid_cols_lc:
+                            referenced_fields.add(cand_norm)
+
+            question_cols = {
+                field: props
+                for field, props in table_fields.items()
+                if props.get("question", False) and field.strip().upper() not in na_mapped_fields
+            }
+
+            for col, col_props in question_cols.items():
+
+                col_upper = col.strip().upper()
+     
+                if col_upper in na_mapped_fields:
+                    continue        
+
+                if col.strip().lower() in referenced_fields:
+                    continue
+                    
+                if col in datafile and col not in category_fields:
+                    
+                    required_cols = ['User Defined ID', planned_visit_col, col] + list(category_fields.keys())
+
+                    required_cols = [str(x) for x in required_cols]
+
+                    df_slim = datafile[required_cols].copy()
+                    df_slim.rename(columns={'Planned Visit ID': 'Planned Visit ID'}, inplace=True)
+
+                    if col in df_slim.columns:
+                        
+                        series = df_slim[col]
+                        
+                        try:
+                            series_str = series.astype("string")
+                        except Exception as e:
+                            continue
+                        
+                        try:
+                            stripped = series_str.str.strip()
+                        except Exception as e:
+                            continue
+                        
+                        stripped = stripped.replace(
+                            {"nan": pd.NA, "NaN": pd.NA, "None": pd.NA, "<NA>": pd.NA}
+                        )
+                        
+                        non_empty = stripped.dropna()
+                        
+                        if non_empty.empty:
+                            continue
+                    else:
+                        continue
+
                     df_slim['LAB_TEST_PANEL_ACCESSION'] = panel_id
                     df_slim['WORKSPACE_ID'] = workspace_id
-                    df_slim['Name Reported'] = col_props["description"]
-                    df_slim['Result Value Reported'] = datafile[col]
+
+                    col_props = dictionary["tables"][table_name]["fields"][col]
+
+                    def normalize_key_for_codelist(k):
+                        try:
+                            f = float(k)
+                            
+                            if f.is_integer():
+                                return str(int(f))
+                            else:
+                                return str(f).rstrip('0').rstrip('.') if '.' in str(f) else str(f)
+                     
+                        except Exception:
+                            return str(k).strip()
+
+                    codelist_raw = col_props.get("values", {}) or {}
                     
-                    # Handle units
+                    if not isinstance(codelist_raw, dict):
+                        try:
+                            codelist_raw = dict(codelist_raw)
+                        except Exception:
+                            codelist_raw = {}
+
+                    codelist = { normalize_key_for_codelist(k): str(v).strip() for k, v in codelist_raw.items() }
+
+                    def normalize_for_mapping(val):
+
+                        if pd.isna(val):
+                            return None
+                        
+                        if isinstance(val, float) and val.is_integer():
+                            return str(int(val))
+                        
+                        try:
+                            s = str(val).strip()
+                            f = float(s)
+
+                            if f.is_integer():
+                                return str(int(f))
+                            
+                            s2 = str(f)
+                            
+                            if '.' in s2:
+                                s2 = s2.rstrip('0').rstrip('.')
+
+                            return s2
+                        
+                        except Exception:
+                            return str(val).strip()
+
+                    norm_series = df_slim[col].apply(normalize_for_mapping)
+
+                    mapped = norm_series.map(codelist)  
+
+                    fallback = norm_series.apply(lambda x: str(x).strip() if x is not None else x)
+
+                    df_slim["Result Value Reported"] = mapped.fillna(fallback)
+
+                    df_slim["Result Value Reported"] = df_slim["Result Value Reported"].astype(object) 
+
+                    df_slim = df_slim[~df_slim["Result Value Reported"].isna()]                   
+                    df_slim = df_slim[df_slim["Result Value Reported"].apply(lambda x: str(x).strip() != "")]  
+
+                    df_slim["Result Value Reported"] = df_slim["Result Value Reported"].astype(str)
+
+                    if not df_slim.empty:
+
+                        # Name Reported
+                        name_parts = []
+                        for cat_field, cat_data in category_fields.items():
+                            code_values = df_slim[cat_field].apply(lambda x: cat_data["values"].get(str(x), str(x)))
+                            name_parts.append(code_values.astype(str).str.lower())
+
+                        field_desc = col_props["description"].lower().replace(" ", "-")
+                        name_parts.append(field_desc)
+
+                        df_slim["Name Reported"] = df_slim.index.map(
+                            lambda i: "-".join([str(part[i]) if isinstance(part, pd.Series) else str(part) for part in name_parts])
+                        )
+
+                    # Map To Planned Visit
+                    map_to_visit_col_raw = dictionary["tables"][table_name]["mappings"].get("[Map To Planned Visit]", "")
+
+                    if map_to_visit_col_raw:
+                        map_to_visit_cols = [map_to_visit_col_raw] if isinstance(map_to_visit_col_raw, str) else map_to_visit_col_raw
+
+                        for map_col in map_to_visit_cols:
+     
+                            if map_col in datafile.columns:
+                                visit_name_to_accession = dict(zip(
+                                    planned_visits["VISIT_NAME"].astype(str).str.upper().str.strip(),
+                                    planned_visits["PLANNED_VISIT_ACCESSION"].astype(str).str.upper().str.strip()
+                                ))
+
+                                mapped_visit_ids = datafile[map_col].astype(str).str.upper().str.strip().map(visit_name_to_accession)
+    
+                                df_slim['Planned Visit ID'] = mapped_visit_ids.fillna(df_slim['Planned Visit ID'])
+
+                    override_study_time = str(col_props.get("study_time", "")).strip()
+
+                    values_raw = col_props.get("values", None)
+
+                    code_mapping = values_raw if isinstance(values_raw, dict) else {}
+
+                    code_descriptions = set(str(v).upper() for v in code_mapping.values())
+
+                    if override_study_time:
+                        
+                        if override_study_time in datafile.columns:
+                            df_slim["Study Time Collected"] = datafile[override_study_time]
+                        elif re.match(r'^-?\d*\.?\d+$', override_study_time):
+                            df_slim["Study Time Collected"] = float(override_study_time)
+                        elif is_valid_date(override_study_time):
+                            df_slim["Study Time Collected"] = override_study_time
+                        else:
+                            override_study_time = ""  
+
+                    if not override_study_time and "[Study Day]" in dictionary["tables"][table_name]["mappings"]:
+                        original_study_day_col = dictionary["tables"][table_name]["mappings"]["[Study Day]"]
+                        study_day_col = col_mappings.get(original_study_day_col, original_study_day_col)
+                        if study_day_col in datafile.columns:
+                            df_slim["Study Time Collected"] = datafile[study_day_col]
+
+                    if not override_study_time and "[Study Day]" not in dictionary["tables"][table_name]["mappings"] and "[Visit]" in dictionary["tables"][table_name]["mappings"]:
+                        planned_visit_cols = [col for col in datafile.columns 
+                                            if col.upper() in ['PLANNED VISIT ID', 'PLANNED_VISIT_ID', 'VISIT_ID', 'VISIT']]
+                        
+                        if planned_visit_cols:
+                       
+                            visit_day_mapping = dict(zip(
+                                planned_visits["PLANNED_VISIT_ACCESSION"].astype(str).str.strip().str.upper(),
+                                planned_visits["MIN_START_DAY"]
+                            ))
+                            df_slim["Study Time Collected"] = (
+                                datafile[planned_visit_col].astype(str).str.strip().str.upper().map(visit_day_mapping))
+
+                    df_slim["Study Time Collected"] = df_slim["Study Time Collected"].fillna(99999)
+
+                    if pd.api.types.is_numeric_dtype(df_slim["Study Time Collected"]):
+                        df_slim["Study Time Collected Unit"] = "Days"
+                    else:
+                        df_slim["Study Time Collected Unit"] = "Not Specified"
+
+                    unit_assigned = False
+
                     unit_info = col_props.get("unit", "")
+
                     if unit_info:
-                        if unit_info.upper() == "[SPLIT]":
-                            # Split values like "5 mg" into value and unit
+
+                        if unit_info.upper().strip("[]") == "SPLIT":
                             split_values = df_slim['Result Value Reported'].str.split(" ", n=1, expand=True)
                             df_slim['Result Value Reported'] = split_values[0]
                             df_slim['Result Unit Reported'] = split_values[1]
+                            unit_assigned = True
+
                         elif unit_info.startswith("[") and unit_info.endswith("]"):
-                            # Unit comes from another column
                             unit_col = unit_info[1:-1]
+
                             if unit_col in datafile:
                                 df_slim['Result Unit Reported'] = datafile[unit_col]
+                                unit_assigned = True
+
                             else:
                                 df_slim['Result Unit Reported'] = ""
+
                         else:
-                            # Static unit value
                             df_slim['Result Unit Reported'] = unit_info
-                    
-                    # Handle numeric values
+                            unit_assigned = True
+
+                    if not unit_assigned:
+
+                        col_props = dictionary["tables"][table_name]["fields"].get(col, {})
+
+                        code_mapping = col_props.get("values", {})
+
+                        code_descriptions = set(str(v).upper() for v in code_mapping.values())
+    
+                        if {'YES', 'NO'}.issubset(code_descriptions) and code_descriptions.issubset(
+                            {'YES', 'NO', 'UNKNOWN', 'NA', "N/A", 'NOT APPLICABLE', 
+                            'NOTAPPLICABLE', 'NOT AVAILABLE', 'NOTAVAILABLE', ''}):
+                            df_slim['Result Unit Reported'] = 'Yes, No, or Unknown Response'
+                        
+                        elif {'MALE', 'FEMALE'}.issubset(code_descriptions) and code_descriptions.issubset(
+                            {'MALE', 'FEMALE', 'NONBINARY', 'NON-BINARY', 
+                            'TRANSGENDER', 'UNKNOWN', 'OTHER', ''}):
+                            df_slim['Result Unit Reported'] = 'Gender'
+
+                        elif len(code_descriptions) == 2:
+                            df_slim['Result Unit Reported'] = 'Boolean'
+                        
+                        elif code_descriptions:
+                            df_slim['Result Unit Reported'] = 'categorical'
+
                     if pd.api.types.is_numeric_dtype(df_slim['Result Value Reported']):
                         df_slim['Result Value Reported'] = pd.to_numeric(
                             df_slim['Result Value Reported'], errors='coerce'
                         )
-                    
-                    # Drop NA values
+
                     df_slim = df_slim[~df_slim['Result Value Reported'].isna()]
 
+                    if "User Defined ID" in df_slim.columns:
+                        df_slim = df_slim[
+                            df_slim["User Defined ID"]
+                            .astype(str)
+                            .str.strip()
+                            .replace({"nan": "", "None": "", "NONE": ""})
+                            != ""
+                        ]
 
-                    if study_time_collected_col and study_time_collected_col in datafile.columns:
-                        df_slim['Study Time Collected'] = datafile[study_time_collected_col]
-
-                    display(f"df_slim {df_slim}")
-                  
-                    # Add to components template
                     if not df_slim.empty:
-                        components_template = pd.concat(
-                            [components_template, df_slim],
-                            ignore_index=True
-                        )
-                else:
-                    ig.main_logger.write(
-                        level='critical', 
-                        message=f"Table Field not found in file: {col_props['description']} in {table_name}",
-                        flush=True
-                    )
-                    
+                        components_template = pd.concat([components_template, df_slim[~df_slim["Result Value Reported"].isnull()]], ignore_index=True)
+
     return components_template
 
-def getColumnMapping(dictionary,table_name,mapping):
-    if(mapping in dictionary["tables"][table_name]["mappings"]):
-        return dictionary["tables"][table_name]["mappings"][mapping]
-
-def getColumnName(dictionary, table_name, column_id):
-    if column_id in dictionary["tables"][table_name]["fields"]:
-        return dictionary["tables"][table_name]["fields"][column_id]["description"]
-
-def readAndModifyStudyFile(filepath,file_tables,dictionary,planned_visits):
+def readAndModifyStudyFile(filepath, file_tables, dictionary, planned_visits, ig=None):
 
     full_datafile = pd.DataFrame()
 
     for file_table in file_tables["tables"]:
-        datafile = readStudyFile(filepath,file_table,dictionary)
-        visit_col = getColumnMapping(dictionary, file_table,"[Visit]")
-        study_date_col = getColumnMapping(dictionary, file_table, "[Study Day]")
 
-        # 2. DEBUG: Print column mapping info
-        display(f"DEBUG Processing table: {file_table}")
-        display(f"DEBUG Visit column mapping: {visit_col}")
-        display(f"DEBUG Study date mapping: {study_date_col}")
-        display(f"DEBUG Actual columns in data: {datafile.columns.tolist()}")
-        
-        if visit_col and visit_col not in datafile.columns:
-            available = "\n\t".join(datafile.columns)
-            raise ValueError(
-                f"CRITICAL: Dictionary requires column '{visit_col}' "
-                f"but it's missing in {os.path.basename(filepath)}\n"
-                f"Available columns:\n\t{available}"
-            )
+        datafile = readStudyFile(filepath, file_table, dictionary)
 
-        table_visits = addVisitAccessionFromName(planned_visits,datafile,visit_col,dictionary,file_table,file_tables.get("visit",None))
-        table_visits[table_visits["plannedVisit"] == ""]
+        dd_ID = dictionary["tables"][file_table]["mappings"].get("User Defined ID")
 
-        planned_visit_data = datafile["PLANNED_VISIT_ID"]
-        datafile=datafile.drop(columns=["PLANNED_VISIT_ID"])
-        datafile.insert(loc=3, column="PLANNED_VISIT_ID",value=planned_visit_data)
+        if isinstance(dd_ID, list):
+            dd_ID = dd_ID[0] if len(dd_ID) > 0 else None
 
-        if study_date_col and study_date_col in datafile.columns:
-            datafile["Study Time Collected"] = datafile[study_date_col]
+        if dd_ID and dd_ID in datafile.columns:
+            datafile.rename(columns={dd_ID: "User Defined ID"}, inplace=True)
 
-        
-        dd_ID = getColumnMapping(dictionary,file_table,"User Defined ID")
-        dd_ID_col = getColumnName(dictionary, file_table,dd_ID)
-        
-        if dd_ID_col not in datafile.columns:
-            if "Accession" in datafile.columns:
-                datafile.rename(columns={"Accession":"User Defined ID"},inplace=True)
+        visit_col = dictionary["tables"][file_table]["mappings"].get("[Visit]")
+
+        if isinstance(visit_col, list):
+            visit_col = visit_col[0] if len(visit_col) > 0 else None
+
+        default_visit = file_tables.get("visit", None)
+
+        if visit_col and visit_col in datafile.columns:
+    
+            table_visits = addVisitAccessionFromName(planned_visits, datafile, visit_col,
+                                                     dictionary, file_table, default_visit)
+            if "PLANNED_VISIT_ID" in datafile.columns:
+                pv = datafile["PLANNED_VISIT_ID"]
+                datafile.drop(columns=["PLANNED_VISIT_ID"], inplace=True)
+                datafile.insert(loc=3, column="PLANNED_VISIT_ID", value=pv)
+        else:
+            if default_visit:
+                datafile["Default_Visit_Temp"] = default_visit
+                table_visits = addVisitAccessionFromName(planned_visits, datafile, "Default_Visit_Temp",
+                                                         dictionary, file_table, default_visit=None)
+                if "PLANNED_VISIT_ID" in datafile.columns:
+                    pv = datafile["PLANNED_VISIT_ID"]
+                    datafile.drop(columns=["PLANNED_VISIT_ID"], inplace=True)
+                    datafile.insert(loc=3, column="PLANNED_VISIT_ID", value=pv)
+                datafile.drop(columns=["Default_Visit_Temp"], inplace=True)
+            else:
+                if ig is not None and getattr(ig, "main_logger", None):
+                    ig.main_logger.write(level="error", message=f"No visit mapping and no default visit for table {file_table}")
+
+        study_time_col = dictionary["tables"][file_table]["mappings"].get("[Study Time]")
+  
+        if study_time_col and study_time_col in datafile.columns:
+            datafile["Study Time"] = datafile[study_time_col]
 
         full_datafile = pd.concat([full_datafile, datafile], ignore_index=True)
 
-    display(f"full_datafile {full_datafile}")
-
     return full_datafile
-
-def getAssessmentPanelID(crf_Files,study_files,assessment_panel_df,study_id,assessment_type):
-    filename_string = ",".join(crf_Files)
-    name_reported = getStudyFileDescription(crf_Files[0],study_files)
-    if(assessment_panel_df.empty):
-        panelCount=0
-        dataframe_rows=0
-    else:
-        panelCount = assessment_panel_df[assessment_panel_df["CRF File Names"].str.contains(filename_string)].count
-        if(assessment_panel_df[assessment_panel_df["CRF File Names"].str.contains(filename_string)].empty):
-            panelCount = 0
-        dataframe_rows = len(assessment_panel_df)
-    
-    if(panelCount == 0):
-        #We need to create a new panel
-        print(f"Create new panel for files: {filename_string}") #TODO change to logging as debug
-        new_data={'Assessment Panel ID':f'CCHMC_{dataframe_rows+1}','Study ID':study_id, 'Name Reported':name_reported, 'CRF File Names':filename_string, 'Assessment Type': assessment_type}
-        
-        assessment_panel_df = pd.concat([assessment_panel_df, new_data], ignore_index=True)
-
-    return [assessment_panel_df, assessment_panel_df[assessment_panel_df["CRF File Names"].str.contains(filename_string)].iloc[0]["Assessment Panel ID"]]
