@@ -1,0 +1,402 @@
+Table Name	Field Name	Field Description	Code List Values	Column Mappings	Unit	Override Study Day	Override Study Time	Map To Planned Visit	Verbatim Question	Who is Assessed	Age At Onset Reported	Age At Onset Unit Reported	Location
+BAS	PATID	Participant ID		User Defined ID									
+BAS	PROTSEG	Protocol Segment	"A=Screening, B=Baked Egg/Egg OIT Treatment"	NA									
+BAS	VISNO	Visit Number	"0=Baseline, 1=Visit 1, 2=Visit 2, 3=Visit 3, 4=Visit 4, 5=Visit 5, 6=Visit 6, 7=Visit 7, 8=Visit 8, F01=3 months post final OFC Phone Assessment, F02=6 months post final OFC In person, F03=3 year long term follow-up, F04= 4 year long term follow-up, F05=5 year long term follow-up"	Visit									
+BAS	CD63NEG1	Antigen1 CD63neg			percentage								
+BAS	C63N63M1	Antigen1 CD63neg_CD63_MFI			"Mean Fluorescence Intensity Unit (MFI,FIU)"								
+BAS	C63N63C1	Antigen1 CD63neg_CD63_CV			percentage								
+BAS	C63N20M1	Antign1 CD63neg_CD203_MFI			"Mean Fluorescence Intensity Unit (MFI,FIU)"								
+BAS	CD63NNT1	Antigen1 CD63neg_COUNT			Count								
+BAS	CD63NEG2	Antigen2 CD63neg			percentage								
+BAS	C63N63M2	Antigen2 CD63neg_CD63_MFI			"Mean Fluorescence Intensity Unit (MFI,FIU)"								
+BAS	C63N63C2	Antigen2 CD63neg_CD63_CV			percentage								
+BAS	C63N20M2	Antign2 CD63neg_CD203_MFI			"Mean Fluorescence Intensity Unit (MFI,FIU)"								
+BAS	CD63NNT2	Antigen2 CD63neg_COUNT			Count								
+BAS	CD63NEG3	Antigen3 CD63neg			percentage								
+BAS	C63N63M3	Antigen3 CD63neg_CD63_MFI			"Mean Fluorescence Intensity Unit (MFI,FIU)"								
+BAS	C63N63C3	Antigen3 CD63neg_CD63_CV			percentage								
+BAS	C63N20M3	Antign3 CD63neg_CD203_MFI			"Mean Fluorescence Intensity Unit (MFI,FIU)"								
+BAS	CD63NNT3	Antigen3 CD63neg_COUNT			Count								
+BAS	CD63NEG4	Antigen4 CD63neg			percentage								
+BAS	C63N63M4	Antigen4 CD63neg_CD63_MFI			"Mean Fluorescence Intensity Unit (MFI,FIU)"								
+BAS	C63N63C4	Antigen4 CD63neg_CD63_CV			percentage								
+BAS	C63N20M4	Antign4 CD63neg_CD203_MFI			"Mean Fluorescence Intensity Unit (MFI,FIU)"								
+BAS	CD63NNT4	Antigen4 CD63neg_COUNT			Count								
+BAS	CD63NEG5	IL-3 CD63neg			percentage								
+BAS	C63N63M5	IL-3 CD63neg_CD63_MFI			"Mean Fluorescence Intensity Unit (MFI,FIU)"								
+BAS	C63N63C5	IL-3 CD63neg_CD63_CV			percentage								
+BAS	C63N20M5	IL-3 CD63neg_CD203_MFI			"Mean Fluorescence Intensity Unit (MFI,FIU)"								
+BAS	CD63NNT5	IL-3 CD63neg_COUNT			Count								
+BAS	CD63NEG6	Medium CD63neg			percentage								
+BAS	C63N63M6	Medium CD63neg_CD63_MFI			"Mean Fluorescence Intensity Unit (MFI,FIU)"								
+BAS	C63N63C6	Medium CD63neg_CD63_CV			percentage								
+BAS	C63N20M6	Medium CD63neg_CD203_MFI			"Mean Fluorescence Intensity Unit (MFI,FIU)"								
+BAS	CD63NNT6	Medium CD63neg_COUNT			Count								
+BAS	CD63NEG7	Unstain CD63neg			percentage								
+BAS	C63N63M7	Unstain CD63neg_CD63_MFI			"Mean Fluorescence Intensity Unit (MFI,FIU)"								
+BAS	C63N63C7	Unstain CD63neg_CD63_CV			percentage								
+BAS	C63N20M7	Unstain CD63neg_CD203_MFI			"Mean Fluorescence Intensity Unit (MFI,FIU)"								
+BAS	CD63NNT7	Unstain CD63neg_COUNT			Count								
+BAS	CD63NEG8	antiIGE CD63neg			percentage								
+BAS	C63N63M8	antiIGE CD63neg_CD63_MFI			"Mean Fluorescence Intensity Unit (MFI,FIU)"								
+BAS	C63N63C8	antiIGE CD63neg_CD63_CV			percentage								
+BAS	C63N20M8	antiIGE CD63neg_CD203_MFI			"Mean Fluorescence Intensity Unit (MFI,FIU)"								
+BAS	CD63NNT8	antiIGE CD63neg_COUNT			Count								
+BAS	CD63NEG9	fMLP CD63neg			percentage								
+BAS	C63N63M9	fMLP CD63neg_CD63_MFI			"Mean Fluorescence Intensity Unit (MFI,FIU)"								
+BAS	C63N63C9	fMLP CD63neg_CD63_CV			percentage								
+BAS	C63N20M9	fMLP CD63neg_CD203_MFI			"Mean Fluorescence Intensity Unit (MFI,FIU)"								
+BAS	CD63NNT9	fMLP CD63neg_COUNT			Count								
+BAS	CD63POS1	Antigen1 CD63pos			percentage								
+BAS	C63P63M1	Antigen1 CD63pos_CD63_MFI			"Mean Fluorescence Intensity Unit (MFI,FIU)"								
+BAS	C63P63C1	Antigen1 CD63pos_CD63_CV			percentage								
+BAS	C63P20M1	Antign1 CD63pos_CD203_MFI			"Mean Fluorescence Intensity Unit (MFI,FIU)"								
+BAS	CD63PNT1	Antigen1 CD63pos_COUNT			Count								
+BAS	CD63POS2	Antigen2 CD63pos			percentage								
+BAS	C63P63M2	Antigen2 CD63pos_CD63_MFI			"Mean Fluorescence Intensity Unit (MFI,FIU)"								
+BAS	C63P63C2	Antigen2 CD63pos_CD63_CV			percentage								
+BAS	C63P20M2	Antign2 CD63pos_CD203_MFI			"Mean Fluorescence Intensity Unit (MFI,FIU)"								
+BAS	CD63PNT2	Antigen2 CD63pos_COUNT			Count								
+BAS	CD63POS3	Antigen3 CD63pos			percentage								
+BAS	C63P63M3	Antigen3 CD63pos_CD63_MFI			"Mean Fluorescence Intensity Unit (MFI,FIU)"								
+BAS	C63P63C3	Antigen3 CD63pos_CD63_CV			percentage								
+BAS	C63P20M3	Antign3 CD63pos_CD203_MFI			"Mean Fluorescence Intensity Unit (MFI,FIU)"								
+BAS	CD63PNT3	Antigen3 CD63pos_COUNT			Count								
+BAS	CD63POS4	Antigen4 CD63pos			percentage								
+BAS	C63P63M4	Antigen4 CD63pos_CD63_MFI			"Mean Fluorescence Intensity Unit (MFI,FIU)"								
+BAS	C63P63C4	Antigen4 CD63pos_CD63_CV			percentage								
+BAS	C63P20M4	Antign4 CD63pos_CD203_MFI			"Mean Fluorescence Intensity Unit (MFI,FIU)"								
+BAS	CD63PNT4	Antigen4 CD63pos_COUNT			Count								
+BAS	CD63POS5	IL-3 CD63pos			percentage								
+BAS	C63P63M5	IL-3 CD63pos_CD63_MFI			"Mean Fluorescence Intensity Unit (MFI,FIU)"								
+BAS	C63P63C5	IL-3 CD63pos_CD63_CV			percentage								
+BAS	C63P20M5	IL-3 CD63pos_CD203_MFI			"Mean Fluorescence Intensity Unit (MFI,FIU)"								
+BAS	CD63PNT5	IL-3 CD63pos_COUNT			Count								
+BAS	CD63POS6	Medium CD63pos			percentage								
+BAS	C63P63M6	Medium CD63pos_CD63_MFI			"Mean Fluorescence Intensity Unit (MFI,FIU)"								
+BAS	C63P63C6	Medium CD63pos_CD63_CV			percentage								
+BAS	C63P20M6	Medium CD63pos_CD203_MFI			"Mean Fluorescence Intensity Unit (MFI,FIU)"								
+BAS	CD63PNT6	Medium CD63pos_COUNT			Count								
+BAS	CD63POS7	Unstain CD63pos			percentage								
+BAS	C63P63M7	Unstain CD63pos_CD63_MFI			"Mean Fluorescence Intensity Unit (MFI,FIU)"								
+BAS	C63P63C7	Unstain CD63pos_CD63_CV			percentage								
+BAS	C63P20M7	Unstain CD63pos_CD203_MFI			"Mean Fluorescence Intensity Unit (MFI,FIU)"								
+BAS	CD63PNT7	Unstain CD63pos_COUNT			Count								
+BAS	CD63POS8	antiIGE CD63pos			percentage								
+BAS	C63P63M8	antiIGE CD63pos_CD63_MFI			"Mean Fluorescence Intensity Unit (MFI,FIU)"								
+BAS	C63P63C8	antiIGE CD63pos_CD63_CV			percentage								
+BAS	C63P20M8	antiIGE CD63pos_CD203_MFI			"Mean Fluorescence Intensity Unit (MFI,FIU)"								
+BAS	CD63PNT8	antiIGE CD63pos_COUNT			Count								
+BAS	CD63POS9	fMLP CD63pos			percentage								
+BAS	C63P63M9	fMLP CD63pos_CD63_MFI			"Mean Fluorescence Intensity Unit (MFI,FIU)"								
+BAS	C63P63C9	fMLP CD63pos_CD63_CV			percentage								
+BAS	C63P20M9	fMLP CD63pos_CD203_MFI			"Mean Fluorescence Intensity Unit (MFI,FIU)"								
+BAS	CD63PNT9	fMLP CD63pos_COUNT			Count								
+IGE	PATID	Participant ID		User Defined ID									
+IGE	PROTSEG	Protocol Segment	"A=Screening, B=Baked Egg/Egg OIT Treatment"	NA									
+IGE	VISNO	Visit Number	"0=Baseline, 1=Visit 1, 2=Visit 2, 3=Visit 3, 4=Visit 4, 5=Visit 5, 6=Visit 6, 7=Visit 7, 8=Visit 8, F01=3 months post final OFC Phone Assessment, F02=6 months post final OFC In person, F03=3 year long term follow-up, F04= 4 year long term follow-up, F05=5 year long term follow-up"	Visit									
+IGE	IGEANTIG	Antigen	"EGG=Egg, EGG1=Ovalbumin, EGG2=Ovomucoid, EGG3=Conalbumin, MLK=Milk, MLK1=Casein, MLK2=Beta lactoglobulin, PEA=Peanut, PEA1=Peanut Ara h1, PEA2=Peanut Ara h2, PEA3=Peanut Ara h3, PEA4=Peanut Ara h6, PEA5=Peanut Ara h8, PEA6=Peanut Ara h9, TOT=Total"	Category									
+IGE	IGEANTIB	Antibody	"IGA=IgA, IGE=IgE, IGG=IgG, IGG4=IgG4"	Category									
+IGE	IGEFCODE	F code of antigen	"a-IgE=Total IgE (a-IgE), f1=Egg (f1), f13=Peanut (f13), f2=Milk (f2), f232=Ovalbumin (f232), f233=Ovomucoid (f233), f323=Conalbumin (f323), f352=Peanut Ara h8 (f352), f422=Peanut Ara h1 (f422), f423=Peanut Ara h2 (f423), f424=Peanut Ara h3 (f424), f427=Peanut Ara h9 (f427), f77=Beta lactoglobulin (f77), f78=Casein (f78), f800=Peanut Ara h6 (f800)"	NA									
+IGE	IGEDATE	Assay date		Study Day									
+IGE	IGERESL	Assay Result			kUA/L								
+MH1	PATID	Participant ID		User Defined ID									
+MH1	PROTSEG	Protocol Segment	"A=Screening, B=Baked Egg/Egg OIT Treatment"	NA									
+MH1	VISNO	Visit Number	"0=Baseline, 1=Visit 1, 2=Visit 2, 3=Visit 3, 4=Visit 4, 5=Visit 5, 6=Visit 6, 7=Visit 7, 8=Visit 8, F01=3 months post final OFC Phone Assessment, F02=6 months post final OFC In person, F03=3 year long term follow-up, F04= 4 year long term follow-up, F05=5 year long term follow-up"	Visit									
+MH1	DTMD1	Date		Study Day	Days								
+MH1	M1HEIGHT	Height			cms				[Same]				
+MH1	M1WEIGHT	Weight			kgs				[Same]				
+MH1	M1PREGR	Pregnancy test results	"0=Negative, 1=Positive, 9=NA"				Morning		[Same]				
+MH1	M1ALOTE	Additional food allergy	"0=No, 1=Yes, 9=Unknown"				Morning		Food allergy other than egg				
+MH1	M1AGIDIS	Allergic GI disease	"0=No, 1=Yes, 9=Unknown"				Morning		"Allergic GI disease (i.e., eosinophilic disease) "				
+MH1	M1ATDERM	Atopic dermatitis	"0=No, 1=Yes, 9=Unknown"				Morning		[Same]				
+MH1	ASTHMAB	Asthma	"0=No, 1=Yes, 9=Unknown"				Morning		[Same]				
+MH1	URTICART	Urticaria other than food	"0=No, 1=Yes, 9=Unknown"				Morning		Uticaria (hives/welts) (other than food allergy)				
+MH1	LATEXB	Latex allergy	"0=No, 1=Yes, 9=Unknown"				Morning		[Same]				
+MH1	RHINITIB	Allergic rhinitis	"0=No, 1=Yes, 9=Unknown"				Morning		[Same]				
+MH1	VENOMB	Insect venom allergy	"0=No, 1=Yes, 9=Unknown"				Morning		[Same]				
+MH1	CONJUCTB	Allergic conjunctivitis	"0=No, 1=Yes, 9=Unknown"				Morning		[Same]				
+MH1	MEDALLGB	Medication allergy	"0=No, 1=Yes, 9=Unknown"				Morning		[Same]				
+MH1	OTHALB	Other allergy	"0=No, 1=Yes, 9=Unknown"				Morning		[Same]				
+MH1	MATALLGY	Positive maternal allergy	"0=No, 1=Yes, 9=Unknown"				Morning		Is there a positive maternal history for allergy/asthma? 	Mother			
+MH1	MATASTM	Maternal asthma	"0=No, 1=Yes, 9=Unknown"				Morning		[Same]	Mother			
+MH1	MATATD	Maternal atopic dermatiti	"0=No, 1=Yes, 9=Unknown"				Morning		[Same]	Mother			
+MH1	MATRHIN	Maternal rhinitis	"0=No, 1=Yes, 9=Unknown"				Morning		[Same]	Mother			
+MH1	PATALLGY	Positive paternal allergy	"0=No, 1=Yes, 9=Unknown"				Morning		Is there a positive paternal history for allergy/asthma? 	Father			
+MH1	PATASTM	Paternal asthma	"0=No, 1=Yes, 9=Unknown"				Morning		[Same]	Father			
+MH1	PATATD	Paternal atopic dermatiti	"0=No, 1=Yes, 9=Unknown"				Morning		[Same]	Father			
+MH1	PATRHIN	Paternal rhinitis hay fev	"0=No, 1=Yes, 9=Unknown"				Morning		[Same]	Father			
+MH1	M1SIBALL	Pos hx full sib allergy	"0=No, 1=Yes, 9=Unknown"				Morning		Is there a positive history for full sibling allergy/asthma 	Sibling			
+MH1	M1S1HAST	Full sib 1 hx of asthma	"0=No, 1=Yes, 9=Unknown"				Morning		Is there a positive history for allergy/asthma?	Sibling 1			
+MH1	M1S1ASTH	Full sibling 1 asthma	"0=No, 1=Yes, 9=Unknown"				Morning		Asthma	Sibling 1			
+MH1	M1S1ADRM	Full sib 1 atopic derm	"0=No, 1=Yes, 9=Unknown"				Morning		Atopic dermatitis	Sibling 1			
+MH1	M1S1ALRH	Full sib 1 allergic rhini	"0=No, 1=Yes, 9=Unknown"				Morning		Allergic rhinitis (hay fever)	Sibling 1			
+MH1	M1S2HAST	Full sib 2 hx of asthma	"0=No, 1=Yes, 9=Unknown or N/A"				Morning		Is there a positive history for allergy/asthma?	Sibling 2			
+MH1	M1S2ASTH	Full sibling 2 asthma	"0=No, 1=Yes, 9=Unknown"				Morning		Asthma	Sibling 2			
+MH1	M1S2ADRM	Full sib 2 atopic derm	"0=No, 1=Yes, 9=Unknown"				Morning		Atopic dermatitis	Sibling 2			
+MH1	M1S2ALRH	Full sib 2 allergic rhini	"0=No, 1=Yes, 9=Unknown"				Morning		Allergic rhinitis (hay fever)	Sibling 2			
+MH2	PATID	Participant ID		User Defined ID									
+MH2	PROTSEG	Protocol Segment	"A=Screening, B=Baked Egg/Egg OIT Treatment"	NA									
+MH2	VISNO	Visit Number	"0=Baseline, 1=Visit 1, 2=Visit 2, 3=Visit 3, 4=Visit 4, 5=Visit 5, 6=Visit 6, 7=Visit 7, 8=Visit 8, F01=3 months post final OFC Phone Assessment, F02=6 months post final OFC In person, F03=3 year long term follow-up, F04= 4 year long term follow-up, F05=5 year long term follow-up"	Visit									
+MH2	M4TREXPT	Tree Nut Expo Test	"0=No, 1=Yes"				Afternoon		Exposure to or test for Tree Nut/Tree Nut Products				
+MH2	M4FIEXPT	Fish Expo Test	"0=No, 1=Yes"				Afternoon		Exposure to or test for Fish/Fish Products				
+MH2	M4SHEXPT	Shellfish Expo Test	"0=No, 1=Yes"				Afternoon		Exposure to or test for Shellfish/Shellfish Products				
+MH2	M4EGINGT	Food ingestion egg	"0=No, 1=Yes, 9=Unknown"				Afternoon		Food Ingestion of Egg/Egg Products				
+MH2	M4MKINGT	Food ingestion milk	"0=No, 1=Yes, 9=Unknown"				Afternoon		Food Ingestion of Milk/Milk Products				
+MH2	M4PEINGT	Food ingestion peanut	"0=No, 1=Yes, 9=Unknown"				Afternoon		Food Ingestion of Peanut/Peanut Products				
+MH2	M4TRINGT	Food ingestion tree nut	"0=No, 1=Yes, 9=Unknown"				Afternoon		Food Ingestion of Tree Nut/Tree Nut Products				
+MH2	M4FIINGT	Food ingestion fish	"0=No, 1=Yes, 9=Unknown"				Afternoon		Food Ingestion of Fish/Fish Products				
+MH2	M4SHINGT	Food ingestion shellfish	"0=No, 1=Yes, 9=Unknown"				Afternoon		Food Ingestion of Shellfish/Shellfish Products				
+MH2	M4EGAGIN	Age of ingestion egg			Years		Afternoon		Age of initial ingestion (years) Egg/Egg Products				
+MH2	M4MKAGIN	Age of ingestion milk			Years		Afternoon		Age of initial ingestion (years) Milk/Milk Products				
+MH2	M4PEAGIN	Age of ingestion peanut			Years		Afternoon		Age of initial ingestion (years) Peanut/Peanut Products				
+MH2	M4TRAGIN	Age of ingestion tree nut			Years		Afternoon		Age of initial ingestion (years) Tree Nut/Tree Nut Products				
+MH2	M4FIAGIN	Age of ingestion fish			Years		Afternoon		Age of initial ingestion (years) Fish/Fish Products				
+MH2	M4SHAGIN	Age ingestion shellfish			Years		Afternoon		Age of initial ingestion (years) Shellfish/Shellfish Products				
+MH2	M4EGELMN	Food eliminated egg	"0=No, 1=Yes"				Afternoon		Food currently eliminated Egg/Egg Products				
+MH2	M4MKELMN	Food eliminated milk	"0=No, 1=Yes"				Afternoon		Food currently eliminated Milk/Milk Products				
+MH2	M4PEELMN	Food eliminated peanut	"0=No, 1=Yes"				Afternoon		Food currently eliminated Peanut/Peanut Products				
+MH2	M4TRELMN	Food eliminated tree nut	"0=No, 1=Yes"				Afternoon		Food currently eliminated Tree Nut/Tree Nut Products				
+MH2	M4FIELMN	Food eliminated fish	"0=No, 1=Yes"				Afternoon		Food currently eliminated Fish/Fish Products				
+MH2	M4SHELMB	Food eliminated shellfish	"0=No, 1=Yes"				Afternoon		Food currently eliminated Shellfish/Shellfish Products				
+MH2	M4EGEVEL	Egg ever eliminated	"0=No, 1=Yes, 9=Unknown"				Afternoon		Egg/Egg Products ever eliminated				
+MH2	M4MKEVEL	Milk ever eliminated	"0=No, 1=Yes, 9=Unknown"				Afternoon		Milk/Milk Products ever eliminated				
+MH2	M4PEEVEL	Peanuts ever eliminated	"0=No, 1=Yes, 9=Unknown"				Afternoon		Peanut/Peanut Products ever eliminated				
+MH2	M4TREVEL	Tree nut ever eliminated	"0=No, 1=Yes, 9=Unknown"				Afternoon		Tree Nut/Tree Nut Products ever eliminated				
+MH2	M4FIEVEL	Fish ever eliminated	"0=No, 1=Yes, 9=Unknown"				Afternoon		Fish/Fish Products ever eliminated				
+MH2	M4SHEVEL	Shellfish ever eliminated	"0=No, 1=Yes, 9=Unknown"				Afternoon		Shellfish/Shellfish Products ever eliminated				
+MH2	M4EGALRE	Allergic reactions egg	"0=No, 1=Yes, 9=Unknown"				Afternoon		Allergic reaction to Egg/Egg Products		M4EGAGAR	Years	
+MH2	M4MKALRE	Allergic reactions milk	"0=No, 1=Yes, 9=Unknown"				Afternoon		Allergic reaction to Milk/Milk Products		M4MKAGAR	Years	
+MH2	M4PEALRE	Allergic reaction peanuts	"0=No, 1=Yes, 9=Unknown"				Afternoon		Allergic reaction to Peanut/Peanut Products		M4PEAGAR	Years	
+MH2	M4TRALRE	Allergic rxn tree nut	"0=No, 1=Yes, 9=Unknown"				Afternoon		Allergic reaction to Tree Nut/Tree Nut Products		M4TRAGAR	Years	
+MH2	M4FIALRE	Allergic reactions fish	"0=No, 1=Yes, 9=Unknown"				Afternoon		Allergic reaction to Fish/Fish Products		M4FIAGAR	Years	
+MH2	M4SHALRE	Allergic rxn shellfish	"0=No, 1=Yes, 9=Unknown"				Afternoon		Allergic reaction to Shellfish/Shellfish Products		M4SHAGAR	Years	
+MH2	M4EGAGAR	Egg age allergic rxn			Years		Afternoon		Age at initial allergic reactions (years): Egg/Egg Products				
+MH2	M4MKAGAR	Milk age allergic rxn			Years		Afternoon		Age at initial allergic reactions (years): Milk/Milk Products				
+MH2	M4PEAGAR	Peanut age allergic rxn			Years		Afternoon		Age at initial allergic reactions (years): Peanut/Peanut Products				
+MH2	M4TRAGAR	Tree nut age allergic rxn			Years		Afternoon		Age at initial allergic reactions (years): Tree Nut/Tree Nut Products				
+MH2	M4FIAGAR	Fish age allergic rxn			Years		Afternoon		Age at initial allergic reactions (years): Fish/Fish Products				
+MH2	M4SHAGAR	Shellfish age allergic rx			Years		Afternoon		Age at initial allergic reactions (years): Shellfish/Shellfish Products				
+MH2	M4EGPEAL	Egg persistent allergy	"0=No, 1=Yes, 9=Unknown"				Afternoon		Persistent allergy: Egg/Egg Products		M4EGAGAR	Years	
+MH2	M4MKPEAL	Milk persistent allergy	"0=No, 1=Yes, 9=Unknown"				Afternoon		Persistent allergy: Milk/Milk Products		M4MKAGAR	Years	
+MH2	M4PEPEAL	Peanut persistent allergy	"0=No, 1=Yes, 9=Unknown"				Afternoon		Persistent allergy: Peanut/Peanut Products		M4PEAGAR	Years	
+MH2	M4TRPEAL	Tree nut persistent aller	"0=No, 1=Yes, 9=Unknown"				Afternoon		Persistent allergy: Tree Nut/Tree Nut Products		M4TRAGAR	Years	
+MH2	M4FIPEAL	Fish persistent allergy	"0=No, 1=Yes, 9=Unknown"				Afternoon		Persistent allergy: Fish/Fish Products		M4FIAGAR	Years	
+MH2	M4SHPEAL	Shellfish persistent all	"0=No, 1=Yes, 9=Unknown"				Afternoon		Persistent allergy: Shellfish/Shellfish Products		M4SHAGAR	Years	
+MH2	M4EGSYDT	Egg symptoms date		NA			Afternoon		Date of most severe reaction*: Egg/Egg Products		M4EGAGAR	Years	
+MH2	M4MKSYDT	Milk symptom date		NA			Afternoon		Date of most severe reaction*: Milk/Milk Products		M4MKAGAR	Years	
+MH2	M4PESYDT	Peanut symptom date		NA			Afternoon		Date of most severe reaction*: Peanut/Peanut Products		M4PEAGAR	Years	
+MH2	M4TRSYDT	Tree nut symptom date		NA			Afternoon		Date of most severe reaction*: Tree Nut/Tree Nut Products		M4TRAGAR	Years	
+MH2	M4FISYDT	Fish symptom date		NA			Afternoon		Date of most severe reaction*: Fish/Fish Products		M4FIAGAR	Years	
+MH2	M4SHSYDT	Shellfish symptom date		NA			Afternoon		Date of most severe reaction*: Shellfish/Shellfish Products		M4SHAGAR	Years	
+MH2	M4EGORRE	Egg oral reaction	1=Checked				Afternoon		Oral reaction to Egg/Egg Products		M4EGAGAR	Years	Oral
+MH2	M4MKORRE	Milk oral reaction	1=Checked				Afternoon		Oral reaction to Milk/Milk Products		M4MKAGAR	Years	Oral
+MH2	M4PEORRE	Peanut oral reaction	1=Checked				Afternoon		Oral reaction to Peanut/Peanut Products		M4PEAGAR	Years	Oral
+MH2	M4TRORRE	Tree nut oral reaction	1=Checked				Afternoon		Oral reaction to Tree Nut/Tree Nut Products		M4TRAGAR	Years	Oral
+MH2	M4FIORRE	Fish oral reaction	1=Checked				Afternoon		Oral reaction to Fish/Fish Products		M4FIAGAR	Years	Oral
+MH2	M4SHORRE	Shellfish oral reaction	1=Checked				Afternoon		Oral reaction to Shellfish/Shellfish Products		M4SHAGAR	Years	Oral
+MH2	M4EGSKRE	Egg skin reaction	1=Checked				Afternoon		Skin reaction to Egg/Egg Products		M4EGAGAR	Years	Skin
+MH2	M4MKSKRE	Milk skin reaction	1=Checked				Afternoon		Skin reaction to Milk/Milk Products		M4MKAGAR	Years	Skin
+MH2	M4PESKRE	Peanut skin reaction	1=Checked				Afternoon		Skin reaction to Peanut/Peanut Products		M4PEAGAR	Years	Skin
+MH2	M4TRSKRE	Tree nut skin reaction	1=Checked				Afternoon		Skin reaction to Tree Nut/Tree Nut Products		M4TRAGAR	Years	Skin
+MH2	M4FISKRE	Fish skin reaction	1=Checked				Afternoon		Skin reaction to Fish/Fish Products		M4FIAGAR	Years	Skin
+MH2	M4SHSKRE	Shellfish skin reaction	1=Checked				Afternoon		Skin reaction to Shellfish/Shellfish Products		M4SHAGAR	Years	Skin
+MH2	M4EGURRE	Egg upper resp reaction	1=Checked				Afternoon		Upper respiratory reaction to Egg/Egg Products		M4EGAGAR	Years	Upper Respiratory
+MH2	M4MKURRE	Milk upper resp reaction	1=Checked				Afternoon		Upper respiratory reaction to Milk/Milk Products		M4MKAGAR	Years	Upper Respiratory
+MH2	M4PEURRE	Peanut upper resp rxn	1=Checked				Afternoon		Upper respiratory reaction to Peanut/Peanut Products		M4PEAGAR	Years	Upper Respiratory
+MH2	M4TRURRE	Tree nut upper resp rxn	1=Checked				Afternoon		Upper respiratory reaction to Tree Nut/Tree Nut Products		M4TRAGAR	Years	Upper Respiratory
+MH2	M4FIURRE	Fish upper resp reaction	1=Checked				Afternoon		Upper respiratory reaction to Fish/Fish Products		M4FIAGAR	Years	Upper Respiratory
+MH2	M4SHURRE	Shellfish upper resp rxn	1=Checked				Afternoon		Upper respiratory reaction to Shellfish/Shellfish Products		M4SHAGAR	Years	Upper Respiratory
+MH2	M4EGLRRE	Egg lower resp reaction	1=Checked				Afternoon		Lower respiratory reaction to Egg/Egg Products		M4EGAGAR	Years	Lower Respiratory
+MH2	M4MKLRRE	Milk lower resp reaction	1=Checked				Afternoon		Lower respiratory reaction to Milk/Milk Products		M4MKAGAR	Years	Lower Respiratory
+MH2	M4PELRRE	Peanut lower resp rxn	1=Checked				Afternoon		Lower respiratory reaction to Peanut/Peanut Products		M4PEAGAR	Years	Lower Respiratory
+MH2	M4TRLRRE	Tree nut lower resp rxn	1=Checked				Afternoon		Lower respiratory reaction to Tree Nut/Tree Nut Products		M4TRAGAR	Years	Lower Respiratory
+MH2	M4FILRRE	Fish lower resp reaction	1=Checked				Afternoon		Lower respiratory reaction to Fish/Fish Products		M4FIAGAR	Years	Lower Respiratory
+MH2	M4SHLRRE	Shellfish lower resp rxn	1=Checked				Afternoon		Lower respiratory reaction to Shellfish/Shellfish Products		M4SHAGAR	Years	Lower Respiratory
+MH2	M4EGGIRE	Egg GI reaction	1=Checked				Afternoon		GI reaction to Egg/Egg Products		M4EGAGAR	Years	Gastrointestinal 
+MH2	M4MKGIRE	Milk GI reaction	1=Checked				Afternoon		GI reaction to Milk/Milk Products		M4MKAGAR	Years	Gastrointestinal 
+MH2	M4PEGIRE	Peanut GI reaction	1=Checked				Afternoon		GI reaction to Peanut/Peanut Products		M4PEAGAR	Years	Gastrointestinal 
+MH2	M4TRGIRE	Tree nut GI reaction	1=Checked				Afternoon		GI reaction to Tree Nut/Tree Nut Products		M4TRAGAR	Years	Gastrointestinal 
+MH2	M4FIGIRE	Fish GI reaction	1=Checked				Afternoon		GI reaction to Fish/Fish Products		M4FIAGAR	Years	Gastrointestinal 
+MH2	M4SHGIRE	Shellfish GI reaction	1=Checked				Afternoon		GI reaction to Shellfish/Shellfish Products		M4SHAGAR	Years	Gastrointestinal 
+MH2	M4EGCVRE	Egg CV reaction	1=Checked				Afternoon		Cardiovascular reaction to Egg/Egg Products		M4EGAGAR	Years	Cardiovascular
+MH2	M4MKCVRE	Milk CV reaction	1=Checked				Afternoon		Cardiovascular reaction to Milk/Milk Products		M4MKAGAR	Years	Cardiovascular
+MH2	M4PECVRE	Peanut CV reaction	1=Checked				Afternoon		Cardiovascular reaction to Peanut/Peanut Products		M4PEAGAR	Years	Cardiovascular
+MH2	M4TRCVRE	Tree nut CV reaction	1=Checked				Afternoon		Cardiovascular reaction to Tree Nut/Tree Nut Products		M4TRAGAR	Years	Cardiovascular
+MH2	M4FICVRE	Fish CV reaction	1=Checked				Afternoon		Cardiovascular reaction to Fish/Fish Products		M4FIAGAR	Years	Cardiovascular
+MH2	M4SHCVRE	Shellfish CV reaction	1=Checked				Afternoon		Cardiovascular reaction to Shellfish/Shellfish Products		M4SHAGAR	Years	Cardiovascular
+MH2	M4EGORSY	Egg/Peanut symp oral rctn	1=Checked				Afternoon		Skin reaction in most recent reaction to Egg/Egg Products				
+MH2	M4EGSKSY	Egg/Peanut symp skin rctn	1=Checked				Afternoon		Upper respiratory reaction in most recent reaction to Egg/Egg Products				
+MH2	M4EGURSY	Egg/Pean symp upp rsp rxn	1=Checked				Afternoon		Lower respiratory reaction in most recent reaction to Egg/Egg Products				
+MH2	M4EGLRSY	Egg/Pean symp lwr rsp rxn	1=Checked				Afternoon		GI reaction in most recent reaction to Egg/Egg Products				
+MH2	M4EGGISY	Egg/Peanut symp GI reactn	1=Checked				Afternoon		Cardiovascular reaction in most recent reaction to Egg/Egg Products				
+MH2	M4EGCVSY	Egg/Peanut symp CV reactn	1=Checked				Afternoon		Prick Skin Test performed for Egg/Egg Products				
+MH2	M4PEGG	PST egg	"0=No, 1=Yes, 2=Not Available"			M4PEGGDT	Afternoon		Prick Skin Test performed for Egg/Egg Products				
+MH2	M4PMILK	PST milk	"0=No, 1=Yes, 2=Not Available"			M4PMLKDT	Afternoon		Prick Skin Test performed for Milk/Milk Products				
+MH2	M4PPNUT	PST peanut	"0=No, 1=Yes, 2=Not Available"			M4PPNUDT	Afternoon		Prick Skin Test performed for Peanut/Peanut Products				
+MH2	M4PTNUT	PST tree nut	"0=No, 1=Yes, 2=Not Available"			M4PTNUDT	Afternoon		Prick Skin Test performed for Tree Nut/Tree Nut Products				
+MH2	M4PFISH	PST fish	"0=No, 1=Yes, 2=Not Available"			M4PFISDT	Afternoon		Prick Skin Test performed for Fish/Fish Products				
+MH2	M4PSHFIS	PST shellfish	"0=No, 1=Yes, 2=Not Available"			M4PSHFDT	Afternoon		Prick Skin Test performed for Shellfish/Shellfish Products				
+MH2	M4PEGGDT	PST egg date					Afternoon		Date PST performed for Egg/Egg Products				
+MH2	M4PMLKDT	PST milk date					Afternoon		Date PST performed for Milk/Milk Products				
+MH2	M4PPNUDT	PST peanut date					Afternoon		Date PST performed for Peanut/Peanut Products				
+MH2	M4PTNUDT	PST tree nut date					Afternoon		Date PST performed for Tree Nut/Tree Nut Products				
+MH2	M4PFISDT	PST fish date					Afternoon		Date PST performed for Fish/Fish Products				
+MH2	M4PSHFDT	PST shellfish date					Afternoon		Date PST performed for Shellfish/Shellfish Products				
+MH2	M4PEGGTL	PST egg test location	"1=Study site, 2=Outside site"			M4PEGGDT	Afternoon		PST test location for Egg/Egg Products				
+MH2	M4PMLKTL	PST milk test location	"1=Study site, 2=Outside site"			M4PMLKDT	Afternoon		PST test location for Milk/Milk Products				
+MH2	M4PPNUTL	PST peanut test location	"1=Study site, 2=Outside site"			M4PPNUDT	Afternoon		PST test location for Peanut/Peanut Products				
+MH2	M4PTNUTL	PST tree nut tst location	"1=Study site, 2=Outside site"			M4PTNUDT	Afternoon		PST test location for Tree Nut/Tree Nut Products				
+MH2	M4PFISTL	PST fish test location	"1=Study site, 2=Outside site"			M4PFISDT	Afternoon		PST test location for Fish/Fish Products				
+MH2	M4PSHFTL	PST shellfish tst locatio	"1=Study site, 2=Outside site"			M4PSHFDT	Afternoon		PST test location for Shellfish/Shellfish Products				
+MH2	M4PEGGQL	PST egg qual result	"0=Negative, 1=Positive, 9=Unknown"			M4PEGGDT	Afternoon		PST Qualitative results for Egg/Egg Products				
+MH2	M4PMLKQL	PST milk qual result	"0=Negative, 1=Positive, 9=Unknown"			M4PMLKDT	Afternoon		PST Qualitative results for Milk/Milk Products				
+MH2	M4PPNUQL	PST peanut qual result	"0=Negative, 1=Positive, 9=Unknown"			M4PPNUDT	Afternoon		PST Qualitative results for Peanut/Peanut Products				
+MH2	M4PTNUQL	PST tree nut qual result	"0=Negative, 1=Positive, 9=Unknown"			M4PTNUDT	Afternoon		PST Qualitative results for Tree Nut/Tree Nut Products				
+MH2	M4PFISQL	PST fish qual result	"0=Negative, 1=Positive, 9=Unknown"			M4PFISDT	Afternoon		PST Qualitative results for Fish/Fish Products				
+MH2	M4PSHFQL	PST shellfish qual result	"0=Negative, 1=Positive, 9=Unknown"			M4PSHFDT	Afternoon		PST Qualitative results for Shellfish/Shellfish Products				
+MH2	M4PEGGQN	PST egg quan result			mm	M4PEGGDT	Afternoon		PST Quantitative results for Egg/Egg Products				
+MH2	M4PMLKQN	PST milk quan result			mm	M4PMLKDT	Afternoon		PST Quantitative results for Milk/Milk Products				
+MH2	M4PPNUQN	PST peanut quan result			mm	M4PPNUDT	Afternoon		PST Quantitative results for Peanut/Peanut Products				
+MH2	M4PTNUQN	PST tree nut quan result			mm	M4PTNUDT	Afternoon		PST Quantitative results for Tree Nut/Tree Nut Products				
+MH2	M4PFISQN	PST fish quan result			mm	M4PFISDT	Afternoon		PST Quantitative results for Fish/Fish Products				
+MH2	M4PSHFQN	PST shellfish quan result			mm	M4PSHFDT	Afternoon		PST Quantitative results for Shellfish/Shellfish Products				
+MH2	M4IEGGPF	IgE egg performed	"0=No, 1=Yes, 2=Not Available"			M4IEGGDT	Afternoon		Serum IgE performed for Egg/Egg Products				
+MH2	M4IMLKPF	IgE milk performed	"0=No, 1=Yes, 2=Not Available"			M4IMLKDT	Afternoon		Serum IgE performed for Milk/Milk Products				
+MH2	M4IPNUPF	IgE peanut performed	"0=No, 1=Yes, 2=Not Available"			M4IPNUDT	Afternoon		Serum IgE performed for Peanut/Peanut Products				
+MH2	M4ITNUPF	IgE tree nut performed	"0=No, 1=Yes, 2=Not Available"			M4ITNUDT	Afternoon		Serum IgE performed for Tree Nut/Tree Nut Products				
+MH2	M4IFISPF	IgE fish performed	"0=No, 1=Yes, 2=Not Available"			M4IFISDT	Afternoon		Serum IgE performed for Fish/Fish Products				
+MH2	M4ISHFPF	IgE shellfish performed	"0=No, 1=Yes, 2=Not Available"			M4ISHFDT	Afternoon		Serum IgE performed for Shellfish/Shellfish Products				
+MH2	M4IEGGDT	IgE egg date					Afternoon		Date IgE performed for Egg/Egg Products				
+MH2	M4IMLKDT	IgE milk date					Afternoon		Date IgE performed for Milk/Milk Products				
+MH2	M4IPNUDT	IgE peanut date					Afternoon		Date IgE performed for Peanut/Peanut Products				
+MH2	M4ITNUDT	IgE tree nut date					Afternoon		Date IgE performed for Tree Nut/Tree Nut Products				
+MH2	M4IFISDT	IgE fish date					Afternoon		Date IgE performed for Fish/Fish Products				
+MH2	M4ISHFDT	IgE shellfish date					Afternoon		Date IgE performed for Shellfish/Shellfish Products				
+MH2	M4IEGGTL	IgE egg test location	"1=Study site, 2=Outside site"			M4IEGGDT	Afternoon		IgE test location for Egg/Egg Products				
+MH2	M4IMLKTL	IgE milk test location	"1=Study site, 2=Outside site"			M4IMLKDT	Afternoon		IgE test location for Milk/Milk Products				
+MH2	M4IPNUTL	IgE peanut test location	"1=Study site, 2=Outside site"			M4IPNUDT	Afternoon		IgE test location for Peanut/Peanut Products				
+MH2	M4ITNUTL	IgE tree nut tst location	"1=Study site, 2=Outside site"			M4ITNUDT	Afternoon		IgE test location for Tree Nut/Tree Nut Products				
+MH2	M4IFISTL	IgE fish test location	"1=Study site, 2=Outside site"			M4IFISDT	Afternoon		IgE test location for Fish/Fish Products				
+MH2	M4ISHFTL	IgE shellfish test locat	"1=Study site, 2=Outside site"			M4ISHFDT	Afternoon		IgE test location for Shellfish/Shellfish Products				
+MH2	M4IEGGQL	IgE egg qual result	"0=Negative, 1=Positive, 9=Unknown"			M4IEGGDT	Afternoon		IgE Qualitative results for Egg/Egg Products				
+MH2	M4IMLKQL	IgE milk qual result	"0=Negative, 1=Positive, 9=Unknown"			M4IMLKDT	Afternoon		IgE Qualitative results for Milk/Milk Products				
+MH2	M4IPNUQL	IgE peanut qual result	"0=Negative, 1=Positive, 9=Unknown"			M4IPNUDT	Afternoon		IgE Qualitative results for Peanut/Peanut Products				
+MH2	M4ITNUQL	IgE tree nut qual result	"0=Negative, 1=Positive, 9=Unknown"			M4ITNUDT	Afternoon		IgE Qualitative results for Tree Nut/Tree Nut Products				
+MH2	M4IFISQL	IgE fish qual result	"0=Negative, 1=Positive, 9=Unknown"			M4IFISDT	Afternoon		IgE Qualitative results for Fish/Fish Products				
+MH2	M4ISHFQL	IgE shellfish qual result	"0=Negative, 1=Positive, 9=Unknown"			M4ISHFDT	Afternoon		IgE Qualitative results for Shellfish/Shellfish Products				
+MH2	M4IEGGGL	IgE egg greater_less	"1=>, 2=<"			M4IEGGDT	Afternoon		IgE result for Egg/Egg Products				
+MH2	M4IMLKGL	IgE milk greater_less	"1=>, 2=<"			M4IMLKDT	Afternoon		IgE result for Milk/Milk Products				
+MH2	M4IPNUGL	IgE peanut greater_less	"1=>, 2=<"			M4IPNUDT	Afternoon		IgE result for Peanut/Peanut Products				
+MH2	M4ITNUGL	IgE tree nut greater_less	"1=>, 2=<"			M4ITNUDT	Afternoon		IgE result for Tree Nut/Tree Nut Products				
+MH2	M4IFISGL	IgE fish greater_less	"1=>, 2=<"			M4IFISDT	Afternoon		IgE result for Fish/Fish Products				
+MH2	M4ISHFGL	IgE shellfish greater_les	"1=>, 2=<"			M4ISHFDT	Afternoon		IgE result for Shellfish/Shellfish Products				
+MH2	M4IEGGQN	IgE egg quan result			kIU/L	M4IEGGDT	Afternoon		IgE Quantitative result for Egg/Egg Products				
+MH2	M4IMLKQN	IgE milk quan result			kIU/L	M4IMLKDT	Afternoon		IgE Quantitative result for Milk/Milk Products				
+MH2	M4IPNUQN	IgE peanut quan result			kIU/L	M4IPNUDT	Afternoon		IgE Quantitative result for Peanut/Peanut Products				
+MH2	M4ITNUQN	IgE tree nut quan result			kIU/L	M4ITNUDT	Afternoon		IgE Quantitative result for Tree Nut/Tree Nut Products				
+MH2	M4IFISQN	IgE fish quan result			kIU/L	M4IFISDT	Afternoon		IgE Quantitative result for Fish/Fish Products				
+MH2	M4ISHFQN	IgE shellfish quan result			kIU/L	M4ISHFDT	Afternoon		IgE Quantitative result for Shellfish/Shellfish Products				
+MH2	M4OEGGPF	OFC egg performed	"0=No, 1=Yes, 9=Unknown"			M4OEGGDT	Afternoon		OFC performed for Egg/Egg Products				
+MH2	M4OMLKPF	OFC milk performed	"0=No, 1=Yes, 9=Unknown"			M4OMLKDT	Afternoon		OFC performed for Milk/Milk Products				
+MH2	M4OPNUPF	OFC peanut performed	"0=No, 1=Yes, 9=Unknown"			M4OPNUDT	Afternoon		OFC performed for Peanut/Peanut Products				
+MH2	M4OTNUPF	OFC tree nut performed	"0=No, 1=Yes, 9=Unknown"			M4OTNUDT	Afternoon		OFC performed for Tree Nut/Tree Nut Products				
+MH2	M4OFISPF	OFC fish performed	"0=No, 1=Yes, 9=Unknown"			M4OFISDT	Afternoon		OFC performed for Fish/Fish Products				
+MH2	M4OSHFPF	OFC shellfish performed	"0=No, 1=Yes, 9=Unknown"			M4OSHFDT	Afternoon		OFC performed for Shellfish/Shellfish Products				
+MH2	M4OEGGDT	OFC egg date					Afternoon		Date OFC performed for Egg/Egg Products				
+MH2	M4OMLKDT	OFC milk date					Afternoon		Date OFC performed for Milk/Milk Products				
+MH2	M4OPNUDT	OFC peanut date					Afternoon		Date OFC performed for Peanut/Peanut Products				
+MH2	M4OTNUDT	OFC tree nut date					Afternoon		Date OFC performed for Tree Nut/Tree Nut Products				
+MH2	M4OFISDT	OFC fish date					Afternoon		Date OFC performed for Fish/Fish Products				
+MH2	M4OSHFDT	OFC shellfish date					Afternoon		Date OFC performed for Shellfish/Shellfish Products				
+MH2	M4OEGGTL	OFC egg test location	"1=Study site, 2=Outside site"			M4OEGGDT	Afternoon		OFC test location for Egg/Egg Products				
+MH2	M4OMLKTL	OFC milk test location	"1=Study site, 2=Outside site"			M4OMLKDT	Afternoon		OFC test location for Milk/Milk Products				
+MH2	M4OPNUTL	OFC peanut test location	"1=Study site, 2=Outside site"			M4OPNUDT	Afternoon		OFC test location for Peanut/Peanut Products				
+MH2	M4OTNUTL	OFC tree nut tst location	"1=Study site, 2=Outside site"			M4OTNUDT	Afternoon		OFC test location for Tree Nut/Tree Nut Products				
+MH2	M4OFISTL	OFC fish test location	"1=Study site, 2=Outside site"			M4OFISDT	Afternoon		OFC test location for Fish/Fish Products				
+MH2	M4OSHFTL	OFC shellfish tst locat	"1=Study site, 2=Outside site"			M4OSHFDT	Afternoon		OFC test location for Shellfish/Shellfish Products				
+MH2	M4OEGGCM	OFC egg chall method	"0=Open, 1=Single blind, 2=Double blind"			M4OEGGDT	Afternoon		OFC challenge method for Egg/Egg Products				
+MH2	M4OMLKCM	OFC milk chall method	"0=Open, 1=Single blind, 2=Double blind"			M4OMLKDT	Afternoon		OFC challenge method for Milk/Milk Products				
+MH2	M4OPNUCM	OFC peanut chall method	"0=Open, 1=Single blind, 2=Double blind"			M4OPNUDT	Afternoon		OFC challenge method for Peanut/Peanut Products				
+MH2	M4OTNUCM	OFC tree nut chall method	"0=Open, 1=Single blind, 2=Double blind"			M4OTNUDT	Afternoon		OFC challenge method for Tree Nut/Tree Nut Products				
+MH2	M4OFISCM	OFC fish chall method	"0=Open, 1=Single blind, 2=Double blind"			M4OFISDT	Afternoon		OFC challenge method for Fish/Fish Products				
+MH2	M4OSHFCM	OFC shellfish chall meth	"0=Open, 1=Single blind, 2=Double blind"			M4OSHFDT	Afternoon		OFC challenge method for Shellfish/Shellfish Products				
+MH2	M4OEGGTR	OFC egg test result	"0=Negative, 1=Positive, 9=Unknown"			M4OEGGDT	Afternoon		OFC test results for Egg/Egg Products				
+MH2	M4OMLKTR	OFC milk test result	"0=Negative, 1=Positive, 9=Unknown"			M4OMLKDT	Afternoon		OFC test results for Milk/Milk Products				
+MH2	M4OPNUTR	OFC peanut test result	"0=Negative, 1=Positive, 9=Unknown"			M4OPNUDT	Afternoon		OFC test results for Peanut/Peanut Products				
+MH2	M4OTNUTR	OFC tree nut test result	"0=Negative, 1=Positive, 9=Unknown"			M4OTNUDT	Afternoon		OFC test results for Tree Nut/Tree Nut Products				
+MH2	M4OFISTR	OFC fish test result	"0=Negative, 1=Positive, 9=Unknown"			M4OFISDT	Afternoon		OFC test results for Fish/Fish Products				
+MH2	M4OSHFTR	OFC shellfish test result	"0=Negative, 1=Positive, 9=Unknown"			M4OSHFDT	Afternoon		OFC test results for Shellfish/Shellfish Products				
+MH2	M4OTFDEL	Other food eliminated	"0=No, 1=Yes"				Afternoon		Have other foods been eliminated?				
+OFC	PATID	Participant ID		User Defined ID									
+OFC	PROTSEG	Protocol Segment	"A=Screening, B=Baked Egg/Egg OIT Treatment"	NA									
+OFC	ANTIGEN	Antigen	"1=Milk, 2=Egg, 3=Peanut"						[Same]				
+OFC	OFC_DATE	Oral Food Challenge Date		Study Day									
+OFC	OFPRFFLW	Peak Respiratory Flow			percentage				Percent predicted PFR				
+OFC	OFHALFLF	No antihist for 5 half-lf	"0=No, 1=Yes"						No antihistamines for 5 half-lives of specific type				
+OFC	OFCFINDT	Date OFC finished		NA					[Same]				
+OFC	CHALRESU	Challenge results	"0=Negative, 1=Positive - reaction to active substance"						[Same]				
+OFC	OFINCHAL	Initial challenge	"1=Active Substance, 2=Placebo"						[Same]				
+OFC	DSESUCPR	Cum successful protein			grams				Cumulative successfully consumed dose				
+OFC	DSE1SYPR	Cumul first symp protein			grams				Cumulative dose at first objective symptom				
+OFC	DSELSTPR	Cumul dose term protein			grams				Cumulative dose at termination of challenge				
+OFC	OFRPTDOS	Repeated active dose givn	"0=No, 1=Yes"						Was a repeated dose given				
+OFC	OFRPTDS1	Reptd active dose 1 powdr			grams				[Same]				
+OFC	OFRPD1PR	Reptd active dose 1 protn			grams				[Same]				
+OFC	OFRPTDS2	Reptd active dose 2 powdr			grams				[Same]				
+OFC	OFRPD2PR	Reptd active dose 2 protn			grams				[Same]				
+OFC	DSESUCC	Dose cum success consumed			grams				Cumulative successfully consumed dose				
+OFC	DSE1SYMP	Cum. dose first symptom			grams				Cumulative dose at first objective symptom				
+OFC	DSELSTSY	Cumulative dose			grams				Cumulative dose				
+OFC	OFMEDGVN	Medications given	"0=No, 1=Yes, 9=Unknown"						Were medications given				
+OFC	OFEPIPEN	Epinephrine	"0=No, 1=Yes, 9=Unknown"						[Same]				
+OFC	OFEPIDOS	Epinephrine doses given			Count				[Same]				
+OFC	OFANTHIS	Antihistamines	"0=No, 1=Yes, 9=Unknown"						[Same]				
+OFC	OFANTDOS	Antihistamines doses give			Count				[Same]				
+OFC	OFSTERIV	Steriods IV or oral	"0=No, 1=Yes, 9=Unknown"						[Same]				
+OFC	OFISTDOS	IV steroids doses given			Count				[Same]				
+OFC	OFSTERTP	Steriods topical	"0=No, 1=Yes, 9=Unknown"						[Same]				
+OFC	OFTSTDOS	Topical steroids dose giv			Count				[Same]				
+OFC	OFBETAA	Beta-Agonists	"0=No, 1=Yes, 9=Unknown"						[Same]				
+OFC	OFBETDOS	Beta-agonists doses given			Count				[Same]				
+OFC	OFIVFLD	IV-fluids	"0=No, 1=Yes, 9=Unknown"						[Same]				
+OFC	OFIVFDOS	IV fluids doses given			Count				[Same]				
+OFC	OFOTMED	Other medication	"0=No, 1=Yes, 9=Unknown"						[Same]				
+OFC	OFOTMDOS	Other meds doses given			Count				[Same]				
+OFC	PEXPSYMP	Placebo exper symptoms	"0=No, 1=Yes"						Did the paticipant experience any symptoms for Placebo				
+OFC	PDSSUCC	Placebo cum success consu			grams				Cumulative placebo successfully consumed dose				
+OFC	PDS1SYMP	Placebo cum dose 1st symp			grams				Cumulative placebo dose at first objective symptom				
+OFC	PDSLSTSY	Placebo cum dose terminat			grams				Cumulative placebo dose at termination of challenge				
+OFC	OFPMEDGV	Placebo meds given	"0=No, 1=Yes, 9=Unknown"						Were medications given (placebo)				
+OFC	OFPEPIPN	Placebo epinephrine	"0=No, 1=Yes, 9=Unknown"						[Same]				
+SPT	PATID	Participant ID		User Defined ID									
+SPT	PROTSEG	Protocol Segment	"A=Screening, B=Baked Egg/Egg OIT Treatment"	NA									
+SPT	VISNO	Visit Number	"0=Baseline, 1=Visit 1, 2=Visit 2, 3=Visit 3, 4=Visit 4, 5=Visit 5, 6=Visit 6, 7=Visit 7, 8=Visit 8, F01=3 months post final OFC Phone Assessment, F02=6 months post final OFC In person, F03=3 year long term follow-up, F04= 4 year long term follow-up, F05=5 year long term follow-up"	Visit				"{""A"":""Baseline""}"					
+SPT	SPT_DATE	Prick Skin Test Date		Study Day									
+SPT	SPTEDATE	Date form completed		NA									
+SPT	HISTAMIN	Histamine wheal size			mms				[Same]				Back
+SPT	SALINE	Saline wheal size			mms				[Same]				Back
+SPT	MILKWHL	Milk wheal size			mms				[Same]				Back
+SPT	MILKSCR	Milk score			mms				[Same]				Back
+SPT	EGGWHL	Egg wheal size			mms				[Same]				Back
+SPT	EGGSCR	Egg score			mms				[Same]				Back
+SPT	PEANUTWH	Peanut wheal size			mms				[Same]				Back
+SPT	PEANUTSC	Peanut score			mms				[Same]				Back
+SPT	SPCRHWHL	Cockroach wheal size			mms				[Same]				Back
+SPT	SPCRHSCR	Cockroach score			mms				[Same]				Back
+SPT	SPMLDWHL	Mold wheal size			mms				[Same]				Back
+SPT	SPMLDSCR	Mold score			mms				[Same]				Back
+SPT	SPTREWHL	Tree mix wheal size			mms				[Same]				Back
+SPT	SPTRESCR	Tree mix score			mms				[Same]				Back
+SPT	SPGRSWHL	Grass mix wheal size			mms				[Same]				Back
+SPT	SPGRSSCR	Grass mix score			mms				[Same]				Back
+SPT	SPWEDWHL	Weed mix wheal size			mms				[Same]				Back
+SPT	SPWEDSCR	Weed mix score			mms				[Same]				Back
+SPT	MEDGIVEN	Medications given	"0=No, 1=Yes, 9=Unknown"						Was medication given				
+SPT	EPIPENSP	Epinephrine	"0=No, 1=Yes, 9=Unknown"						Was epinephrine given				Thigh
+SPT	ANTHISSP	Antihistamines	"0=No, 1=Yes, 9=Unknown"						Were antihistamines given				Mouth or Vein
+SPT	STERIVSP	Steriods IV or oral	"0=No, 1=Yes, 9=Unknown"						Were oral or IV steriods given				Mouth or Vein
+SPT	STERTOPS	Steriods topical	"0=No, 1=Yes, 9=Unknown"						Were topical steriods given				Skin
+SPT	SPBETAAG	Beta-agonist	"0=No, 1=Yes, 9=Unknown"						Were beta-agonist given				
+SPT	SPIVFLDS	IV-Fluids	"0=No, 1=Yes, 9=Unknown"						Were IV fluids given				Vein
+SPT	OTHERSP	Other medication	"0=No, 1=Yes, 9=Unknown"						Were other medications given				

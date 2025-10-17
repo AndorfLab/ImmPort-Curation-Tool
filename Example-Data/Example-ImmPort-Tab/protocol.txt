@@ -1,0 +1,3 @@
+PROTOCOL_ACCESSION	DESCRIPTION	FILE_NAME	NAME	ORIGINAL_FILE_NAME	TYPE	WORKSPACE_ID
+PTL19950818		ABC-protocol.pdf	ABC Study Protocol	ABC-protocol1.pdf	Not Specified	18888
+PTL19950819		XYZ-protocol.pdf	XYZ Study Protocol	XYZ-protocol2.pdf	Not Specified	18888

@@ -1,0 +1,7 @@
+STUDY_FILE_ACCESSION	DESCRIPTION	FILE_NAME	STUDY_ACCESSION	STUDY_FILE_TYPE	WORKSPACE_ID
+SFL19620624	Basophil Test	Basophil-Example.txt	SDY08181995	Lab Test	18888
+SFL19620625	Immunoglobulin E (IgE) Test	IgE-Example.txt	SDY08181995	Lab Test	18888
+SFL19620626	Medical History (Part I)	Med-History-1-Example.txt	SDY08181995	Assessment	18888
+SFL19620627	Medical History (Part II)	Med-History-2-Example.txt	SDY08181995	Assessment	18888
+SFL19620628	Oral Food Challenge	OFC-Example.txt	SDY08181995	Assessment	18888
+SFL19620629	Skin Prick Test	SPT-Example.txt	SDY08181995	Assessment	18888
