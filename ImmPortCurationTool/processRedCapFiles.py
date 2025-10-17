@@ -1,190 +1,308 @@
+import ImmPortCurationTool.immport_gui as ig
+
 import csv
 import regex
-import ImmPortCurationTool.immport_gui as ig
-#import immport_gui as ig
 import json
-import urllib.parse
-# TODO
-# Reports
-#   Compare columns in datafile with data dictionary
-        # For instance, the DD has fields (6) that do not appear in the SPT study file.
-        # Conviently there are other fields that have the same name that are in the
-        # study file. 
-
-#TODO Create Class DataDictionary
-#TODO Create Class DataFile
-
-
 from IPython.display import display
 
-def parseCodeListValues(valueString):
-    #regex : split on ", " where the next characters are either digits or a "word" followed by a =
-    #Now, we have an array where of elements where the key is everything prior to the first "=", and the value is everything after this first "="
-    #As such, not we split on ONLY the first "=" as the value might have "=" in it.
-    try:
-        codes = dict(x.split("=", 1) for x in regex.split(r"(?:, )(?=\d+=|\w+=)",valueString))
-    except Exception as e:
-        return "Error parsing code list values: " + str(e)
-    return codes
 
-def getColumnMapping(dictionary,table_name,mapping):
-    if(mapping in dictionary["tables"][table_name]["mappings"]):
-        mapping_col = dictionary["tables"][table_name]["mappings"][mapping]
-        return dictionary["tables"][table_name]["fields"][mapping_col]["description"]
+def parseCodeListValues(valueString):
+
+    if not valueString:
+        return {}
+    
+    try:
+        pairs = regex.split(r',\s*(?=[^,=]+?=)', valueString)
+        
+        codes = {}
+
+        for p in pairs:
+            key_value = p.split("=", 1)
+            
+            if len(key_value) == 2:
+                key, value = key_value
+                codes[key.strip()] = value.strip()  
+            else:
+                codes[key_value[0].strip()] = key_value[0].strip() 
+
+        return codes
+    
+    except Exception as e:
+        return {"__PARSE_ERROR__": str(e)}
 
 def parseDictionaryRow(row, dictionary, formatted_columns):
 
-    table_name = row[formatted_columns["Table Name"]]
-    values = row[formatted_columns["Code List Values"]]
-    field_name = row[formatted_columns["Field Name"]]
+    ci_formatted_columns = {k.lower(): v for k, v in formatted_columns.items()}
 
-    if(table_name not in dictionary["tables"]):
-        dictionary["tables"][table_name]={"fields":{},"mappings":{}}
-    
-    verbatim_question = row[formatted_columns["Verbatim Question"]]
-    if(verbatim_question.lower() == "[same]"):
-        verbatim_question =row[formatted_columns["Field Description"]]
+    def get_ci_column(label, default=""):
 
-    dictionary["tables"][table_name]["fields"][field_name]={"question":True,"verbatim_question" : verbatim_question}
-    # dictionary["tables"][table_name]["fields"][field_name]={
-    #     "key_field" : row[dictionary["columns"]["Key Field"]],
-    #     "description": row[dictionary["columns"]["Field Description"]],
-    #     "expected" : row[dictionary["columns"]["Expected"]],
-    #     "unit" : row[dictionary["columns"]["Unit"]],
-    #     "verbatim_question" : verbatim_question,
-    #     "note" : row[dictionary["columns"]["Note"]],
-    #     "who_is_assessed" : row[dictionary["columns"]["Who is Assessed"]],
-    #     "age_onset" : row[dictionary["columns"]["Age At Onset Reported"]],
-    #     "age_onset_unit" : row[dictionary["columns"]["Age At Onset Unit Reported"]],
-    #     "location" : row[dictionary["columns"]["Location"]],
-    #     "study_day" : row[dictionary["columns"]["Study Day"]],
-    #     "map_to_visit" : row[dictionary["columns"]["Map To Planned Visit"]],
-    #     "question":True
-    # }
+        return row[ci_formatted_columns.get(label.lower(), -1)] if label.lower() in ci_formatted_columns else default
 
-    ## TODO Possibly log which fields are not found in data dictionary
+    table_name = get_ci_column("Table Name").strip()
+    values = get_ci_column("Code List Values")
+    field_name = get_ci_column("Field Name").strip()
 
-    dictionary_to_variable = {"key_field":"Key Field", "description":"Field Description","expected":"Expected","unit":"Unit","note":"Note","who_is_assessed":"Who is Assessed","age_onset":"Age at Onset Reported","age_onset_unit":"Age At Onset Unit Reported","location":"Location","study_day":"Study Day"}
+    if table_name not in dictionary["tables"]:
+        dictionary["tables"][table_name] = {"fields": {}, "mappings": {}}
 
-    if "Map to Planned Visit" in formatted_columns:
-        dictionary_to_variable['map_to_visit']="Map to Planned Visit"
-    elif "Map To Planned Visit" in formatted_columns:
-        dictionary_to_variable['map_to_visit']="Map To Planned Visit"
-    elif "Map To Visit" in formatted_columns:
-        dictionary_to_variable['map_to_visit']="Map To Visit"
+    verbatim_question = (
+        get_ci_column("Verbatim Question") or
+        get_ci_column("Question") or
+        get_ci_column("Verbatim Questions") or
+        get_ci_column("Questions")
+    )
+
+    if verbatim_question.lower() == "[same]":
+        verbatim_question = get_ci_column("Field Description")
+
+    dictionary["tables"][table_name]["fields"][field_name] = {
+        "question": True,
+        "verbatim_question": verbatim_question
+    }
+
+    dictionary_to_variable = {
+        "description": "field description",
+        "unit": "unit",
+        "who_is_assessed": "who is assessed",
+        "location": "location"
+    }
 
     for key, label in dictionary_to_variable.items():
-        if label in formatted_columns:
-            dictionary["tables"][table_name]["fields"][field_name][key]=row[formatted_columns[label]]
-        else:
-            dictionary["tables"][table_name]["fields"][field_name][key]=""
+        dictionary["tables"][table_name]["fields"][field_name][key] = get_ci_column(label)
 
-    study_day_col = row[formatted_columns["Study Day"]]  
-    col_mapping = row[formatted_columns["Column Mappings"]]
+    age_onset = (
+        get_ci_column("age at onset reported") or
+        get_ci_column("age reported") or
+        get_ci_column("age")
+    )
 
-#### edit at some point to handle dates
-    if study_day_col.upper() == "[SELF]":
-        dictionary["tables"][table_name]["fields"][field_name]["study_day_ref"] = field_name
-        dictionary["tables"][table_name]["fields"][field_name]["study_day_type"] = "number"
-    elif study_day_col:
-        dictionary["tables"][table_name]["fields"][field_name]["study_day_ref"] = study_day_col
-        dictionary["tables"][table_name]["fields"][field_name]["study_day_type"] = "number"
-    elif col_mapping.upper() == "STUDY DAY":
+    dictionary["tables"][table_name]["fields"][field_name]["age_onset"] = age_onset
+
+    age_onset_unit = (
+        get_ci_column("age at onset unit reported") or
+        get_ci_column("age unit reported") or
+        get_ci_column("age unit") or
+        get_ci_column("age at onset reported unit") or
+        get_ci_column("age reported unit")
+    )
+
+    dictionary["tables"][table_name]["fields"][field_name]["age_onset_unit"] = age_onset_unit
+
+    col_mapping = (
+        get_ci_column("Column Mappings") or
+        get_ci_column("Mappings") or
+        get_ci_column("Column Mapping") or
+        get_ci_column("Mapping")
+    )
+
+    map_to_visit = None
+    
+    if col_mapping and col_mapping.strip().lower() == "visit":
+        raw_mapping = get_ci_column("Map To Planned Visit", None) or get_ci_column("Map To Visit", None)
+        
+        if raw_mapping:
+            raw_mapping = raw_mapping.strip()
+
+            try:
+                if raw_mapping.startswith("{") and raw_mapping.endswith("}"):
+                    map_to_visit = json.loads(raw_mapping)
+                else:
+                    map_to_visit = raw_mapping
+            except Exception as e:
+                map_to_visit = raw_mapping
+
+        elif values:
+            map_to_visit = parseCodeListValues(values)
+
+        dictionary["tables"][table_name]["fields"][field_name]["map_to_visit"] = map_to_visit
+
+    study_day = (
+        get_ci_column("override study day") or
+        get_ci_column("study day") or
+        get_ci_column("study day override")
+    )
+
+    dictionary["tables"][table_name]["fields"][field_name]["study_day"] = study_day
+
+    if study_day and study_day.upper() in ["SELF", "[SELF]"]:
+        dictionary["tables"][table_name]["fields"][field_name].update({
+            "study_day_ref": field_name,
+            "study_day_type": "number"
+        })
+    elif study_day:
+        dictionary["tables"][table_name]["fields"][field_name].update({
+            "study_day_ref": study_day,
+            "study_day_type": "number"
+        })
+    elif col_mapping and col_mapping.upper() in ["STUDY DAY", "[STUDY DAY]"]:
+        prev = dictionary["tables"][table_name]["mappings"].get("[Study Day]")
+
+        if prev:
+            display(f"[DEBUG processRedCapFiles] Duplicate [Study Day] mapping in table='{table_name}': overwriting '{prev}' with '{field_name}'")
         dictionary["tables"][table_name]["mappings"]["[Study Day]"] = field_name
-        dictionary["tables"][table_name]["fields"][field_name]["is_study_day"] = True  
-        dictionary["tables"][table_name]["fields"][field_name]["study_day_type"] = "number"
 
-    if col_mapping.upper() == "VISIT":
-        col_mapping = "[Visit]"
+    study_time = (
+        get_ci_column("override study time") or
+        get_ci_column("study time") or
+        get_ci_column("study time override")
+    )
 
+    dictionary["tables"][table_name]["fields"][field_name]["study_time"] = study_time
 
+    if study_time and study_time.upper() in ["SELF", "[SELF]"]:
+        dictionary["tables"][table_name]["fields"][field_name].update({
+            "study_time_ref": field_name,
+            "study_time_type": "time"
+        })
+    elif study_time:
+        dictionary["tables"][table_name]["fields"][field_name].update({
+            "study_time_ref": study_time,
+            "study_time_type": "time"
+        })
+    elif col_mapping and col_mapping.upper() == "STUDY TIME":
+        prev = dictionary["tables"][table_name]["mappings"].get("[Study Time]")
+  
+        if prev:
+            display(f"[DEBUG processRedCapFiles] Duplicate [Study Time] mapping in table='{table_name}': overwriting '{prev}' with '{field_name}'")
+ 
+        dictionary["tables"][table_name]["mappings"]["[Study Time]"] = field_name
 
-    display(f"col_mapping {col_mapping}")
+    if col_mapping:
+        col_mapping_normalized = col_mapping.strip().lower()
+        column_mapping_lookup = {
+            "visit": "[Visit]",
+            "study day": "[Study Day]",
+            "study time": "[Study Time]",
+            "user defined id": "[User Defined ID]",
+            "category": "[Category]"
+        }
 
+        standard_mapping = column_mapping_lookup.get(col_mapping_normalized)
 
-    if(col_mapping):
-        dictionary["tables"][table_name]["mappings"][col_mapping]=field_name
-        dictionary["tables"][table_name]["fields"][field_name]['question']=False
+        if standard_mapping == "[Category]":
+            current_cats = dictionary["tables"][table_name]["mappings"].get("[Category]", [])
+  
+            if isinstance(current_cats, str):
+                current_cats = [current_cats]
+  
+            if field_name not in current_cats:
+                current_cats.append(field_name)
+  
+            dictionary["tables"][table_name]["mappings"]["[Category]"] = current_cats
+   
+        elif standard_mapping:
+            prev = dictionary["tables"][table_name]["mappings"].get(standard_mapping)
+            dictionary["tables"][table_name]["mappings"][standard_mapping] = field_name
+            dictionary["tables"][table_name]["fields"][field_name]["question"] = False
 
-    if(len(values)>0):
-        dictionary["tables"][table_name]["fields"][field_name]["values"]=parseCodeListValues(values)
+        elif col_mapping.strip().upper() == "NA":
+            na_fields = dictionary["tables"][table_name]["mappings"].get("NA", [])
+            flattened_na = [x for sub in (x if isinstance(x, list) else [x] for x in na_fields) for x in sub]
+   
+            if field_name not in flattened_na:
+                flattened_na.append(field_name)
+ 
+            dictionary["tables"][table_name]["mappings"]["NA"] = flattened_na
+
+    if len(values) > 0:
+        dictionary["tables"][table_name]["fields"][field_name]["values"] = parseCodeListValues(values)
+
+    return dictionary
 
 def parseDataDictionary(filename, gui_object):
 
-    dictionary={"columns":{},"tables":{}}
+    selected_template = None
+    try:
+        selected_template = gui_object.current_template()
+     
+        if selected_template:
+            gui_object.log(f"Processing data dictionary with template: {selected_template}", level="info")
+   
+    except Exception as e:
+        gui_object.log(f"Error getting data dictionary template: {str(e)}", level="error")
 
-    with open(filename, encoding="utf-8-sig") as dictionary_FH:
-        reader = csv.reader(dictionary_FH, delimiter=',', quotechar='"')
-        header = next(reader)
+    dictionary = {"columns": {}, "tables": {}}
+    delimiter = None
+    header = []
+    all_rows = []
 
-        formatted_columns = {column.title(): i for i, column in enumerate(header)}
-        dictionary["columns"] = formatted_columns  
+    for enc in ["utf-8-sig", "cp1252"]:
+        try:
+            with open(filename, encoding=enc) as dictionary_FH:
+                first_line = dictionary_FH.readline()
+                dictionary_FH.seek(0)
 
+                for possible_delim in [',', '\t']:
+              
+                    if len(first_line.split(possible_delim)) > 1:
+                        delimiter = possible_delim
+                        break
 
+                if delimiter is None:
+                    gui_object.log(level="Critical", message="Could not determine file delimiter (neither comma nor tab worked)", flush=True)
+                    raise ValueError("Could not parse data dictionary - invalid format")
 
+                reader = csv.reader(dictionary_FH, delimiter=delimiter, quotechar='"')
+                header = next(reader)
 
-        
+                all_rows = list(reader)
+                all_rows = [[cell.strip() if isinstance(cell, str) else cell for cell in row] for row in all_rows]
 
-        required_dictionary_columns=[
-            "Table Name",
-            "Code List Values",
-            "Field Name",
-            "Verbatim Question",
-            "Field Description",
-            "Unit",
-            "Who Is Assessed",
-            "Age At Onset Reported",
-            "Age At Onset Unit Reported",
-            "Location",
-            "Study Day"
+            break
+  
+        except UnicodeDecodeError:
+            continue
+ 
+    else:
+        raise ValueError("Failed to read data dictionary with UTF-8 or CP1252 encoding.")
+
+    formatted_columns = {col.strip().lower(): i for i, col in enumerate(header)}
+    dictionary["columns"] = formatted_columns
+
+    required_columns = {
+        'assessment': [
+            "table name", "field name", "field description",
+            "code list values", "unit", "column mappings"
+        ],
+        'lab test': [
+            "table name", "field name", "field description",
+            "code list values", "unit", "column mappings"
+        ],
+        'assessment & lab test': [
+            "table name", "field name", "field description",
+            "code list values", "unit", "column mappings"
         ]
+    }.get(selected_template.lower(), [])
 
-        missing_required_columns = list(filter(lambda c: c not in formatted_columns.keys(), required_dictionary_columns))
+    if "mappings" in formatted_columns and "column mappings" not in formatted_columns:
+        formatted_columns["column mappings"] = formatted_columns["mappings"]
 
-        if len(missing_required_columns):
-            gui_object.log(level="Critical", flush=True, message=f"Data Dictionary is missing the following fields:\n\t"+"\n\t".join(missing_required_columns))
-            
-            raise NotImplementedError("Data Dictionary missing column")
+    missing_columns = [col for col in required_columns if col not in formatted_columns]
+    
+    if missing_columns:
+        gui_object.log(
+            level="Critical",
+            message="Data Dictionary is missing the following fields:\n\t" + "\n\t".join(missing_columns),
+            flush=True
+        )
+        raise ValueError("Data Dictionary missing required columns")
 
-        for i, row in enumerate(reader):
-            try:
-                parseDictionaryRow(row, dictionary, formatted_columns)
-            except KeyError as e:
-                gui_object.log(level="critical", message=f"Data Dictionary missing column{e}", flush=True)
-            except Exception as e:
-                gui_object.log(level="critical", message=f"Error processing Data Dictionary row {i}. {e}", flush=True)
-                raise NotImplementedError("")
+    for i, row in enumerate(all_rows, 1):
+        try:
+            if not any(cell.strip() for cell in row):
+                continue
 
-        for table_name in dictionary["tables"].keys():
-            if "[Visit]" in dictionary["tables"][table_name]["mappings"]:
-                visit_col = dictionary['tables'][table_name]['mappings']['[Visit]']
-                map_to_visit_str = dictionary["tables"][table_name]["fields"][visit_col]["map_to_visit"]
-                if map_to_visit_str != "":
-                    try:
-                        visit_map_dict = json.loads(map_to_visit_str)
-                        if not isinstance(visit_map_dict, dict):
-                            ig.main_logger.write(level="error", message=f"Map to Planned Visit column on table {table_name} for {visit_col} is not a JSON dictionary. Try using <a href='https://jsonlint.com?json={urllib.parse.quote(str(map_to_visit_str))}'>jsonlint.com</a> to find the errors.", flush=True)
-                    except Exception as e:
-                        ig.main_logger.write(level="error", message=f"Invalid JSON for Map to Planned Visit column on table {table_name} for {visit_col}. Try using <a href='https://jsonlint.com?json={urllib.parse.quote(str(map_to_visit_str))}'>jsonlint.com</a> to find the errors.", flush=True)
+            parseDictionaryRow(row, dictionary, formatted_columns)
 
+        except Exception as e:
+            gui_object.log(level="error", message=f"Error processing row {i}: {str(e)}", flush=True)
+            continue
 
-            for field_name, field_data in dictionary["tables"][table_name]["fields"].items():
-                if "study_day_ref" in field_data:
-                    ref_col = field_data["study_day_ref"]
-                    if ref_col not in dictionary["tables"][table_name]["fields"]:
-                        gui_object.log(
-                            level="error",
-                            message=f"Invalid Study Day reference in {table_name}.{field_name}: column '{ref_col}' not found",
-                            flush=True
-                        )
-            
-            for field in dictionary["tables"][table_name]["fields"].keys():
-                possible_fields = []
-                for col in ["unit","who_is_assessed","age_onset","age_onset_unit","location","study_day"]:
-                    if col in  dictionary["tables"][table_name]["fields"][field]:
-                        possible_fields.append(col)
-                for pf in possible_fields:
-                    if pf in dictionary["tables"][table_name]["fields"]:
-                        dictionary["tables"][table_name]["fields"][pf]["question"]=False
-           
+    for table_name, table_info in dictionary["tables"].items():
+        mappings = table_info.get("mappings", {})
+        na_columns = mappings.get("NA", [])
+
+        if isinstance(na_columns, list):
+            na_columns = [x for sub in (x if isinstance(x, list) else [x] for x in na_columns) for x in sub]
+
     return dictionary
