@@ -3,21 +3,65 @@ To help users explore the tool’s functionality and understand the required dat
 
 ## 📁 Included Files
 ### ImmPort ZIP Files
-The ZIP archive contains 3 completed ImmPort files, representing the minimal required files to use the application. 
+The ZIP archive (Example-ImmPort-Tab.zip) contains 3 completed ImmPort files, representing the minimal required files to use the application. 
 - study_data.txt
 - planned_visit.txt
 - protocol.txt
   
 ### Curated Data Dictionary 
-A structured data dictionary is included, with all mandatory and optional columns populated when relevant.
+A structured data dictionary (Data-Dictionary-Example.txt) is included, with all mandatory and optional columns populated when relevant.
 
 ### Study-Specific Data Files
-These files represent real-world clinical data and are aligned with both the ImmPort ZIP files and the curated data dictionary. 
-- For the Assessments Template:
+These files (in the StudyFiles folder) represent real-world clinical data and are aligned with both the ZIP file and the curated data dictionary. 
+- For the *Lab Tests* Template:
+  - Basophil-Example.txt
+  - IgE-Example.txt
+- For the *Assessments* Template:
   - Med-History-1-Example.txt
   - Med-History-2-Example.txt
   - OFC-Example.txt
   - SPT-Example.txt
-- For the Lab Tests Template:
-  - Basophil-Example.txt
-  - IgE-Example.txt
+
+## Usage
+To test the tool, download the [Example-Data](https://github.com/AndorfLab/ImmPort-Curation-Tool/tree/Master/Example-Data) folder from GitHub.
+
+After the curation tool is [installed](documentation/Installation.md) and opened, you will see 5 tabs. The three middle tabs — *1. ImmPort Files*, *2. Data Dictionary* , and *3. Study Files* — are where the example files are uploaded. 
+
+### *1. ImmPort Files*
+- Set the initial input type as 'Upload ImmPort Tab ZIP file'.
+
+- Press 'Select' and locate the Example-ImmPort-Tab.zip file. Press 'Select' again.
+
+- Alternatively, upload study_data.txt, planned_visit.txt, protocol.txt individually with the input type set as 'Upload individual ImmPort files'.
+
+### *2. Data Dictionary* 
+- Press 'Select' and locate the Data-Dictionary-Example.txt file. Press 'Select' again.
+
+- For 'Choose which template(s) to generate from your data', select 'Assessment and Lab Test' and click 'Load Data Dictionary'. 
+
+###  *3. Study Files*
+- Press 'Select' and locate the StudyFiles folder. Press 'Select' again. Click 'Load study files directory'.
+  
+- Once the files have been loaded, you should see a table. Choose the corresponding 'Table Code' for each file.
+  - BAS = Basophil-Example.txt
+  - IGE = IgE-Example.txt
+  - MH1 = Med-History-1-Example.txt
+  - MH2 = Med-History-2-Example.txt
+  - OFC = OFC-Example.txt
+  - SPT = SPT-Example.txt
+    
+- For the 'Template' dropdown, select *Lab Test* for Basophil-Example.txt and IgE-Example.txt. Select *Assessment* for the remaining files.
+
+- The 'Default Visit' does not need to be used for this example data.
+  
+- For *Assessment*, type a name into the 'Assessment Name' textbox.
+  
+- For *Lab Test*, chose an option from the 'Protocol', 'Name Reported', 'Type', and 'Study Time T0 Event' dropdowns.
+  - If you do not think any of the predefined options for 'Type' or 'Study Time T0 Event' sufficently describes the data, select 'Other' from those dropdowns. This will automatically reveal a 'Subtype' textbox for 'Type' and a 'Study Time T0 Event Specify' textbox for 'Study Time T0 Event', allowing you to manually enter a more specific description.
+ 
+- Finally, once all the input boxes have been filled in, click the 'Generate Filled Templates' button located above the table. The tool will begin producing the templates, which may take a few minutes to complete.
+
+
+
+
+
