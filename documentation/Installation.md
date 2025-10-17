@@ -51,6 +51,12 @@ On macOS or Linux:
 source venv/bin/activate  
 ```  
 
+If your on Windows and your execution policy does not allow this, you can temporarily allow scripts to run with:
+```
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+```
+
+
 Once activated, you should see (venv) at the beginning of your terminal prompt.  
 
 At this point, packaging tools may need to be installed or upgraded:   
