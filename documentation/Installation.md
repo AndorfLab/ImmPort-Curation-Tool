@@ -68,7 +68,7 @@ python -m pip install --upgrade pip setuptools wheel
 
 Clone the GitHub repository:  
 ```
-git clone https://github.com/JoshuaFortriede/ImmPort-Curation-Tool.git  
+git clone https://github.com/AndorfLab/ImmPort-Curation-Tool.git  
 cd ImmPort-Curation-Tool  
 ```
 Install all dependesises:
