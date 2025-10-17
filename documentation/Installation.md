@@ -21,7 +21,7 @@ If Python is not installed, download Python from https://www.python.org/download
 - Select a version between 3.10 and 3.13  
 - Check the box that says "Add Python to PATH"  
 
-If Git is not installed, download Git from: https://git-scm.com/downloads. During installation (on Windows), choose the option: "Git from the command line and also from 3rd-party software"  
+If Git is not installed, download Git from: https://git-scm.com/downloads. During installation (on Windows), choose the option: "Git from the command line and also from 3rd-party software".  
 
 After installing either one, close and reopen the terminal and run:  
 ```
