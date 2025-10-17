@@ -84,9 +84,4 @@ voila forms.ipynb
 ```
 This will open a browser window with the application interface. On most machines, Voilà can be exited by pressing Ctrl + C in the terminal where it is running.
 
-The tool can also be run on other platforms. If you want to stay within the Jupyter environment, type:
-```
-jupyter lab
-```
-
-The tool can also be run in external applications like Visual Studio Code (https://code.visualstudio.com/Download). 
+The tool can also be run on other platforms like Visual Studio Code (https://code.visualstudio.com/Download). 
