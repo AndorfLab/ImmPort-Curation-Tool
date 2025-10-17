@@ -1,128 +1,106 @@
+import ImmPortCurationTool.curationFunctions as cf
+import ImmPortCurationTool.immport_gui as ig
+
 import os
 import jsonschema
 import json
-import ImmPortCurationTool.curationFunctions as cf
-import ImmPortCurationTool.immport_gui as ig
-from pathlib import Path
 import platform
+import re
+import gc
 import pandas as pd
 import numpy as np 
-
 from IPython.display import display
+from io import StringIO
 
-json_schema_template_path   = "templates/json-templates"
-txt_template_path           = "templates/txt-templates"
+def sanitize_component(s):
+
+    if s is None:
+        s = ""
+
+    s = str(s).strip()
+    s = re.sub(r"[^\w\-]", "_", s)      
+    s = re.sub(r"_+", "_", s)     
+
+    return s or "NA"
+
+json_schema_template_path   = "json-templates"
+txt_template_path           = "txt-templates"
 
 json_schema_template_path_full = os.path.join(os.path.dirname(cf.__file__), json_schema_template_path)
 txt_template_path_full = os.path.join(os.path.dirname(cf.__file__), txt_template_path)
 
+try:
+    _protocols_file = os.path.join(json_schema_template_path_full, "protocols.json")
+    with open(_protocols_file, "r", encoding="utf-8") as fh:
+        _protocol_schema = json.load(fh)
+    GLOBAL_SCHEMA_VERSION = _protocol_schema["properties"]["schemaVersion"]["enum"][0]
+except Exception as e:
+    print(f"[DEBUG schemaFunctions] ] Failed to load schemaVersion from {_protocols_file}: {e}")
+    GLOBAL_SCHEMA_VERSION = None
+
 last_error =""
 
-def check_directory_exists(path):
-    directory_path = os.path.dirname(path)
-    if not os.path.exists(directory_path):
-        Path(directory_path).mkdir(parents=True, exist_ok=True)
-    return
+def get_schema_store(json_schema_template_path_full):
 
-def get_schema_store(json_schema_template_path):
     schema_store = {}
-    fnames = os.listdir(json_schema_template_path)
-    for fname in fnames:
+
+    for fname in os.listdir(json_schema_template_path_full):
         if fname.endswith(".json"):
-            with open(os.path.join(json_schema_template_path, fname)) as schema_fd:
+            path = os.path.join(json_schema_template_path_full, fname)
+            with open(path, "r", encoding="utf-8") as schema_fd:
                 schema = json.load(schema_fd)
                 schema_store[fname] = schema
+
     return schema_store
 
-def validate_data(data, schema_name=None):
-
+def validate_data(data, schema_name=None, schema_store=None):
     global last_error
-    try: 
-        schema_store 
-    except:
-        ig.main_logger.write(
-            level="error",
-            message=f"Schema store not found", flush=True
-        )
-        raise NotImplementedError("Schemas have not been loaded")
-    
+
+    if schema_store is None:
+        raise NotImplementedError("Schema store has not been loaded")
+
     if schema_name is None:
-        ig.main_logger.write(
-            level="error",
-            message=f"No schema name provided", flush=True
-        )
         raise ValueError("Schema name not provided")
 
     if not schema_name.endswith(".json"):
-        schema_name+=".json"
-    
-    schema = schema_store.get(schema_name)
-    if schema is None:
-        ig.main_logger.write(
-            level="error",
-            message=f"schema is none for {schema_name}", flush=True
-        )
-        raise NotImplementedError("Missing Schema for '%s'" % schema_name)
+        schema_name += ".json"
 
-    # ref_resolver_path = os.path.abspath(os.path.join(os.getcwd(),json_schema_template_path,schema_name))
-    ref_resolver_path = os.path.abspath(os.path.join(json_schema_template_path_full,schema_name))
+    schema = schema_store.get(schema_name)
+
+    if schema is None:
+        raise NotImplementedError(f"Missing Schema for '{schema_name}'")
+
+    ref_resolver_path = os.path.abspath(os.path.join(json_schema_template_path_full, schema_name))
+
     if platform.system() == 'Windows':
         resolver = jsonschema.RefResolver(ref_resolver_path, schema, store=schema_store)
     else:
-        resolver = jsonschema.RefResolver("file://%s" % ref_resolver_path, schema, store=schema_store)
+        resolver = jsonschema.RefResolver(f"file://{ref_resolver_path}", schema, store=schema_store)
 
     try:
         jsonschema.Draft4Validator(schema, resolver=resolver).validate(data)
         return True
+    
     except jsonschema.exceptions.ValidationError as error:
-        if("properties/data/items/properties/resultData/items/properties/resultUnitReported/enum" == "/".join(list(error.schema_path))):
-            ig.main_logger.write(
-                level="warn",
-                message=f"\tNon-Preferred Unit of '{error.instance}'"
-            )
-            return True
-        elif("properties/data/items/properties/resultData/items/properties/plannedVisitId/type" == "/".join(list(error.schema_path))):
+        path_str = "/".join(map(str, error.schema_path))
 
-            if error.cause is None:
-                last_error=error
-                ig.main_logger.write(
-                    level="error",
-                    message=f"Some records are missing a valid planned visit"
-                )
+        if path_str == "properties/data/items/properties/resultData/items/properties/resultUnitReported/enum":
             return True
+
+        elif path_str == "properties/data/items/properties/resultData/items/properties/plannedVisitId/type":
+            if error.cause is None:
+                last_error = error
+            return True
+
         else:
-            last_error=error
-            ig.main_logger.write(
-                level="error",
-                message=f"Some other Validation Error... {error}",      #TODO: Weird Error here. 
-                flush=True
-            )
-            ig.main_logger.write(
-                level="debug",
-                message=f"Message: {error.__dict__}",
-                flush=True
-            )
-        return f"ValidationError: {error}"
+            last_error = error
+            return f"ValidationError: {error}"
+    
     except jsonschema.exceptions.SchemaError as error:
-        
-        ig.main_logger.write(
-            level="error",
-            message=f"Schema Error {NameError}"
-        )
         return f"SchemaError: {error}"
-    except Exception as error:
-        
-        ig.main_logger.write(
-            level="error",
-            message=f"Exception of {type(error)}:{error}",
-            flush=True
-        )
-        ig.main_logger.write(
-            level="error",
-            message=f"error:{error.__dict__}",
-            flush=True
-        )
+
     return False
+
 
 def is_same_type(value, field_type):
 
@@ -132,22 +110,13 @@ def is_same_type(value, field_type):
     if isinstance(value, (np.number, np.integer)):
         value = float(value) if isinstance(value, np.floating) else int(value)
     
-
-    # if field_type == "string" or field_type == str:
-    #     return (str, isinstance(value, str))
-    # elif field_type == "number" or field_type == float: 
-    #     return (float, isinstance(value, (float,int)))
-    # elif field_type == 'integer':
-    #     return (int, isinstance(value, int))
-    # elif field_type == 'array' or field_type == list:
-    #     return (list, isinstance(value, list))
-    # raise TypeError(f"Type '{field_type}' not handled")
-
-       # Expanded type checking
     if field_type == "string" or field_type == str:
+
         if isinstance(value, (int, float)):
             return (str, True)
+        
         return (str, isinstance(value, str))
+    
     elif field_type in ["number", "float"]:
         return (float, isinstance(value, (int, float, np.number)))
     elif field_type == 'integer':
@@ -158,9 +127,8 @@ def is_same_type(value, field_type):
         return (bool, isinstance(value, bool))
     raise TypeError(f"Type '{field_type}' not handled for value {value} (type: {type(value)})")
 
-
-
 def check_data_type(value, key_properties, key):
+
     field_type = key_properties["type"]
 
     if field_type in ["number", "integer"] and isinstance(value, str):
@@ -172,14 +140,9 @@ def check_data_type(value, key_properties, key):
         except (ValueError, TypeError):
             pass
 
-
-
-
-
-
-
     if field_type == "array" and isinstance(value, list):
         (field_type, same_type) = is_same_type(value[0], key_properties['items']['type'])
+
         if not same_type:
             raise TypeError(f"{value} with type {type(value)} given for {key} - expected {field_type}")
         try:
@@ -188,33 +151,45 @@ def check_data_type(value, key_properties, key):
             raise AttributeError(f"{key} is an array, but the items have no type")
         for idx, item in enumerate(value):
             (field_type, same_type) = is_same_type(item, field_type)
+
             if not same_type:
                 raise TypeError(f"{item} with type {type(item)} given for {key} at index {idx} - expected {field_type}")
     else:
         (field_type, same_type) = is_same_type(value, field_type)
-        if not same_type :
+
+        if not same_type:
+
             if(field_type is str and not isinstance(value, list)):
                 try:
                     (field_type, same_type) = is_same_type(str(value), field_type)
+
                     if not same_type:
                         raise TypeError(f"{value} with type {type(value)} given for {key} - expected {field_type}, forcing to 'str' failed")
                     return str(value)
                 except:
-                    raise TypeError(f"{value} with type {type(value)} given for {key} - expected {field_type}, forcing to 'str' failed")
-                    
+                    raise TypeError(f"{value} with type {type(value)} given for {key} - expected {field_type}, forcing to 'str' failed")     
             else:
                 raise TypeError(f"{value} with type {type(value)} given for {key} - expected {field_type}")
+            
     return value
 
 def check_data_length(value, maxLength, truncate=False, key=None):
-    if value is None:  
+
+    if value is None or pd.isna(value):  
         return None
     
-    if len(value)<=maxLength:
+    if isinstance(value, (int, float, np.number)):
+        return None
+        
+    try:
+        if len(str(value)) <= maxLength:
+            return None
+    except:
         return None
     
-    ig.main_logger.write(message=f"Value of {key} exceeds max length of {maxLength}: {value[0:40]}...", level='critical')
-    if truncate and type(value) is str:
+    ig.main_logger.write(message=f"Value of {key} exceeds max length of {maxLength}: {str(value)[0:40]}...", level='critical')
+
+    if truncate and isinstance(value, str):
         ig.main_logger.write(message=f"\tTruncated value from {len(value)} characters to {maxLength} characters", level='critical')
         try:
             value = "[TRUNCATED]"+value
@@ -222,82 +197,109 @@ def check_data_length(value, maxLength, truncate=False, key=None):
         except Exception as e:
             ig.main_logger.write(message=f"\tTruncation failed: {e}", level='critical')
 
-    raise ValueError("Value exceeds max length of {maxLength} for field {key}: {maxLength[0:25]}...")
+    raise ValueError(f"Value exceeds max length of {maxLength} for field {key}: {str(value)[0:25]}...")
 
-def load_data_fields(validator):
-    path = os.path.dirname(cf.__file__)
-    # with open(os.path.abspath(os.path.join(json_schema_template_path,validator+".json"))) as fh_json_file:
-    with open(os.path.abspath(os.path.join(json_schema_template_path_full,validator+".json"))) as fh_json_file:
+def load_data_fields(validator_name):
+
+    if not validator_name.endswith(".json"):
+        validator_name += ".json"
+
+    schema_path = os.path.abspath(os.path.join(json_schema_template_path_full, validator_name))
+
+    if not os.path.exists(schema_path):
+        raise FileNotFoundError(f"Schema file not found: {schema_path}")
+
+    with open(schema_path, "r", encoding="utf-8") as fh_json_file:
         json_data = json.load(fh_json_file)
-        return json_data['properties']
+        return json_data.get("properties", {})
+
 class ImmPort_Data: 
 
-    def __init__(self, schemaFile='protocols.json'):
-        display("ImmPort_Data initialized")
+    def __init__(self, schemaFile=None):
+
+        self.schemaFile = schemaFile
+        self.schemaVersion = None
         self.set_schemaVersion(schemaFile)
 
     def print_obj(self):
+
         print_data = {}
+
         for attr in self.__dict__:
             if attr.startswith('__'):
                 continue
+
             print_data[attr]=self[attr]
+
         return print_data
 
     def validate(self):
+
         self.obj_to_data()
-        return validate_data(self.get_obj(), schema_name = self.get_validator())
-    
+
+        return validate_data(self.get_obj(), schema_name=self.get_validator(), schema_store=schema_store)
+
     def get_data(self):
+
         return self.data
 
     def get_obj(self):
+
         return self.get_data()
 
     def obj_to_data(self):
+
         return self.data
 
     def set_data(self, key, value):
+
         self.data[key] = value
+
         return 
 
     def get_validator(self):
+
         return self.validator
 
     def set_data_value(self, key, value):
+
         key_properties = self.get_data_key_properties(key)
+
         if "type" not in key_properties:
             raise AttributeError("{key} has no 'type' property in the schema")
+        
         value = check_data_type(value, key_properties, key)
+
         if "maxLength" in key_properties:
             truncated_value = check_data_length(value, key_properties["maxLength"], truncate=type(self).truncate_long_fields, key=key)
+      
             if truncated_value is not None:
                 self.set_data(key, truncated_value)
+
                 return
 
         self.set_data(key,value)
 
     def get_data_key_properties(self, key):
+
         if key in type(self).data_fields:
             return type(self).data_fields[key]
+        
         raise AttributeError(f"{key} is not a data property of {(type(self))}" )
 
     def set_schemaVersion(self, schemaFile):
-        display(f"Setting schema version for {schemaFile}")
-        with open(os.path.abspath(os.path.join(json_schema_template_path_full,schemaFile))) as fh:
-            protocols_schema = json.load(fh)
-            self.schemaVersion=protocols_schema['properties']['schemaVersion']['enum'][0]
+
+        self.schemaVersion = GLOBAL_SCHEMA_VERSION
 
 class SchemaEnumExtractor:
-    """Extracts enum values from labTests.MetaData.json"""
 
     def __init__(self, schemaFile='labTests.MetaData.json'):
+
         self.schemaFile = schemaFile
         self.enums = self.load_enum_values()
 
     def load_enum_values(self):
-        """Reads the labTests.MetaData.json and extracts enum values that will be used in the ui editable table dropdowns"""
-        
+
         schema_path = os.path.join(json_schema_template_path_full, self.schemaFile)
     
         try:
@@ -320,16 +322,14 @@ class SchemaEnumExtractor:
             return {}
     
     def get_enum(self, field_name):
-        """Returns enum options"""
 
         options = self.enums.get(field_name, [])
-    
-        if "--Select--" not in options:
-            options.insert(0, "--Select--")
+        options = [str(opt).strip() for opt in options if str(opt).strip() != ""]
     
         return options
     
 class Assessment(ImmPort_Data):
+
     filename="assessments.json"
     name="assessments"
     templateType='combined-result'
@@ -339,14 +339,17 @@ class Assessment(ImmPort_Data):
     component_header_columns=["User Defined ID","Planned Visit ID","Name Reported","Study Day","Age At Onset Reported","Age At Onset Unit Reported","Is Clinically Significant","Location Of Finding Reported","Organ Or Body System Reported","Result Value Reported","Result Unit Reported","Result Value Category","Subject Position Reported","Time Of Day","Verbatim Question","Who Is Assessed"]
 
     def __init__(self):
+
         self.data=[]
         self.records=[]
         super().__init__(schemaFile=self.filename)
 
     def add_record(self, record):
+
         self.records.append(record)
 
     def get_obj(self):
+
         obj = {
             "fileName":self.filename,
             "name":self.name,
@@ -354,29 +357,24 @@ class Assessment(ImmPort_Data):
             "templateType":self.templateType
         }
         obj["data"] = self.get_data()
+
         return obj
     
     def obj_to_data(self):
 
-        display("DEBUG: Running obj_to_data()...")
         self.data=[]
-        display(f"DEBUG: Total records in self.records: {len(self.records)}")
+
         for record in self.records:
-        #    display(f"DEBUG: Record metadata: {record.metaData.get_data()}")
-        #    display(f"DEBUG: Record resultData: {record.resultData}")
             this_record_data = {"metaData":record.metaData.get_data(), "resultData":[]}
+
             for datum in record.resultData:
                 this_record_data["resultData"].append(datum.get_data())
+
             self.data.append(this_record_data)
 
-        display(f"DEBUG: obj_to_data() generated {len(self.data)} records")
-        
-        
     def process_study_file(self, study_file_info=None, study_file_directory=None, 
                         data_dictionary=None, planned_visits=None, study_id=None, 
                         workspace_id=None, name_reported=None):
-        
-        display("DEBUG: Running process_study_file()...")
 
         filename = study_file_info.get("Filename")
         table_code = study_file_info.get("Table Code")
@@ -388,14 +386,7 @@ class Assessment(ImmPort_Data):
         assessment_name = study_file_info.get("Assessment Name")
         default_visit = study_file_info.get("Default Visit")
 
-        display(f"DEBUG: Processing file: {filename}")
-        display(f"DEBUG: Table Code: {table_code}")
-        display(f"DEBUG: Assessment Name: {assessment_name}")
-        display(f"DEBUG: Template: {template}")
-        display(f"DEBUG: Default Visit: {default_visit}")
-
         study_file_path = os.path.abspath(os.path.join(study_file_directory, filename))
-        display(f"DEBUG: Study file path: {study_file_path}")
 
         table_data = {
             "tables": [table_code], 
@@ -404,11 +395,8 @@ class Assessment(ImmPort_Data):
             "visit": default_visit
         }
 
-        display(f"DEBUG: Table Data: {table_data}")
-
         if name_reported is None:
             name_reported = ig.getStudyFileReportedName(filename)
-        display(f"DEBUG: Name Reported: {name_reported}")
 
         study_file_panel = Assessment_Panel(
             nameReported=name_reported,
@@ -417,38 +405,14 @@ class Assessment(ImmPort_Data):
             studyId=study_id
         )
 
-        display(f"DEBUG: Created study_file_panel: {study_file_panel}")
-
-        # Read and modify study file
         datafile = cf.readAndModifyStudyFile(study_file_path, table_data, data_dictionary, planned_visits)
 
-        display(f"DEBUG: Datafile shape: {datafile.shape if datafile is not None else 'None'}")
-
-        display(f"DEBUG: Reading template: {template} from {txt_template_path_full}")
-     #   [assessment_panel_template, assessment_components_template, assessment_template_header] = cf.readTemplate(template, template_path=txt_template_path_full)
         [panel_template, components_template, assessment_template_header] = cf.readTemplate(template, template_path=txt_template_path_full)
-        
-        
-        display(f"DEBUG: Assessment Panel Template shape: {panel_template.shape}")
-        display(f"DEBUG: Assessment Components Template shape: {components_template.shape}")
 
         components_template["ASSESSMENT_PANEL_ACCESSION"] = ''
 
-        display(f"DEBUG: Datafile shape before processing: {datafile.shape}")
-        display(f"DEBUG: Datafile preview: {datafile.head()}")
-
-        
-        # Convert datafile into components
         components_template = cf.datafileToComponents(
-            datafile, data_dictionary, [table_code], components_template, template, workspace_id)
-
-        display(f"DEBUG: Components Template shape AFTER processing: {components_template.shape}")
-        display(f"DEBUG: Components Template preview: {components_template.head()}")
-
-        if components_template.empty:
-            display(f"ERROR: datafileToComponents() returned an empty DataFrame!")
-
-        display(f"DEBUG: Final Components Template shape: {components_template.shape}")
+            datafile, data_dictionary, [table_code], components_template, template, workspace_id,  planned_visits=planned_visits, default_visit_name=default_visit)
 
         loaded_assessment = self.load_df(components_template,study_file_panel,
             crfFileNames=[filename],
@@ -457,60 +421,88 @@ class Assessment(ImmPort_Data):
         return [study_file_panel, components_template]
 
     def load_df(self, dataframe, panel, crfFileNames=None, studyId=None):
+
+        Assessment_ResultData.iterable_counters = {}
+
         assessment_data = {}
 
-        display(f"DEBUG: Processing {len(dataframe)} rows in load_df()")
+        crfFileNames_norm = None
+
+        if crfFileNames:
+            if isinstance(crfFileNames, (list, tuple)):
+                crfFileNames_norm = ", ".join(map(str, crfFileNames))
+            else:
+                crfFileNames_norm = str(crfFileNames)
 
         for index, row in dataframe.iterrows():
-            field_data = self.convert_result_columns_to_fields(row.to_dict())
+            try:
+                field_data = self.convert_result_columns_to_fields(row.to_dict())
 
-            userID = field_data.get('userDefinedId')
-            
-            if userID not in assessment_data:
-                assessment_data[userID] = Assessment_Datum(assessment_panel=panel, subject_id=userID)
-            
-            result_data_obj = Assessment_ResultData(studyId=studyId, crfFileNames=crfFileNames ,**field_data)
-            assessment_data[userID].add_result_data(result_data_obj)
+                subject_id = field_data.get('userDefinedId') or f"Subject{index+1}"
+                
+                if subject_id not in assessment_data:
+                    assessment_data[subject_id] = Assessment_Datum(assessment_panel=panel, subject_id=subject_id)
+
+                result_data_obj = Assessment_ResultData(
+                    studyId=studyId,
+                    crfFileNames=crfFileNames,
+                    **field_data
+                )
+
+                assessment_data[subject_id].add_result_data(result_data_obj)
+
+            except Exception as e:
+                continue
 
         for record in assessment_data.values():
             self.add_record(record)
 
-    # TODO: Look about moving to ImmPort_Data Class
-    def export_to_json(self, filename=None):
-        valid = self.validate()
-        if not valid:
-            raise ValueError(f"Assessment data is not valid: {valid}")
-        
-        check_directory_exists(filename)
-        with open(filename, 'w')as fh:
-            print(json.dumps(self.get_obj(), indent=4), file=fh)
-        return
+        del assessment_data
+        gc.collect()
 
-    # TODO: Look about moving to ImmPort_Data Class
     def export_to_txt(self, filename=None):
+
         if not self.validate():
             raise ValueError("Assessment data is not valid")
+
+        if not filename:
+            raise ValueError("Filename must be provided")
+
+        os.makedirs(os.path.dirname(filename), exist_ok=True)
+
         separator = "\t"
-        check_directory_exists(filename)
-        with open(filename, 'w') as fh:
 
-            print(self.name, f"Schema Version {self.schemaVersion}", sep=separator, file=fh)
-            print('Please do not delete or edit this column', file=fh)
+        buffer = StringIO()
 
-            most_result_data = max(list(map(lambda x: len(x["resultData"]), self.data)))
-            print(*Assessment.panel_header_columns,'Result Separator Column', *Assessment.component_header_columns * most_result_data, sep=separator, file=fh)
+        buffer.write(f"{self.name}{separator}Schema Version {self.schemaVersion}\n")
+        buffer.write("Please do not delete or edit this column\n")
 
-            for datum in self.data:
-                row_data = [''] # For Column Name
-                row_data.extend(self.populate_panel_columns(datum["metaData"]))
-                row_data.append('') #For separator column
-                for result_data in datum["resultData"]:
-                    row_data.extend(self.populate_component_column_set(result_data))
-            
-                print(*row_data, sep=separator, file=fh)
-        return 
+        most_result_data = max(len(x["resultData"]) for x in self.data)
+
+        header = (
+            list(Assessment.panel_header_columns)
+            + ["Result Separator Column"]
+            + list(Assessment.component_header_columns) * most_result_data
+        )
+        buffer.write(separator.join(header) + "\n")
+
+        for datum in self.data:
+            row_data = [""]  
+            row_data.extend(self.populate_panel_columns(datum["metaData"]))
+            row_data.append("")  
+
+            for result_data in datum["resultData"]:
+                row_data.extend(self.populate_component_column_set(result_data))
+
+            buffer.write(separator.join(map(str, row_data)) + "\n")
+
+        with open(filename, "w", encoding="utf-8") as fh:
+            fh.write(buffer.getvalue())
+
+        buffer.close()
 
     def populate_panel_columns(self,metadata):
+
         return [
             metadata.get('subjectId'),
             metadata.get('assessmentPanelId'),
@@ -522,6 +514,7 @@ class Assessment(ImmPort_Data):
         ]
         
     def populate_component_column_set(self,result_data):
+
         return [
             result_data.get('userDefinedId'),
             result_data.get('plannedVisitId'),
@@ -542,7 +535,6 @@ class Assessment(ImmPort_Data):
         ]
 
     def convert_result_columns_to_fields(self, column_dict):
-    #    display(f"A Converting columns: {column_dict.keys()}") 
 
         mapping_dict = {
             'User Defined ID': 'userDefinedId',
@@ -564,34 +556,36 @@ class Assessment(ImmPort_Data):
         }
 
         field_dict = dict(map(lambda x: (x[1], column_dict.get(x[0],"")), mapping_dict.items()))
-      #  display(f"A field_dict {field_dict}")
 
-        filtered_dict = dict(filter(lambda elem: ((type(elem[1]) != float and elem[1] not in ['','userDefinedId']) or str(elem[1]) not in ['nan', '', 'userDefinedId']), field_dict.items()))
-  #      display(f"A filtered_dict {filtered_dict}")
+        filtered_dict = {k: v for k, v in field_dict.items() if v is not None}
 
         return filtered_dict
 
 class Assessment_Datum(ImmPort_Data):
 
     def __init__(self, subject_id=None, assessment_panel=None):
+
         metadata_obj = Assessment_MetaData(subject_id=subject_id, assessment_panel=assessment_panel)
         self.set_metadata(metadata_obj)
         self.resultData = []
     
     def set_metadata(self, metadata_obj):
+
         self.metaData = metadata_obj
 
     def add_result_data(self, result_data_obj):
+
         self.resultData.append(result_data_obj)
 
     def print_obj(self):
+
         return self.__dict__
 
 class Assessment_Panel(ImmPort_Data):
-    iterable_counter = 0
+
     truncate_long_fields = True
 
-    data_fields={
+    data_fields = {
         "assessmentPanelId": {
             "type": "string",
             "maxLength": 100
@@ -616,29 +610,33 @@ class Assessment_Panel(ImmPort_Data):
         }
     }
 
-    def __init__(self, nameReported=None, assessmentType=None,studyId=None, crfFileNames=[]):
-        Assessment_Panel.iterable_counter +=1
-        filename_string = "-".join(crfFileNames)
+    def __init__(self, nameReported=None, assessmentType=None, studyId=None, crfFileNames=[]):
 
-        self.data={}
-        self.set_data_value("assessmentPanelId", f"{studyId}_{filename_string}_Panel{Assessment_Panel.iterable_counter}")
+        raw_filename = crfFileNames[0] if crfFileNames else "NoFile"
+        base = os.path.splitext(raw_filename)[0]        
+        base = base.replace(" ", "_")                  
+        base = "".join(c if c.isalnum() or c in "_-" else "_" for c in base)  
+
+        self.data = {}
+        self.set_data_value("assessmentPanelId", f"{studyId}_{base}")
         self.set_data_value("nameReported", nameReported)
         self.set_data_value("assessmentType", assessmentType)
         self.set_data_value("studyId", studyId)
         self.set_data_value("crfFileNames", crfFileNames)
 
 class Assessment_MetaData(ImmPort_Data):
+
     iterable_counter = 0
     truncate_long_fields = True
     validator = "assessments.MetaData"
     data_fields = load_data_fields(validator)
 
-
-    
     def __init__(self, subject_id=None, assessment_panel=None):
+
         if subject_id == None:
             Assessment_MetaData.iterable_counter +=1
             subject_id = "Subject%s" % Assessment_MetaData.iterable_counter
+
         self.data={}
         self.data.update(assessment_panel.get_data())
 
@@ -646,71 +644,56 @@ class Assessment_MetaData(ImmPort_Data):
 
 class Assessment_ResultData(ImmPort_Data):
 
-    iterable_counter = 0
-    truncate_long_fields = True
+    schemaFile = "assessments.ResultData.json"
     validator = "assessments.ResultData"
-
     data_fields = load_data_fields(validator)
+    truncate_long_fields = True
 
-    result_unit_reported_synonyms = {
-        "g":"gm",
-        "%":"percentage",
-        "mcg":"ug",
-        "hr":"Hour",
-        "cms":"cm",
-        "kgs":"kg",
-        "months":"Month",
-        "years":"Year"
-    }
+    iterable_counters = {}
 
-    enumFields = dict(filter(lambda x: "enum" in x[1], data_fields.items()))
+    def __init__(self, subjectId=None, plannedVisitId=None, nameReported=None,
+                 studyDay=None, timeOfDay=None, studyId=None, crfFileNames=None, **kwargs):
 
-    def __init__(self, plannedVisitId=None, nameReported=None, studyDay=None, studyId=None, crfFileNames=[], **kwargs):
-        Assessment_ResultData.iterable_counter +=1
-        
-        if crfFileNames is not None:
-            filename_string = "_".join(crfFileNames)
+        if crfFileNames:
+            base_filename = os.path.splitext(crfFileNames[0])[0]  # remove extension
         else:
-            filename_string = "NoCRF"
+            base_filename = "NoFile"
 
-        self.data={}
-        new_user_id = f"{studyId}_{filename_string}_RD{Assessment_ResultData.iterable_counter}"
-        
-        self.set_data("userDefinedId", new_user_id)
-        
+        base_filename = base_filename.replace(" ", "_")
+        base_filename = "".join(c for c in base_filename if c.isalnum() or c in "_-")
+
+        self.data = {}
+
+        key = (studyId, base_filename)
+        count = Assessment_ResultData.iterable_counters.get(key, 0) + 1
+        Assessment_ResultData.iterable_counters[key] = count
+
+        studyId_safe = sanitize_component(studyId)
+        base_filename_safe = sanitize_component(base_filename)
+        count_safe = str(count) if count is not None else "0"
+
+        new_user_id = f"{studyId_safe}_{base_filename_safe}_ID{count_safe}"
+
+        self.set_data_value("userDefinedId", new_user_id)
         self.set_data("plannedVisitId", plannedVisitId)
         self.set_data("nameReported", nameReported)
         self.set_data("studyDay", studyDay if studyDay is not None else 99999)
+        self.set_data("timeOfDay", str(timeOfDay) if timeOfDay else "")
 
-        del kwargs["userDefinedId"]
-        
-        for key, value in kwargs.items():
-            # TODO: need a way to identify/report ALL instances, and then allow user to specify mapping in GUI
-            if key in self.enumFields and value not in self.enumFields[key]["enum"]:
-                if key.endswith("UnitReported"):
-                    if value in self.result_unit_reported_synonyms:
-                        ig.main_logger.write(
-                            level="info",
-                            message=f"\tSuggest substituting '{self.result_unit_reported_synonyms[value]}' for '{value}' for field '{key}' - {nameReported}"
-                        )
-                    else:
-                        ig.main_logger.write(
-                            level="info",
-                            message=f"Value '{value}' for field '{key}' is not a preferred term - {nameReported}"
-                        )
-                else:
-                    ig.main_logger.write(
-                        level="warn",
-                        message=f"Value '{value}' for field '{key}' is not valid - {nameReported}"
-                    )
+        kwargs.pop("userDefinedId", None)
 
-            self.set_data_value(key, value)
+        for key_field, value in kwargs.items():
+            try:
+                self.set_data_value(key_field, value)
+            except Exception as e:
+                continue
 
 schema_store = get_schema_store(json_schema_template_path_full)
 
 class labTests(ImmPort_Data):
+
     filename="labTests.json"
-    name="labtests"   #"labTests"
+    name="labtests"  
     templateType='combined-result'
     validator = "labTests"
   
@@ -718,15 +701,17 @@ class labTests(ImmPort_Data):
     component_header_columns=["User Defined ID","Name Reported","Result Value Reported","Result Unit Reported"]
 
     def __init__(self):
-        display("labTests initialized")
+
         self.data=[]
         self.records=[]
         super().__init__(schemaFile=self.filename)
 
     def add_record(self, record):
+
         self.records.append(record)
 
     def get_obj(self):
+
         obj = {
             "fileName":self.filename,
             "name":self.name,
@@ -734,43 +719,37 @@ class labTests(ImmPort_Data):
             "templateType":self.templateType
         }
         obj["data"] = self.get_data()
+
         return obj
     
     def obj_to_data(self):
+
         self.data=[]
+
         for record in self.records:
             this_record_data = {"metaData":record.metaData.get_data(), "resultData":[]}
+
             for datum in record.resultData:
                 this_record_data["resultData"].append(datum.get_data())
+
             self.data.append(this_record_data)
         
     def process_study_file(self, study_file_info=None, study_file_directory=None, data_dictionary=None, planned_visits=None, study_id=None, protocols_df=None, workspace_id=None, name_reported=None):
-
-        display(f"FULL study_file_info CONTENTS: {study_file_info}")
-
-        display("FULL study_file_info DICTIONARY:")
-        for key, value in study_file_info.items():
-            display(f"  {key}: {value}")
 
         filename = study_file_info.get("Filename")
         table_code = study_file_info.get("Table Code")
         template = study_file_info.get("Template")
 
-        display(f"template {template}")
-
         if template == "Lab Test":
             template = "labTests"
 
         default_visit = study_file_info.get("Default Visit")
-
         protocol = study_file_info.get("Protocol")
         name_reported_dropdown = study_file_info.get("Name Reported")
         labTest_type = study_file_info.get("Type")
         labTest_subtype = study_file_info.get("Subtype")
-
-        display(f"CONFIRMED VALUES - Type: {labTest_type}, Subtype: {labTest_subtype}")
-
-        display(f"LP process_study_file protocol 1 {protocol}")
+        labTest_studyT0 = study_file_info.get("Study Time T0 Event")
+        labTest_studyT0_specify = study_file_info.get("Study Time T0 Event Specify")
 
         if protocol == "--Select--" or protocol == "":
             protocol = "Unspecified" 
@@ -784,11 +763,7 @@ class labTests(ImmPort_Data):
 
         study_file_directory = study_file_directory.rstrip("\\/")
 
-        study_file_path = os.path.abspath(os.path.join(study_file_directory,filename))
-
-        display(f"LP study_file_directory: {study_file_directory}")
-        display(f"LP filename: {filename}")
-        display(f"LP study_file_path: {study_file_path}")
+        study_file_path = os.path.abspath(os.path.join(study_file_directory, filename))
 
         table_data = {
             "tables":[table_code], 
@@ -797,14 +772,12 @@ class labTests(ImmPort_Data):
             "protocol":protocol, 
             "name reported": name_reported_dropdown,
             "type":labTest_type,  
-            "subtype":labTest_subtype 
+            "subtype":labTest_subtype, 
+            "studyT0": labTest_studyT0,
+            "studyT0_specify": labTest_studyT0_specify
         }
 
-        display(f"LP table_data {table_data}")
-        
         crfFileNames = [filename]  
-
-        display(f"LP crfFileNames {crfFileNames}")
 
         datafile = cf.readAndModifyStudyFile(study_file_path, table_data, data_dictionary, planned_visits)
 
@@ -815,15 +788,11 @@ class labTests(ImmPort_Data):
             elif 'Planned Visit ID' in datafile.columns:
                 planned_visit_id = datafile['Planned Visit ID'].iloc[0]
     
-            # Handle NaN/None values
             if pd.isna(planned_visit_id):
                 planned_visit_id = "Unspecified"
             planned_visit_id = str(planned_visit_id)
 
         visit_day_mapping = dict(zip(planned_visits["PLANNED_VISIT_ACCESSION"], planned_visits["MIN_START_DAY"]))
-
-        display(f"planned_visits {planned_visits}")
-        display(f"visit_day_mapping {visit_day_mapping}")
 
         study_time_collected = ""
         if not datafile.empty:
@@ -836,16 +805,9 @@ class labTests(ImmPort_Data):
             if planned_visit_id in visit_day_mapping:
                 study_time_collected = visit_day_mapping[planned_visit_id]
 
-                display(f"study_time_collected - MIN DAY  {study_time_collected }")
-
             else:
                 study_time_collected = 99999
-                display("Warning: No valid study time and no visit mapping available")                
-
-        display(f"study_time_collected  {study_time_collected }")
-        display(f"planned_visit_id {planned_visit_id}")
-
-        # Create panel with the visit ID
+    
         study_file_panel = LabTest_Panel(
             labTestNameReported=name_reported_dropdown,
             protocolId=protocol,
@@ -853,6 +815,8 @@ class labTests(ImmPort_Data):
             labTestType=labTest_type, 
             labTestSubtype=labTest_subtype,
             studyTimeCollected=study_time_collected,
+            studyTimeT0Event = labTest_studyT0,
+            studyTimeT0EventSpecify = labTest_studyT0_specify,
             studyId=study_id,
             crfFileNames=crfFileNames
         )
@@ -861,222 +825,131 @@ class labTests(ImmPort_Data):
         
         components_template["LAB_TEST_PANEL_ACCESSION"]=''
 
-        display(f"LP components_template 1 {components_template}")
+        components_template = cf.datafileToComponents(
+                datafile, data_dictionary, [table_code], components_template, template, workspace_id,  planned_visits=planned_visits, default_visit_name=default_visit)
 
-        components_template = cf.datafileToComponents(datafile, data_dictionary, [table_code], components_template, template, workspace_id)
-
-        display(f"LP components_template 2 {components_template}")
-
-        try:
-            loaded_lab = self.load_df(components_template, study_file_panel, crfFileNames=[filename], studyId=study_id, planned_visits=planned_visits)
-        except Exception as e:
-            display(f"ERROR in load_df(): {e}")
-            import traceback
-            display(traceback.format_exc())
-            
-        display(f"LP study_file_panel 1 {study_file_panel}")
-        display(f"LP load_lab 1 {loaded_lab}")
-
+        loaded_lab = self.load_df(components_template, study_file_panel, crfFileNames=[filename], studyId=study_id, planned_visits=planned_visits)
+   
         return [study_file_panel, components_template]
 
-    def load_df(self, dataframe, panel, crfFileNames=None, studyId=None, planned_visits=None):
+    def load_df(self, dataframe, panel, crfFileNames=None, studyId=None, planned_visits=None): 
+
+        import traceback
         labtest_data = {}
 
-        display(f"dataframe.columns {dataframe.columns}")
+        try:
 
-        if 'Planned Visit ID' not in dataframe.columns:
-            dataframe['Planned Visit ID'] = None         
-   
-        if 'Study Time Collected' not in dataframe.columns:
-            dataframe['Study Time Collected'] = 99999
-            study_time_unit = "Not Specified"
-        else:
-            study_time_unit = "Days"
+            if 'Planned Visit ID' not in dataframe.columns:
+                dataframe['Planned Visit ID'] = None
 
-        file_level_panel_id = panel.get_data().get('labTestPanelId')
-        display(f"file_level_panel_id {file_level_panel_id}")
-
-        visit_day_mapping = dict(zip(planned_visits["PLANNED_VISIT_ACCESSION"], planned_visits["MIN_START_DAY"]))
-    
-        # Group by both subject ID and visit ID to keep visits separate
-        grouped = dataframe.groupby(['User Defined ID', 'Planned Visit ID', 'Study Time Collected'])
-        
-        for (subject_id, visit_id, study_time), group in grouped:
-            # Create a new panel COPY for each unique visit
-
-            if study_time == 99999 and visit_id in visit_day_mapping:
-                study_time = visit_day_mapping[visit_id]
+            if 'Study Time Collected' not in dataframe.columns:
+                dataframe['Study Time Collected'] = 99999
+                study_time_unit = "Not Specified"
+            else:
                 study_time_unit = "Days"
-                display(f"Using visit {visit_id} max day {study_time} for subject {subject_id}")
-        
 
-            panel_copy = LabTest_Panel(
-              #  biosampleId = "tbd",
-                labTestNameReported=panel.get_data().get('labTestNameReported'),
-                protocolId=panel.get_data().get('protocolId'),
-                plannedVisitId=str(visit_id),  
-                labTestType=panel.get_data().get('labTestType'),
-                labTestSubtype=panel.get_data().get('labTestSubtype'),
-                studyTimeCollected=study_time,
-                studyTimeCollectedUnit=study_time_unit,
-                studyTimeT0Event = "Not Specified",
-                studyTimeT0EventSpecify = "Not Specified",
-                studyId=studyId,
-                crfFileNames=crfFileNames
-            )
+            file_level_panel_id = panel.get_data().get('labTestPanelId')
 
-            print(f"panel_copy {panel_copy}")
+            visit_day_mapping = dict(zip(planned_visits["PLANNED_VISIT_ACCESSION"], planned_visits["MIN_START_DAY"]))
 
-            panel_copy.set_data_value("labTestPanelId", file_level_panel_id)
-        
-            
-            # Create new LabTest_Datum for this subject+visit combo
-            labtest_data[(subject_id, visit_id, study_time)] = LabTest_Datum(
-                labTest_panel=panel_copy,  # Uses the visit-specific panel
-                subject_id=subject_id
-            )
-            
-            # Process all rows for this subject+visit
-            for _, row in group.iterrows():
-                field_data = self.convert_result_columns_to_fields(row.to_dict())
-                result = LabTest_ResultData(
-                    studyId=studyId,
-                    crfFileNames=crfFileNames,
-                    **field_data
-                )
-                labtest_data[(subject_id, visit_id, study_time)].add_result_data(result)
-        
-        # Add all completed records to the main labTests object
-        for record in labtest_data.values():
-            self.add_record(record)    
-  
-    # TODO: Look about moving to ImmPort_Data Class
-    def export_to_json(self, filename=None):
-        valid = self.validate()
-        if not valid:
-            raise ValueError(f"Lab Test data is not valid: {valid}")
-        
-        check_directory_exists(filename)
-        with open(filename, 'w')as fh:
-            print(json.dumps(self.get_obj(), indent=4), file=fh)
-        return
-    
-    
+            grouped = dataframe.groupby(['User Defined ID', 'Planned Visit ID', 'Study Time Collected'])
+
+            for group_idx, ((subject_id, visit_id, study_time), group) in enumerate(grouped, start=1):
+                
+                try:
+                    if study_time == 99999 and visit_id in visit_day_mapping:
+                        study_time = visit_day_mapping[visit_id]
+                        study_time_unit = "Days"
+
+                    panel_copy = LabTest_Panel(
+                        labTestNameReported=panel.get_data().get('labTestNameReported'),
+                        protocolId=panel.get_data().get('protocolId'),
+                        plannedVisitId=str(visit_id),  
+                        labTestType=panel.get_data().get('labTestType'),
+                        labTestSubtype=panel.get_data().get('labTestSubtype'),
+                        studyTimeCollected=study_time,
+                        studyTimeCollectedUnit=study_time_unit,
+                        studyTimeT0Event=panel.get_data().get('studyTimeT0Event'),
+                        studyTimeT0EventSpecify=panel.get_data().get('studyTimeT0EventSpecify'),
+                        studyId=studyId,
+                        crfFileNames=crfFileNames
+                    )
+
+                    panel_copy.set_data_value("labTestPanelId", file_level_panel_id)
+
+                    labtest_data[(subject_id, visit_id, study_time)] = LabTest_Datum(
+                        labTest_panel=panel_copy,  
+                        subject_id=subject_id
+                    )
+
+                    for row_idx, (_, row) in enumerate(group.iterrows(), start=1):
+                        field_data = self.convert_result_columns_to_fields(row.to_dict())
+
+                        result = LabTest_ResultData(
+                            studyId=studyId,
+                            crfFileNames=crfFileNames,
+                            **field_data
+                        )
+                        labtest_data[(subject_id, visit_id, study_time)].add_result_data(result)
+
+                except Exception as inner_e:
+                    continue
+
+            for rec_idx, record in enumerate(labtest_data.values(), start=1):
+                try:
+                    self.add_record(record)
+                except Exception as add_e:
+                    continue
+
+        except Exception as outer_e:
+
+            display(f"[FATAL load_df] Unexpected failure: {outer_e}")
+            display(traceback.format_exc())
+
     def export_to_txt(self, filename=None):
+
         if not self.validate():
-            raise ValueError("Lab Test data is not valid")
-        
+            raise ValueError("Assessment data is not valid")
+
+        if not filename:
+            raise ValueError("Filename must be provided")
+
+        os.makedirs(os.path.dirname(filename), exist_ok=True)
+
         separator = "\t"
-        check_directory_exists(filename)
 
-        display("DEBUG: Starting export_to_txt()")
-        display(f"DEBUG: Total records to process: {len(self.data)}")
+        buffer = StringIO()
 
-        with open(filename, 'w') as fh:
-            # Header rows
-            print(self.name, f"Schema Version {self.schemaVersion}", sep=separator, file=fh)
-            print('Please do not delete or edit this column', file=fh)
+        buffer.write(f"{self.name}{separator}Schema Version {self.schemaVersion}\n")
+        buffer.write("Please do not delete or edit this column\n")
 
-            # Debug: Show all metadata first
-            display("DEBUG: Full metadata inspection:")
-            for i, datum in enumerate(self.data):
-                display(f"DEBUG: Record {i}:")
-                display(f"  Subject ID: {datum['metaData'].get('subjectId', 'MISSING')}")
-                display(f"  Visit ID: {datum['metaData'].get('plannedVisitId', 'UNSPECIFIED')}")
-                display(f"  Study time collected: {datum['metaData'].get('studyTimeCollected', 'UNSPECIFIED')}")
-                display(f"  Results count: {len(datum['resultData'])}")
-                for j, result in enumerate(datum['resultData']):
-                    display(f"    Result {j}:")
-                    display(f"      User ID: {result.get('userDefinedId', '')}")
-                    display(f"      Name: {result.get('nameReported', '')}")
-                    display(f"      Value: {result.get('resultValueReported', '')}")
-                    display(f"      Unit: {result.get('resultUnitReported', '')}")
-                    if 'plannedVisitId' in result:
-                        display(f"      Result Visit ID: {result.get('plannedVisitId')}")
+        most_result_data = max(len(x["resultData"]) for x in self.data)
 
-            # Group by subject AND visit
-            grouped = {}
-            display("\nDEBUG: Starting grouping process...")
-            for i, datum in enumerate(self.data):
-                subject = datum["metaData"].get("subjectId", "MISSING_SUBJECT")
-                visit = datum["metaData"].get("plannedVisitId", "UNSPECIFIED")
-                key = (subject, visit)
-                
-                display(f"DEBUG: Processing record {i}: Subject='{subject}', Visit='{visit}'")
-                
-                if key not in grouped:
-                    display(f"  New group created for {key}")
-                    grouped[key] = {
-                        "meta": datum["metaData"], 
-                        "results": []
-                    }
-                else:
-                    display(f"  Adding to existing group {key}")
-                    
-                grouped[key]["results"].extend(datum["resultData"])
-                display(f"  Group now has {len(grouped[key]['results'])} results")
+        header = (
+            list(labTests.panel_header_columns)
+            + ["Result Separator Column"]
+            + list(labTests.component_header_columns) * most_result_data
+        )
+        buffer.write(separator.join(header) + "\n")
 
-            # Debug grouped data
-            display("DEBUG: Grouped data structure:")
-            for i, (key, group) in enumerate(grouped.items()):
-                subject, visit = key
-                display(f"Group {i}: Subject='{subject}', Visit='{visit}'")
-                display(f"  Metadata keys: {list(group['meta'].keys())}")
-                display(f"  Results count: {len(group['results'])}")
-                for j, result in enumerate(group['results'][:3]):  # Show first 3 results
-                    display(f"    Result {j}: {result.get('nameReported', '')} = {result.get('resultValueReported', '')}")
+        for datum in self.data:
+            row_data = [""]  
+            row_data.extend(self.populate_panel_columns(datum["metaData"]))
+            row_data.append("") 
 
-            # Find max results per visit
-            most_result_data = max(len(g["results"]) for g in grouped.values()) if grouped else 0
-            display(f"DEBUG: Max results per visit: {most_result_data}")
+            for result_data in datum["resultData"]:
+                row_data.extend(self.populate_component_column_set(result_data))
 
-            # Write headers
-            headers = labTests.panel_header_columns + ['Result Separator Column'] + \
-                    labTests.component_header_columns * most_result_data
-            display(f"DEBUG: Headers ({len(headers)} columns):")
-            display(headers)
-            print(*headers, sep=separator, file=fh)
+            buffer.write(separator.join(map(str, row_data)) + "\n")
 
-            # Write data
-            display("DEBUG: Writing data rows...")
-            for i, (key, group) in enumerate(grouped.items()):
-                subject, visit = key
-                display(f"DEBUG: Writing row {i} for Subject='{subject}', Visit='{visit}'")
-                
-                row = ['']  # Column name
-                display(f"  Initial row: {row}")
-                
-                # Add panel columns
-                panel_cols = self.populate_panel_columns(group["meta"])
-                display(f"  Panel columns ({len(panel_cols)}): {panel_cols}")
-                row.extend(panel_cols)
-                
-                # Add separator
-                row.append('')
-                display(f"  After separator: {len(row)} columns")
-                
-                # Add results
-                for j, result in enumerate(group["results"]):
-                    result_cols = self.populate_component_column_set(result)
-                    display(f"    Adding result {j}: {result_cols}")
-                    row.extend(result_cols)
-                
-                # Pad if needed
-                padding_needed = most_result_data - len(group["results"])
-                if padding_needed > 0:
-                    padding = [''] * len(labTests.component_header_columns) * padding_needed
-                    display(f"  Adding padding: {padding_needed} result slots")
-                    row.extend(padding)
-                
-                display(f"  Final row length: {len(row)}")
-                display(f"  First 5 elements: {row[:5]}")
-                print(*row, sep=separator, file=fh)
+        with open(filename, "w", encoding="utf-8") as fh:
+            fh.write(buffer.getvalue())
 
-        display("DEBUG: Export completed successfully")
-        return
+        buffer.close()
 
 
     def populate_panel_columns(self,metadata):
+
         return [
             metadata.get('biosampleId'),
             metadata.get('labTestPanelId'),
@@ -1096,6 +969,7 @@ class labTests(ImmPort_Data):
         ]
         
     def populate_component_column_set(self,result_data):
+
         return [
             result_data.get('userDefinedId'),
             result_data.get('nameReported'),
@@ -1129,18 +1003,23 @@ class LabTest_Datum(ImmPort_Data):
         self.resultData = []
     
     def set_metadata(self, metadata_obj):
+
         self.metaData = metadata_obj
 
     def add_result_data(self, result_data_obj):
+
         self.resultData.append(result_data_obj)
 
     def get_panel_data(self):
+
         return self.labTest_panel.get_data() if self.labTest_panel else {}
 
     def print_obj(self):
+
         return self.__dict__
     
 class LabTest_Panel(ImmPort_Data):
+
     iterable_counter = 0
     truncate_long_fields = True
 
@@ -1192,45 +1071,49 @@ class LabTest_Panel(ImmPort_Data):
 
     def __init__(self, labTestNameReported=None, protocolId=None, plannedVisitId=None, labTestType=None, labTestSubtype=None, studyTimeCollected=None, studyTimeCollectedUnit=None, studyTimeT0Event=None, 
                  studyTimeT0EventSpecify=None, studyId=None, crfFileNames=None):
-        LabTest_Panel.iterable_counter +=1
+        
+        raw_filename = crfFileNames[0] if crfFileNames else "NoFile"
+        base = os.path.splitext(raw_filename)[0]        
+        base = base.replace(" ", "_")                  
+        base = "".join(c if c.isalnum() or c in "_-" else "_" for c in base)  
 
-        filename_string = "-".join(crfFileNames)
+        LabTest_Panel.iterable_counter +=1
 
         self.data={}
 
-        self.set_data_value("labTestPanelId", f"{studyId}_{filename_string}_Panel{LabTest_Panel.iterable_counter}")
+        self.set_data_value("labTestPanelId", f"{studyId}_{base}")
         self.set_data_value("studyId", studyId)
         self.set_data_value("protocolId", protocolId)
         self.set_data_value("plannedVisitId", str(plannedVisitId))
         self.set_data_value("labTestType", labTestType)
         self.set_data_value("labTestSubtype", labTestSubtype)
-        self.set_data_value("studyTimeCollected", studyTimeCollected)
+        self.set_data_value("studyTimeCollected", studyTimeCollected if studyTimeCollected is not None else 99999)
         self.set_data_value("studyTimeCollectedUnit", studyTimeCollectedUnit)
         self.set_data_value("studyTimeT0Event", studyTimeT0Event)
         self.set_data_value("studyTimeT0EventSpecify", studyTimeT0EventSpecify)
         self.set_data_value("labTestNameReported", labTestNameReported)
 
-        display(f"DEBUG: Panel initialized with visit ID: {plannedVisitId}")
-
 class LabTest_MetaData(ImmPort_Data):
+
     iterable_counter = 0
     truncate_long_fields = True
     validator = "labTests.MetaData"
     data_fields = load_data_fields(validator)
 
-    
     def __init__(self, subject_id=None, biosample_id=None, labTest_panel=None):
          
         self.data={}
         self.data.update(labTest_panel.get_data())
         
         if subject_id == None:
+
             LabTest_MetaData.iterable_counter +=1
             subject_id = "Subject%s" % LabTest_MetaData.iterable_counter
      
         if biosample_id == None:
 
             test_type = self.data.get('labTestType')
+
             if test_type.upper() == 'OTHER':
                 test_type = self.data.get('labTestSubtype', 'UnknownType')
     
@@ -1240,72 +1123,168 @@ class LabTest_MetaData(ImmPort_Data):
         self.set_data("subjectId", subject_id)
         self.set_data("biosampleId", biosample_id)
 
- 
 class LabTest_ResultData(ImmPort_Data):
 
-    iterable_counter = 0
-    truncate_long_fields = True
     validator = "labTests.ResultData"
-
     data_fields = load_data_fields(validator)
+    truncate_long_fields = True
+
+    iterable_counters = {}
 
     result_unit_reported_synonyms = {
-        "g":"gm",
-        "%":"percentage",
-        "mcg":"ug",
-        "hr":"Hour",
-        "cms":"cm",
-        "kgs":"kg",
-        "months":"Month",
-        "years":"Year"
+        "Arbitrary Fluorescence Units": "AFU",
+        "Antibody Index": "AI",
+        "Antibody concentration": "Antibody titer",
+        "Antibody level": "Antibody titer",
+        "BPM": "Beats per Minute",
+        "Heart rate": "Beats per Minute",
+        "BMI": "Body Mass Index Finding",
+        "cms": "cm",
+        "centimeter": "cm",
+        "centimeters": "cm",
+        "Frequency": "Count",
+        "Number": "Count",
+        "d": "Day",
+        "days": "Day",
+        "Fragments Per Kilobase Million": "FPKM",
+        "grams per deciliter": "g/dl",
+        "grams per liter": "g/l",
+        "g": "gm",
+        "gram": "gm",
+        "hr": "Hour",
+        "h": "Hour",
+        "Hours": "Hour",
+        "hours": "Hour",
+        "inch": "in",
+        "inches": "in",
+        "International Units": "IU",
+        "kilogram": "kg",
+        "kilograms": "kg",
+        "kgs": "kg",
+        "kg/m²": "kg/m2",
+        "liter": "l",
+        "liters": "l",
+        "liters per second": "L/sec",
+        "milligram": "mg",
+        "milligrams": "mg",
+        "milligrams per deciliter": "mg/dl",
+        "milligrams per deciliters": "mg/dl",
+        "milligrams per liter": "mg/l",
+        "milligrams per liters": "mg/l",
+        "milligrams per milliliter": "mg/ml",
+        "milligrams per milliliters": "mg/ml",
+        "milli-international units per milliliter": "miu/ml",
+        "milliliter": "ml",
+        "milliliters": "ml",
+        "cc": "ml",
+        "ml/min": "mL/min",
+        "milliliters per minute": "mL/min",
+        "milliliters per minutes": "mL/min",
+        "months": "Month",
+        "mo": "Month",
+        "nanogram": "ng",
+        "nanograms": "ng",
+        "nanograms per deciliter": "ng/dl",
+        "nanograms per deciliters": "ng/dl",
+        "nanograms per milliliter": "ng/ml",
+        "nanograms per milliliters": "ng/ml",
+        "nanograms per nanoliter": "ng/nl",
+        "nanograms per nanoliters": "ng/nl",
+        "nanograms per microliter": "ng/ul",
+        "nanograms per microliters": "ng/ul",
+        "nanoliter": "nl",
+        "nanoliters": "nl",
+        "nanomolar": "nM",
+        "nanomolars": "nM",
+        "Normalized Protein Expression": "NPX",
+        "%": "percentage",
+        "proportion": "percentage",
+        "picogram": "pg",
+        "picograms": "pg",
+        "picograms per milliliter": "pg/ml",
+        "picograms per milliliters": "pg/ml",
+        "picograms per nanoliter": "pg/nl",
+        "picograms per nanoliters": "pg/nl",
+        "picograms per microliter": "pg/ul",
+        "picograms per microliters": "pg/ul",
+        "picoliter": "pl",
+        "picoliters": "pl",
+        "picomolar": "pM",
+        "picomolars": "pM",
+        "Reads Per Kilobase Million": "RPKM",
+        "Transcripts Per Million": "TPM",
+        "mcg": "ug",
+        "microgram": "ug",
+        "micrograms": "ug",
+        "micrograms per deciliter": "ug/dl",
+        "micrograms per deciliters": "ug/dl",
+        "micrograms per kilogram": "ug/kg",
+        "micrograms per kilograms": "ug/kg",
+        "micrograms per liter": "ug/l",
+        "micrograms per liters": "ug/l",
+        "micrograms per milliliter": "ug/ml",
+        "micrograms per milliliters": "ug/ml",
+        "micrograms per microliter": "ug/ul",
+        "micrograms per microliters": "ug/ul",
+        "micro-international units per milliliter": "uiu/ml",
+        "microliter": "ul",
+        "microliters": "ul",
+        "micromolar": "uM",
+        "micromolars": "uM",
+        "micromoles per liter": "umol/l",
+        "Units per milliliter": "units/ml",
+        "units per milliliters": "units/ml",
+        "wk": "Week",
+        "weeks": "Week",
+        "year": "Year",
+        "years": "Year",
+        "yr": "Year",
+        "Celsius": "C",
+        "Fahrenheit": "F",
+        "Kelvin": "K",
+        "True/False": "Boolean",
+        "T/F": "Boolean",
+        "Yes/No": "Boolean",
+        "Y/N": "Boolean",
+        "0/1": "Boolean"
     }
 
     enumFields = dict(filter(lambda x: "enum" in x[1], data_fields.items()))
-  
-    def __init__(self, study_file_info=None, nameReported=None, studyId=None, crfFileNames=[], **kwargs):
 
-        LabTest_ResultData.iterable_counter +=1
+    def __init__(self, study_file_info=None, nameReported=None, studyId=None, crfFileNames=None, **kwargs):
 
-        if crfFileNames is not None:
-            filename_string = "_".join(crfFileNames)
+        if crfFileNames:
+            base_filename = os.path.splitext(crfFileNames[0])[0] 
         else:
-            filename_string = "NoCRF"
+            base_filename = "NoFile"
 
-        self.data={}
-        new_user_id = f"{studyId}_{filename_string}_RD{LabTest_ResultData.iterable_counter}"
-        
-        self.set_data("userDefinedId", new_user_id)
+        base_filename = base_filename.replace(" ", "_")
+        base_filename = "".join(c for c in base_filename if c.isalnum() or c in "_-")
+
+        key = (studyId, base_filename)
+        count = LabTest_ResultData.iterable_counters.get(key, 0) + 1
+        LabTest_ResultData.iterable_counters[key] = count
+
+        studyId_safe = sanitize_component(studyId)
+        base_filename_safe = sanitize_component(base_filename)
+        count_safe = str(count)
+
+        new_user_id = f"{studyId_safe}_{base_filename_safe}_ID{count_safe}"
+
+        self.data = {}
+        self.set_data_value("userDefinedId", new_user_id)
         self.set_data("nameReported", nameReported)
 
-        del kwargs["userDefinedId"]
-        
-        for key, value in kwargs.items():
-            # Pre-process numeric values
-            if isinstance(value, (int, float, str)):
-                try:
-                    if key.endswith("ValueReported") or key in ["studyTimeCollected"]:
-                        value = float(value) if '.' in str(value) else int(value)
-                except (ValueError, TypeError):
-                    pass
+        kwargs.pop("userDefinedId", None)
 
-            # TODO: need a way to identify/report ALL instances, and then allow user to specify mapping in GUI
+        for key, value in kwargs.items():
+            if key == "resultValueReported":
+                self.set_data(key, str(value) if value is not None else "")
+                continue
+
             if key in self.enumFields and value not in self.enumFields[key]["enum"]:
                 if key.endswith("UnitReported"):
                     if value in self.result_unit_reported_synonyms:
-                        ig.main_logger.write(
-                            level="info",
-                            message=f"\tSuggest substituting '{self.result_unit_reported_synonyms[value]}' for '{value}' for field '{key}' - {nameReported}"
-                        )
-                    else:
-                        ig.main_logger.write(
-                            level="info",
-                            message=f"Value '{value}' for field '{key}' is not a preferred term - {nameReported}"
-                        )
-                else:
-                    ig.main_logger.write(
-                        level="warn",
-                        message=f"Value '{value}' for field '{key}' is not valid - {nameReported}"
-                    )
+                        value = self.result_unit_reported_synonyms[value]
 
-            self.set_data_value(key, value)
-
+                self.set_data_value(key, value)
