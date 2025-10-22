@@ -572,7 +572,6 @@ def datafileToComponents(datafile, dictionary, table_name_array, components_temp
                         df_slim["Time Of Day"] = study_time_value
 
                     # Study day
-
                     planned_visits_ids = planned_visits["PLANNED_VISIT_ACCESSION"].astype(str).str.strip().str.upper()
                     visit_map = dict(zip(planned_visits_ids, planned_visits["MIN_START_DAY"]))
                     default_min_day = planned_visits["MIN_START_DAY"].min()
@@ -1179,43 +1178,9 @@ def datafileToComponents(datafile, dictionary, table_name_array, components_temp
 
                     code_descriptions = set(str(v).upper() for v in code_mapping.values())
 
-                    # if override_study_time:
-                        
-                    #     if override_study_time in datafile.columns:
-                    #         df_slim["Study Time Collected"] = datafile[override_study_time]
-                    #     elif re.match(r'^-?\d*\.?\d+$', override_study_time):
-                    #         df_slim["Study Time Collected"] = float(override_study_time)
-                    #     elif is_valid_date(override_study_time):
-                    #         df_slim["Study Time Collected"] = override_study_time
-                    #     else:
-                    #         override_study_time = ""  
-
-                    # if not override_study_time and "[Study Day]" in dictionary["tables"][table_name]["mappings"]:
-                    #     original_study_day_col = dictionary["tables"][table_name]["mappings"]["[Study Day]"]
-                    #     study_day_col = col_mappings.get(original_study_day_col, original_study_day_col)
-                    #     if study_day_col in datafile.columns:
-                    #         df_slim["Study Time Collected"] = datafile[study_day_col]
-
-                    # if not override_study_time and "[Study Day]" not in dictionary["tables"][table_name]["mappings"] and "[Visit]" in dictionary["tables"][table_name]["mappings"]:
-                    #     planned_visit_cols = [col for col in datafile.columns 
-                    #                         if col.upper() in ['PLANNED VISIT ID', 'PLANNED_VISIT_ID', 'VISIT_ID', 'VISIT']]
-                        
-                    #     if planned_visit_cols:
-                       
-                    #         visit_day_mapping = dict(zip(
-                    #             planned_visits["PLANNED_VISIT_ACCESSION"].astype(str).str.strip().str.upper(),
-                    #             planned_visits["MIN_START_DAY"]
-                    #         ))
-                    #         df_slim["Study Time Collected"] = (
-                    #             datafile[planned_visit_col].astype(str).str.strip().str.upper().map(visit_day_mapping))
-
-                    # df_slim["Study Time Collected"] = df_slim["Study Time Collected"].fillna(99999)
-
-
-                    # Initialize Study Time Collected (like Study Day in assessments)
+                    # Study time collected
                     df_slim["Study Time Collected"] = np.nan
 
-                    # 1. Override Study Day
                     override_study_day = str(col_props.get("study_day", "")).strip()
                     if override_study_day:
                         if override_study_day in datafile.columns:
@@ -1225,14 +1190,12 @@ def datafileToComponents(datafile, dictionary, table_name_array, components_temp
                         else:
                             df_slim.loc[df_slim["Study Time Collected"].isna(), "Study Time Collected"] = override_study_day
 
-                    # 2. [Study Day] mapping fallback
                     if "[Study Day]" in dictionary["tables"][table_name]["mappings"]:
                         mapped_col = dictionary["tables"][table_name]["mappings"]["[Study Day]"]
                         resolved_col = col_mappings.get(mapped_col, mapped_col)
                         if resolved_col in datafile.columns:
                             df_slim.loc[df_slim["Study Time Collected"].isna(), "Study Time Collected"] = datafile[resolved_col]
 
-                    # 3. Visit mapping fallback
                     planned_visit_col = 'Planned Visit ID' if 'Planned Visit ID' in datafile.columns else 'PLANNED_VISIT_ID'
                     visit_day_mapping = dict(zip(
                         planned_visits["PLANNED_VISIT_ACCESSION"].astype(str).str.strip().str.upper(),
@@ -1242,14 +1205,7 @@ def datafileToComponents(datafile, dictionary, table_name_array, components_temp
                         datafile[planned_visit_col].astype(str).str.strip().str.upper().map(visit_day_mapping)
                     )
 
-                    # 4. Fill remaining NaNs
                     df_slim["Study Time Collected"] = df_slim["Study Time Collected"].fillna(99999)
-
-
-
-
-
-
 
                     if pd.api.types.is_numeric_dtype(df_slim["Study Time Collected"]):
                         df_slim["Study Time Collected Unit"] = "Days"
