@@ -207,12 +207,6 @@ def parseDictionaryRow(row, dictionary, formatted_columns):
     if len(values) > 0:
         dictionary["tables"][table_name]["fields"][field_name]["values"] = parseCodeListValues(values)
 
-    # if values:
-    #     dictionary["tables"][table_name]["fields"][field_name]["values"] = parseCodeListValues(values)
-    # else:
-    #     dictionary["tables"][table_name]["fields"][field_name]["values"] = []
-
-
     return dictionary
 
 def parseDataDictionary(filename, gui_object):
@@ -303,34 +297,6 @@ def parseDataDictionary(filename, gui_object):
         except Exception as e:
             gui_object.log(level="error", message=f"Error processing row {i}: {str(e)}", flush=True)
             continue
-
-    # for i, row in enumerate(all_rows, 1):
-    #     try:
-    #         # Skip completely blank rows
-    #         if not any(str(cell).strip() for cell in row):
-    #             continue
-
-    #         # Pad row to header length (prevents missing-column misalignment)
-    #         if len(row) < len(header):
-    #             row += [""] * (len(header) - len(row))
-
-    #         # Trim row if longer than header (extra trailing commas)
-    #         if len(row) > len(header):
-    #             row = row[:len(header)]
-
-    #         # Strip whitespace from all cells
-    #         row = [str(cell).strip() for cell in row]
-
-    #         parseDictionaryRow(row, dictionary, formatted_columns)
-
-    #     except Exception as e:
-    #         gui_object.log(
-    #             level="error",
-    #             message=f"Error processing dictionary row {i}: {str(e)}",
-    #             flush=True
-    #         )
-    #         continue
-
 
     for table_name, table_info in dictionary["tables"].items():
         mappings = table_info.get("mappings", {})
