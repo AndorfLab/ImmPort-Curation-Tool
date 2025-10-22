@@ -885,6 +885,10 @@ class labTests(ImmPort_Data):
                     for row_idx, (_, row) in enumerate(group.iterrows(), start=1):
                         field_data = self.convert_result_columns_to_fields(row.to_dict())
 
+                  #      display(f"DEBUG field_data keys for {row['User Defined ID']}: {list(field_data.keys())}")
+                  #      display(f"DEBUG resultUnitReported: {field_data.get('resultUnitReported')}")
+
+
                         result = LabTest_ResultData(
                             studyId=studyId,
                             crfFileNames=crfFileNames,
@@ -986,9 +990,15 @@ class labTests(ImmPort_Data):
             'Result Unit Reported': "resultUnitReported"
         }
 
-        field_dict = dict(map(lambda x: (x[1], column_dict.get(x[0],"")), mapping_dict.items()))
+        field_dict = {v: column_dict.get(k,"") for k,v in mapping_dict.items()}
 
-        filtered_dict = dict(filter(lambda elem: ((type(elem[1]) != float and elem[1] not in ['','userDefinedId']) or str(elem[1]) not in ['nan', '', 'userDefinedId']), field_dict.items()))
+        filtered_dict = {
+            k:v
+            for k,v in field_dict.items()
+            if k != "resultUnitReported" and ((type(v)!=float and v not in ['','userDefinedId']) or str(v) not in ['nan','','userDefinedId'])
+        }
+
+        filtered_dict["resultUnitReported"] = field_dict.get("resultUnitReported","")
 
         return filtered_dict
 
@@ -1278,13 +1288,15 @@ class LabTest_ResultData(ImmPort_Data):
         kwargs.pop("userDefinedId", None)
 
         for key, value in kwargs.items():
+
             if key == "resultValueReported":
                 self.set_data(key, str(value) if value is not None else "")
                 continue
 
-            if key in self.enumFields and value not in self.enumFields[key]["enum"]:
-                if key.endswith("UnitReported"):
-                    if value in self.result_unit_reported_synonyms:
-                        value = self.result_unit_reported_synonyms[value]
+            if key == "resultUnitReported":
+                value = self.result_unit_reported_synonyms.get(value, value)
+                self.set_data_value(key, value)
+                continue
 
+            if key in self.enumFields and value not in self.enumFields[key]["enum"]:
                 self.set_data_value(key, value)

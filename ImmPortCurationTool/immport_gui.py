@@ -17,8 +17,7 @@ import asyncio
 import json
 from urllib.request import urlopen
 from ipyfilechooser import FileChooser
-from IPython.display import display, HTML
-
+from IPython.display import display, HTML, Javascript
 
 custom_css = """
 <style>
@@ -71,7 +70,7 @@ display(HTML(custom_css))
 
 main_logger=''
 
-documentation_base_url = "https://github.com/AndorfLab/ImmPort-Curation-Tool/blob/master"
+documentation_base_url = "https://github.com/AndorfLab/ImmPort-Curation-Tool/blob/Master"
 
 class Timer:
 
@@ -430,10 +429,6 @@ class GUI(GUI_Object):
             old_value = self.objects["toggle_current_immport_study"].widget.value
             self.objects["toggle_current_immport_study"].widget.value = 0  
 
-        if "toggle_non_tab_files" in self.objects:
-            old_value = self.objects["toggle_non_tab_files"].widget.value
-            self.objects["toggle_non_tab_files"].widget.value = 0  
-
         for key in ["box_study_visit_list", "box_study_file_list", "box_protocol_list"]:
             if key in self.objects:
                 self.objects[key].show_hide_element(display="")
@@ -642,36 +637,40 @@ class GUI(GUI_Object):
             </div>
 
             <p style='font-size:18px; color:black; margin-top: 15px; margin-bottom: 25px;'>
-                The purpose of this tool is to transform data files/tables from a study into ImmPort templates for upload and integration into the ImmPort database
+                The purpose of this tool is to transform data files/tables from a study into ImmPort <i>Lab Test</i> or <i>Assessment</i> templates for upload and integration into the ImmPort database.
+                The tool has 3 upload sections.
                 <br>
                 <br>
-                <b>1. ImmPort Files:</b> Start the data transformation by uploading study data in the first tab
+                <b>1. ImmPort Files:</b> Start the data transformation by uploading specific files from ImmPort.
                 <br>
                 <br>
-                <b>2. Data Dictionary:</b> Next, upload the study data dictionary
+                <b>2. Data Dictionary:</b> Next, upload the curated study data dictionary.
                 <br>
                 <br>
-                <b>3. Study Files:</b> Finally, upload the study files folder and choose the files you would like to incorporate into the final template
+                <b>3. Study Files:</b> Finally, upload the study files folder and choose the files you would like to incorporate into the final template.
                 <br>
                 <br>
-                <b>Logging:</b> Progress and error messages appear here
+                The last tab, <b>Logs</b>, is where progress and error messages appear.
             </p>
         """)
 
-        example_data_url = "google.com"
+        def download_example_data(url):
+            display(Javascript(f'window.open("{url}", "_blank");'))
 
-        self.objects["download_example_button"] = Button(
-            text="Download", 
+        example_data_url = "https://github.com/AndorfLab/ImmPort-Curation-Tool/raw/Master/Example-Data.zip" # "https://github.com/AndorfLab/ImmPort-Curation-Tool/raw/Master/Example-Data.zip"
+
+        download_button = widgets.Button(
+            description="Download",
             tooltip="Download sample data files to test the tool",
             icon="download",
-            callback=lambda b: self.download_example_data(example_data_url),
-            width="140px"
+            layout=widgets.Layout(width="140px")
         )
+
+        download_button.on_click(lambda b: download_example_data(example_data_url))
 
         example_header_row = widgets.HBox([
             widgets.HTML("<h2 style='color:black; margin-top: 0px; margin-bottom: 0px; font-size: 24px;'>🔢 Example Data</h2>"),
-            widgets.Box([self.objects["download_example_button"].get()],
-                        layout=widgets.Layout(margin='0 0 0 20px'))
+            widgets.Box([download_button], layout=widgets.Layout(margin='0 0 0 20px'))
         ], layout=widgets.Layout(justify_content="flex-start", align_items="center", width="100%"))
 
         example_paragraph = widgets.HTML(value="""
@@ -700,6 +699,12 @@ class GUI(GUI_Object):
                         </ul>
                     </li>
                 </ul>
+                <br>
+                <a href='https://github.com/AndorfLab/ImmPort-Curation-Tool/blob/Master/documentation/Example-Files-Overview.md' 
+                target='_blank' 
+                style='font-size:18px; color:#0077b6; text-decoration:none; font-weight:bold;'>
+                Click here for a step-by-step walkthrough of how to use the example data.
+                </a>                      
             </p>
         """)
 
@@ -713,15 +718,13 @@ class GUI(GUI_Object):
         """)
 
         documentation = [
-            {"label":"User Guide","text":"A step-by-step guide on using this tool", "link":"User_Guide.md"},
-            {"label":"FAQ","text":"Commonly asked questions", "link":"/documentation/FAQ.md"},
-            {"label":"Errors","text":"Common errors and how to solve them", "link":"/documentation/Logging Errors.md"},
-            {"label":"Data Dictionary","text":"How to curate the data dictionary", "link":"/documentation/Curated_Data_Dictionary.md"},
-            {"label":"Study File","text":"Required format for study files", "link":"/documentation/Study_File_format.md"},
-            {"label":"Load ImmPort Files","text":"How to get files from ImmPort for this tool", "link":"/documentation/Load_files_from_immport.md"}
+            {"label":"Preparing and Preprocessing Files","text":"Guidance on curating the files required for upload.", "link":"/documentation/Preparing-and-Preprocessing-Files.md"},
+            {"label":"Using the Application","text":"Guidance on using the curation tool.", "link":"/documentation/Using-the-Application.md"},
+            {"label":"Common Errors","text":"Common errors and how to solve them", "link":"/documentation/Logging Errors.md"},
+            {"label":"FAQ","text":"Commonly asked questions", "link":"/documentation/FAQ.md"}
         ]
 
-        documentation_base_url = "https://your-docs-url.com"
+        documentation_base_url = "https://github.com/AndorfLab/ImmPort-Curation-Tool/blob/Master"
 
         doc_links = [
             widgets.HTML(value=f"""
@@ -863,16 +866,7 @@ class GUI(GUI_Object):
             box_protocol_files = VBox(name='box_protocol_files')
             box_protocol_files.set_children([self.objects['file_chooser_protocol_files_with_error']])
 
-            self.objects["toggle_non_tab_files"] = ToggleButtons(description='<b><span style="font-size:18px;">Do you want to amend the Tab file with new planned visits, study files, and/or protocols?</span></b>', options=[('Yes',1),('No',0)], value=0, tooltips=[], style=dict(description_width='initial',button_width='auto'))
-
-            spacer_before_toggle = widgets.HTML(value="<div style='height: 20px;'></div>")
-
-            toggle_with_spacing = widgets.VBox([
-                spacer_before_toggle,
-                self.objects["toggle_non_tab_files"].get()
-            ])
-
-            box_immport_study_yes.set_children([file_chooser_with_error, toggle_with_spacing])
+            box_immport_study_yes.set_children([file_chooser_with_error])
 
             self.objects["reset_tab1_button"] = Button(text="Reset Tab", tooltip="Reset all inputs in Tab 1", style="warning", callback=self.reset_tab1, width="140px", icon="trash")
 
@@ -881,28 +875,45 @@ class GUI(GUI_Object):
             self.objects["help_button_1"].style.button_color = '#F7F6BB'
 
             self.objects["help_text_1"] = widgets.HTML(
-                value="""
+                value=f"""
                 <div style='color: black; font-family: Arial, sans-serif; font-size: 14px;
                             padding: 5px; border: 1px solid #ccc; background-color: #f9f9f9;
                             border-radius: 5px;'>
-                    <h2 style='text-align: center; font-weight: bold; margin: 5px 0;'>Inputs</h2>
-                    <b>Input the workspace ID:</b> This should be a numeric identifier, listed as the 'Workspace ID' in ImmPort. Example: 3366. <br>
-                    <b>Input the study ID:</b> This should be an identifier that begins with SDY followed by a number, listed as the 'Study Accession' in ImmPort. Example: SDY1550. <br>
-                    <b>Select the ImmPort planned visit file:</b> This should be a file that contains information about the planned visits, listed as planned_visit in ImmPort. This information should include the names of the visits, start days, and planned visit accessions. <br>
-                    <b>Select the ImmPort study file:</b> This should be a file that contains basic information about the study-specific study files (which are uploaded in '3. Study Files'), listed as study_file in ImmPort. This information should include the study file names, brief descriptions, study file types, and study file accessions. <br>
-                    <b>View the loaded study visits:</b> This shows the names of the study visits that were listed in the ImmPort planned_visit file. <br>
+                    <h2 style='text-align: center; font-weight: bold; margin: 5px 0;'>File Type</h2>
+
+                    <b>Choose initial input type:</b> Decide if you want to upload the 3 ImmPort files individually or together as a ZIP file. <br>
+      
+                    <h2 style='text-align: center; font-weight: bold; margin: 5px 0;'>File Upload</h2>
+
+                    <b>Upload individual ImmPort files:</b> Choose this option if you want to upload the ImmPort planned visit file (planned_visit.txt), 
+                    the ImmPort study file (study_file.txt), and the ImmPort protocol file (protocol.txt) individually. 
+                    After uploading each file, a preview will be shown below the upload area so you can confirm that the correct file was selected. <br>
+              
+                    <h2 style='text-align: center; font-weight: bold; margin: 5px 0;'>ZIP Upload</h2> 
+
+                    <b>Upload ImmPort Tab ZIP file:</b> Choose this option if you want to upload a ZIP file that contains the 3 required ImmPort files 
+                    (planned_visit.txt, study_file.txt, and protocol.txt). <br>
+
+                    <h2 style='text-align: center; font-weight: bold; margin: 5px 0;'>Reset</h2> 
+
+                    <b>Reset Tab:</b> This button will reset everything in the '1. ImmPort Files' tab. <br>
+
                     <h2 style='text-align: center; font-weight: bold; margin: 5px 0;'>Additional Information</h2>
-                        <a title='Information on ImmPort downloads' 
-                            href='{0}/documentation/Load_files_from_immport.md' 
+                        <a title='Information on ImmPort data files' 
+                            href='{documentation_base_url}/documentation/Preparing-and-Preprocessing-Files.md#generating-immport-files' 
                             style='font-size: 16px; text-decoration: none; color: #0077b6;'>
-                            <b>Click for information on how to download data from ImmPort</b>
+                            <b>Click for more information on how to download data from ImmPort</b>
+                        </a> <br>
+
+                        <a title='Information on ImmPort data in the app' 
+                            href='{documentation_base_url}/documentation/Using-the-Application.md#uploading-immport-files' 
+                            style='font-size: 16px; text-decoration: none; color: #0077b6;'>
+                            <b>Click for more information on how to upload the ImmPort File</b>
                         </a>
                 </div>
-                """.format(documentation_base_url),
+                """,
                 layout={'width': '600px', 'height': 'auto'}
             )
-
-            self.objects["toggle_current_immport_study"].set_observe(callback_function=self.update_help_text, callback_data={})
 
             self.objects["help_text_1_box"] = widgets.VBox([self.objects["help_text_1"]])
             self.objects["help_text_1_box"].layout.display = 'none' 
@@ -954,23 +965,6 @@ class GUI(GUI_Object):
                     }
                 })
 
-            self.objects["toggle_non_tab_files"].set_observe(
-                callback_function=self.toggle_show_hide,
-                callback_data={
-                    "toggle": {
-                        1: [
-                            box_planned_visits,
-                            self.objects["box_study_visit_list"],
-                            box_study_files,
-                            self.objects["box_study_file_list"],
-                            box_protocol_files,
-                            self.objects["box_protocol_list"]
-                        ],
-                        0: []
-                    }
-                }
-            )
-
         except Exception as e:
             self.log(message=f"Error in selecting ImmPort study file: {str(e)}\n{traceback.format_exc()}", level="error", flush=True)
             self.flush_log()
@@ -981,45 +975,6 @@ class GUI(GUI_Object):
             ])
 
         return tab
-    
-    def update_help_text(self, event):
-
-        toggle_value = event["new"] 
-
-        if toggle_value == 1:
-            new_help_text = """
-            <div style='color: black; font-family: Arial, sans-serif; font-size: 14px;
-                        padding: 5px; border: 1px solid #ccc; background-color: #f9f9f9;
-                        border-radius: 5px;'>
-                <h2 style='text-align: center; font-weight: bold; margin: 5px 0;'>Inputs</h2>
-                <b>Select the ImmPort study Tab ZIP file:</b> This should be a ZIP file that contains multiple ImmPort-specific files, listed as 'SDY(#)-DR(#)_Tab.zip' in ImmPort. <br>
-                <b>Do you want to amend the Tab file with new planned visits and/or study files?:</b> This should be used if you want to use a different planned_visit.txt and/or study_file.txt then the ones that are currently in the Tab zip file. <br>
-                <b>Select the ImmPort planned visit file:</b> This will appear if 'Yes' is chosen from the 'Do you want to amend the Tab file with new planned visits and/or study files?' question. This should be a file that contains information about the planned visits, listed as planned_visit in ImmPort. This information should include the names of the visits, start days, and planned visit accessions. <br>
-                <b>Select the ImmPort study file:</b> This will appear if 'Yes' is chosen from the 'Do you want to amend the Tab file with new planned visits and/or study files?' question.  This should be a file that contains basic information about the study-specific study files (which are uploaded in '3. Study Files'), listed as study_file in ImmPort. This information should include the study file names, brief descriptions, study file types, and study file accessions. <br>
-                <b>View the loaded study visits:</b> This shows the names of the study visits that were listed in the ImmPort planned_visit file. <br>
-            </div>
-            """.format(documentation_base_url)
-        else: 
-            new_help_text = """
-            <div style='color: black; font-family: Arial, sans-serif; font-size: 14px;
-                        padding: 5px; border: 1px solid #ccc; background-color: #f9f9f9;
-                        border-radius: 5px;'>
-                <h2 style='text-align: center; font-weight: bold; margin: 5px 0;'>Inputs</h2>
-                <b>Input the workspace ID:</b> This should be a numeric identifier, listed as the 'Workspace ID' in ImmPort. Example: 3366. <br>
-                <b>Input the study ID:</b> This should be an identifier that begins with SDY followed by a number, listed as the 'Study Accession' in ImmPort. Example: SDY1550. <br>
-                <b>Select the ImmPort planned visit file:</b> This should be a file that contains information about the planned visits, listed as planned_visit in ImmPort. This information should include the names of the visits, start days, and planned visit accessions. <br>
-                <b>Select the ImmPort study file:</b> This should be a file that contains basic information about the study-specific study files (which are uploaded in '3. Study Files'), listed as study_file in ImmPort. This information should include the study file names, brief descriptions, study file types, and study file accessions. <br>
-                <b>View the loaded study visits:</b> This shows the names of the study visits that were listed in the ImmPort planned_visit file. <br>
-                <h2 style='text-align: center; font-weight: bold; margin: 5px 0;'>Additional Information</h2>
-                    <a title='Information on ImmPort downloads' 
-                        href='{0}/documentation/Load_files_from_immport.md' 
-                        style='font-size: 16px; text-decoration: none; color: #0077b6;'>
-                        <b>Click for information on how to download data from ImmPort</b>
-                    </a>
-                </div>
-                """.format(documentation_base_url)
-            
-        self.objects["help_text_1"].value = new_help_text
 
     def on_select_study_tab_file_with_error_handling(self, value, gui=None, fc_name=None):
 
@@ -1444,18 +1399,73 @@ class GUI(GUI_Object):
         self.objects["help_button_3"].style.button_color = '#F7F6BB'
 
         self.objects["help_text_3"] = widgets.HTML(
-            value="""
+            value=f"""
             <div style='color: black; font-family: Arial, sans-serif; font-size: 14px;
                         padding: 10px; border: 1px solid #ccc; background-color: #f9f9f9;
                         border-radius: 5px;'>
-                <h2 style='text-align: center; font-weight: bold; margin: 5px 0;'>Input</h2>
-                <b>Select the study files directory:</b> This should be a directory that contain the study-specific files that contain the forms and results of the study. In ImmPort, this is the 'StudyFiles' folder. <br>
-                <h2 style='text-align: center; font-weight: bold; margin: 5px 0;'>Table</h2>    
-                <b>Table Code:</b> Add stuff here. This field is mandatory. <br>
-                <b>Assessment Name:</b> Add stuff here. This field is not mandatory. <br>
-                <b>Template:</b> Add stuff here. This field is mandatory. <br>
-                <b>Default Visit:</b> Add stuff here. This field is not mandatory. <br>
-                When this table is completed, click the 'Generate Filled Templates' button.
+                <h2 style='text-align: center; font-weight: bold; margin: 5px 0;'>Folder Upload</h2>
+
+                <b>Select the study files directory:</b> Choose the directory/folder that contains the study files in TXT or CSV format.
+                In ImmPort, this is the 'StudyFiles' folder. <br>
+             
+                <h2 style='text-align: center; font-weight: bold; margin: 5px 0;'>Table Completion</h2>   
+
+                <b>Filename:</b> The name of the file in the directory. 
+                The file should be specified in the 'FILE_NAME' field from the ImmPort study_file.txt. <br>
+
+                <b>Description:</b> The corresponding 'DESCRIPTION' from the ImmPort study_file.txt. 
+                If this field is empty, the exact study file name is not in study_file.txt. 
+                This field needs to be filled in to create a template. <br>
+
+                <b>Table Code:</b> Choose the corresponding identifier. This is from the 'Table Name' field of the data dictionary that corresponds to the study file. 
+                This field is mandatory.<br>
+
+                <b>Default Visit:</b> Choose the visit type. 
+                This is from the 'NAME' field in the ImmPort planned_visit.txt. 
+                This should be selected if the visit is not specified in the data dictionary or study file. 
+                This field is not mandatory, although it should be used when the study file contains missing planned visits. <br>
+
+                <b>Template:</b> Choose whether the created template should be <i>Lab Test</i> or <i>Assessment</i>. This field is mandatory. <br>
+
+                <b>Assessment Name:</b> If you chose <i>Assessment</i>, specify the name in the textbox. This field is not mandatory, but highly recommended. <br>
+
+                <b>Protocol:</b> If you chose <i>Lab Test</i>,  specify the protocol. 
+                This is from the 'NAME' field in the ImmPort protocol.txt.  
+                This field is mandatory. <br>
+
+                <b>Name Reported:</b> If you chose <i>Lab Test</i>,  specify the name that best describes the study file. This field is mandatory.<br>
+
+                <b>Type:</b> If you chose <i>Lab Test</i>, specify the sample type that best describes the study file. This field is mandatory. <br>
+
+                <b>Subtype:</b> If the selected Type is 'Other', this textbox can be filled in with a more specific subtype.
+                This field is not mandatory, but recommended when the Type is 'Other'. <br>
+
+                <b>Study Time T0 Event:</b> If you chose <i>Lab Test</i>, specify the time 0 event — i.e., what the Day 0 event is. This field is mandatory. <br>
+
+                <b>Study Time T0 Event Specify:</b> If the selected Study Time T0 Event is 'Other', this textbox can be filled in with a more specific study time T0 event.
+                This field is not mandatory, but recommended when the Study Time T0 Event is 'Other'.<br>
+
+                <h2 style='text-align: center; font-weight: bold; margin: 5px 0;'>Template Creation</h2>   
+
+                <b>Generate Filled Templates:</b> When the table is completed, click this button above the table to create the filled templates.<br>
+
+                <h2 style='text-align: center; font-weight: bold; margin: 5px 0;'>Reset</h2>   
+
+                <b>Reset Tab:</b> This button will reset everything in the '3. Study Files' tab. <br>
+
+                <h2 style='text-align: center; font-weight: bold; margin: 5px 0;'>Additional Information</h2>
+                        <a title='Information on study files' 
+                            href='{documentation_base_url}/documentation/Preparing-and-Preprocessing-Files.md#gathering-study-files' 
+                            style='font-size: 16px; text-decoration: none; color: #0077b6;'>
+                            <b>Click for more information on how to gather study files</b>
+                        </a> <br>
+
+                        <a title='Information on study files in the app' 
+                            href='{documentation_base_url}/documentation/Using-the-Application.md#uploading-study-files' 
+                            style='font-size: 16px; text-decoration: none; color: #0077b6;'>
+                            <b>Click for more information on how to upload study files</b>
+                        </a>
+
             </div>
             """,
             layout={'width': '600px', 'height': 'auto'}
@@ -2328,12 +2338,13 @@ class GUI(GUI_Object):
             for col_idx, column_title in enumerate(required_columns, start=1):
 
                 if is_bottom_header:
+                    wrapped_title = column_title.replace("T0", "<br>T0")
                     self.grid_body[grid_row, col_idx] = widgets.HTML(
                         value=(
                             f"<div style='font-size:21px; font-weight:bold; "
                             f"text-align:center; line-height:1.4; "
                             f"display:flex; align-items:center; justify-content:center; height:100%;'>"
-                            f"{column_title}</div>"
+                            f"{wrapped_title}</div>"
                         ),
                         layout=widgets.Layout(
                             width=column_widths[col_idx],
@@ -2569,20 +2580,32 @@ class GUI(GUI_Object):
             <div style='color: black; font-family: Arial, sans-serif; font-size: 14px;
                         padding: 5px; border: 1px solid #ccc; background-color: #f9f9f9;
                         border-radius: 5px;'>
-                <h2 style='text-align: center; font-weight: bold; margin: 5px 0;'>Inputs</h2>
-                <b>Select the curated data dictionary:</b> This file should contain the data dictionary, which contains metadata about the study-specific study files (which are uploaded in '3. Study Files').  <br>
-                <b>Select the column that specifies the form/instrument:</b> This will appear after the data dictionary is successfully loaded in. The dropdown should show the columns in the data dictionary. The column that contains the form/instrument identifier information should be chosen. This is likely the 'Table Name' column. <br>
+                <h2 style='text-align: center; font-weight: bold; margin: 5px 0;'>File Upload</h2>
+
+                <b>Select the curated data dictionary:</b> Upload the data dictionary file, 
+                which contains information about the specific study files (uploaded in '3. Study Files'). 
+                This can be a TXT or CSV file. <br>
+
+                <h2 style='text-align: center; font-weight: bold; margin: 5px 0;'>Template Type</h2>
+
+                <b>Choose which template(s) to generate from your data: </b> Specify whether you plan to generate <i>Lab Test</i>, <i>Assessment</i>, or both templates from your study files. 
+                Once you've selected the template type, click "Load Data Dictionary" to proceed. <br>
+
+                <h2 style='text-align: center; font-weight: bold; margin: 5px 0;'>Reset</h2>
+
+                <b>Reset Tab:</b> This button will reset everything in the '2. Data Dictionary' tab. <br>
+
                 <h2 style='text-align: center; font-weight: bold; margin: 5px 0;'>Additional Information</h2>
-                        <a title='Information on creating a curated data dictionary' 
-                            href='{documentation_base_url}/documentation/Curated_Data_Dictionary.md' 
+                        <a title='Information on the data dictionary' 
+                            href='{documentation_base_url}/documentation/Preparing-and-Preprocessing-Files.md#curating-the-data-dictionary' 
                             style='font-size: 16px; text-decoration: none; color: #0077b6;'>
-                            <b>Click for the curated data dictionary user guide</b>
-                        </a> 
-                        <br>
-                        <a title='An example data dictionary' 
-                            href='{documentation_base_url}/documentation/Example_Data_Dictionary.md' 
+                            <b>Click for more information on how to curate the data dictionary</b>
+                        </a> <br>
+
+                        <a title='Information on the data dictionary in the app' 
+                            href='{documentation_base_url}/documentation/Using-the-Application.md#uploading-the-data-dictionary' 
                             style='font-size: 16px; text-decoration: none; color: #0077b6;'>
-                            <b>Click for an example data dictionary</b>
+                            <b>Click for more information on how to upload the data dictionary</b>
                         </a>
             </div>
             """,
