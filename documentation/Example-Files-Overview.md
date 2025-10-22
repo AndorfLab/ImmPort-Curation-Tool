@@ -52,7 +52,7 @@ After the curation tool is [installed](Installation.md) and opened, you will see
     
 - For the 'Template' dropdown, select *Lab Test* for Basophil-Example.txt and IgE-Example.txt. Select *Assessment* for the remaining files.
 
-- The 'Default Visit' does not need to be used for this example data.
+- The 'Default Visit' only needs to be used for the oral food challenge (OFC) data. This table does not include a visit, so a default visit should be chosen here. In this case, the data actually represents multiple visits, so 'Unknown visit' should be chosen.
   
 - For *Assessment*, type a name into the 'Assessment Name' textbox.
   
