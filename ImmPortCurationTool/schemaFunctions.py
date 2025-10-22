@@ -655,7 +655,7 @@ class Assessment_ResultData(ImmPort_Data):
                  studyDay=None, timeOfDay=None, studyId=None, crfFileNames=None, **kwargs):
 
         if crfFileNames:
-            base_filename = os.path.splitext(crfFileNames[0])[0]  # remove extension
+            base_filename = os.path.splitext(crfFileNames[0])[0] 
         else:
             base_filename = "NoFile"
 
@@ -821,7 +821,7 @@ class labTests(ImmPort_Data):
             crfFileNames=crfFileNames
         )
         
-        [panel_template,components_template,labTest_template_header] = cf.readTemplate(template, template_path=txt_template_path_full)  # self.text_template_path??
+        [panel_template,components_template,labTest_template_header] = cf.readTemplate(template, template_path=txt_template_path_full) 
         
         components_template["LAB_TEST_PANEL_ACCESSION"]=''
 
@@ -884,10 +884,6 @@ class labTests(ImmPort_Data):
 
                     for row_idx, (_, row) in enumerate(group.iterrows(), start=1):
                         field_data = self.convert_result_columns_to_fields(row.to_dict())
-
-                  #      display(f"DEBUG field_data keys for {row['User Defined ID']}: {list(field_data.keys())}")
-                  #      display(f"DEBUG resultUnitReported: {field_data.get('resultUnitReported')}")
-
 
                         result = LabTest_ResultData(
                             studyId=studyId,
