@@ -657,7 +657,7 @@ class GUI(GUI_Object):
         def download_example_data(url):
             display(Javascript(f'window.open("{url}", "_blank");'))
 
-        example_data_url = "https://github.com/AndorfLab/ImmPort-Curation-Tool/raw/Master/Example-Data.zip" # "https://github.com/AndorfLab/ImmPort-Curation-Tool/raw/Master/Example-Data.zip"
+        example_data_url = "https://github.com/AndorfLab/ImmPort-Curation-Tool/raw/Master/Example-Data.zip" 
 
         download_button = widgets.Button(
             description="Download",
@@ -3083,9 +3083,8 @@ class Log_Output(GUI_Object):
             callback=self.clear_output,
             style="",
             icon="trash",
-            width="120px"
+            width="140px"
         )
-        self.clear_button.show_hide_element(display="none")
 
     def add_clear_button(self, description="Reset Log", tooltip="Clear the main logger", icon="trash", style="", width="auto"):
         
@@ -3144,7 +3143,6 @@ class Log_Output(GUI_Object):
 
         self.buffer.clear()
         self.widget.clear_output()
-        self.clear_button.show_hide_element(display="none")
 
 class OutputWidgetHandler(logging.Handler): 
 
