@@ -360,10 +360,6 @@ def datafileToComponents(datafile, dictionary, table_name_array, components_temp
 
             fields_dict = dictionary["tables"][table_name]["fields"]
 
-            for field_name, props in fields_dict.items():
-                display(f"Field: {field_name}")
-                display(f"  Keys: {list(props.keys())}")
-
             referenced_fields = set()
 
             prop_keys_to_check = [
@@ -908,7 +904,10 @@ def datafileToComponents(datafile, dictionary, table_name_array, components_temp
             if df_slim_list:
                 components_template = pd.concat([components_template] + df_slim_list, ignore_index=True)
 
-                components_template = components_template.replace(
+                exclude_cols = ['Result Value Reported']
+                columns_to_clean = [c for c in components_template.columns if c not in exclude_cols]
+
+                components_template[columns_to_clean] = components_template[columns_to_clean].replace(
                     ['<NA>', 'NA', 'N/A', 'nan', 'NaN', 'None', 'NONE', np.nan],
                     ''
                 )
@@ -1282,12 +1281,13 @@ def datafileToComponents(datafile, dictionary, table_name_array, components_temp
                 
                         components_template = pd.concat([components_template, df_slim], ignore_index=True, sort=False)
 
-                        columns_to_clean = [c for c in components_template.columns if c != 'Result Unit Reported']
+                        exclude_cols = ['Result Value Reported']
+                        columns_to_clean = [c for c in components_template.columns if c not in exclude_cols]
+
                         components_template[columns_to_clean] = components_template[columns_to_clean].replace(
                             ['<NA>', 'NA', 'N/A', 'nan', 'NaN', 'None', 'NONE', np.nan],
                             ''
                         )
-
                         components_template = components_template.loc[
                             components_template['Result Value Reported'].astype(str).str.strip() != ''
                         ].reset_index(drop=True)
