@@ -166,7 +166,6 @@ class CustomFormatter(logging.Formatter):
 
         return super().format(record)
 
-
 class log_viewer(logging.Handler):
 
     fmt = '%(levelname)-8s | %(message)s'
@@ -961,7 +960,7 @@ class GUI(GUI_Object):
             self.objects["toggle_current_immport_study"].set_observe(callback_function=self.toggle_show_hide, callback_data={
                 "toggle":{
                     1:[box_immport_study_yes], 
-                    0:[box_immport_study_no,box_planned_visits, self.objects["box_study_visit_list"], box_study_files, self.objects["box_study_file_list"], box_protocol_files, self.objects["box_protocol_list"]] #,box_immport_download_instructions]
+                    0:[box_immport_study_no,box_planned_visits, self.objects["box_study_visit_list"], box_study_files, self.objects["box_study_file_list"], box_protocol_files, self.objects["box_protocol_list"]]
                     }
                 })
 
@@ -1058,7 +1057,7 @@ class GUI(GUI_Object):
     def load_study_file(self, value):
 
         try:
-        
+
             if value.description != "Change":
                 return
 
@@ -1080,12 +1079,22 @@ class GUI(GUI_Object):
                 except csv.Error:
                     sep = "\t" if "\t" in sample else ","
 
-            self.data["study_files"] = pd.read_csv(filename, sep=sep)
+            try:
+                self.data["study_files"] = pd.read_csv(filename, sep=sep, encoding="utf-8-sig")
+            except UnicodeDecodeError:
+                self.data["study_files"] = pd.read_csv(filename, sep=sep, encoding="latin1")
+
             self.data["study_files"].columns = self.data["study_files"].columns.str.strip()
 
             if self.data["study_files"].shape[1] == 1:
+
                 sep_retry = "\t" if sep == "," else ","
-                self.data["study_files"] = pd.read_csv(filename, sep=sep_retry)
+
+                try:
+                    self.data["study_files"] = pd.read_csv(filename, sep=sep_retry, encoding="utf-8-sig")
+                except UnicodeDecodeError:
+                    self.data["study_files"] = pd.read_csv(filename, sep=sep_retry, encoding="latin1")
+
                 self.data["study_files"].columns = self.data["study_files"].columns.str.strip()
 
             missing_columns = []
@@ -1173,13 +1182,22 @@ class GUI(GUI_Object):
                   
                     sep = "\t" if "\t" in sample else ","
 
-            self.data["planned_visit"] = pd.read_csv(planned_visit_filename, sep=sep)
-          
+            try:
+                self.data["planned_visit"] = pd.read_csv(planned_visit_filename, sep=sep, encoding="utf-8-sig")
+            except UnicodeDecodeError:
+                self.data["planned_visit"] = pd.read_csv(planned_visit_filename, sep=sep, encoding="latin1")
+
             self.data["planned_visit"].columns = self.data["planned_visit"].columns.str.strip()
 
             if self.data["planned_visit"].shape[1] == 1:
+
                 sep_retry = "\t" if sep == "," else ","
-                self.data["planned_visit"] = pd.read_csv(planned_visit_filename, sep=sep_retry)
+
+                try:
+                    self.data["planned_visit"] = pd.read_csv(planned_visit_filename, sep=sep_retry, encoding="utf-8-sig")
+                except UnicodeDecodeError:
+                    self.data["planned_visit"] = pd.read_csv(planned_visit_filename, sep=sep_retry, encoding="latin1")
+
                 self.data["planned_visit"].columns = self.data["planned_visit"].columns.str.strip()
 
             missing_columns = []
@@ -1272,12 +1290,22 @@ class GUI(GUI_Object):
                 except csv.Error:
                     sep = "\t" if "\t" in sample else ","
 
-            self.data["protocol"] = pd.read_csv(protocol_filename, sep=sep)
+            try:
+                self.data["protocol"] = pd.read_csv(protocol_filename, sep=sep, encoding="utf-8-sig")
+            except UnicodeDecodeError:
+                self.data["protocol"] = pd.read_csv(protocol_filename, sep=sep, encoding="latin1")
+
             self.data["protocol"].columns = self.data["protocol"].columns.str.strip()
 
             if self.data["protocol"].shape[1] == 1:
+
                 sep_retry = "\t" if sep == "," else ","
-                self.data["protocol"] = pd.read_csv(protocol_filename, sep=sep_retry)
+
+                try:
+                    self.data["protocol"] = pd.read_csv(protocol_filename, sep=sep_retry, encoding="utf-8-sig")
+                except UnicodeDecodeError:
+                    self.data["protocol"] = pd.read_csv(protocol_filename, sep=sep_retry, encoding="latin1")
+
                 self.data["protocol"].columns = self.data["protocol"].columns.str.strip()
 
             missing_columns = []
@@ -1587,6 +1615,7 @@ class GUI(GUI_Object):
         study_id = self.get_study_id()
 
         study_files_dir = self.objects["filechooser_study_file_directory"].get_filepath()
+
         parent_dir = os.path.dirname(study_files_dir)
         parent_dir = os.path.dirname(parent_dir)
 
@@ -1792,7 +1821,7 @@ class GUI(GUI_Object):
             self.objects["button_generate_files"].button_change(
                 button=self.objects["button_generate_files"], 
                 style='danger', 
-                text='Error: Some files failed to generate. Click to retry.', 
+                text='Error: Some Files Failed to Generate. Click to Retry.', 
                 tooltip='An error occurred during file generation. See log for more details.', 
                 disabled=False, 
                 icon='warning'
@@ -2935,8 +2964,14 @@ class File_Chooser(GUI_Object):
 
     def get_filepath(self):
 
-        return self.widget.selected_path +"/"+ self.widget.selected_filename
-    
+        path = getattr(self.widget, "selected_path", "")
+        fname = getattr(self.widget, "selected_filename", "")
+
+        if not path or not fname:
+            return None
+        
+        return os.path.normpath(os.path.join(path, fname))
+
     def get_dir(self):
 
         return self.widget.selected_path

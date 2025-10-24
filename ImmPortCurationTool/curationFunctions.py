@@ -44,7 +44,7 @@ def readFileFromZip(dir, zip, file, gui=None, case_sensitive=False):
     dir = os.path.normpath(dir) + os.sep
     zip_path = f"{dir}{zip}.zip"
 
-    ENCODINGS = ['utf-8', 'utf-16', 'cp1252']
+    ENCODINGS = ['utf-8', 'utf-8-sig', 'utf-16', 'cp1252', 'latin1']
 
     try:
         with zipfile.ZipFile(zip_path) as myzip:
@@ -92,12 +92,10 @@ def readFileFromZip(dir, zip, file, gui=None, case_sensitive=False):
                 if gui:
                     gui.log(f"Reading {file} with delimiter={repr(delimiter)}", level="debug")
 
-                return pd.read_csv(
-                    io.StringIO(content_str),
-                    sep=delimiter,
-                    engine='python',
-                    on_bad_lines='warn'
-                )
+                df = pd.read_csv(io.StringIO(content_str), sep=delimiter, engine='python', on_bad_lines='warn')
+                df.columns = df.columns.str.replace('\ufeff', '', regex=False).str.strip()
+          
+                return df
 
     except zipfile.BadZipFile:
         if gui:
@@ -858,30 +856,42 @@ def datafileToComponents(datafile, dictionary, table_name_array, components_temp
                                 split_values = df_slim['Result Value Reported'].str.split(" ", n=1, expand=True)
                                 df_slim['Result Value Reported'] = split_values[0]
                                 df_slim['Result Unit Reported'] = split_values[1]
-                            elif unit_info.startswith("[") and unit_info.endswith("]"):
-                                unit_col = unit_info[1:-1]
-                                
-                                if unit_col in renamed_datafile:
-                                    df_slim['Result Unit Reported'] = renamed_datafile[unit_col]
-                                else:
-                                    df_slim['Result Unit Reported'] = ""
+
                             else:
-                                df_slim['Result Unit Reported'] = unit_info
+                                unit_col = unit_info.strip("[]").strip()
+                                possible_matches = {c.lower(): c for c in datafile.columns}
+
+                                if unit_col.lower() in possible_matches:
+                                    df_slim['Result Unit Reported'] = datafile[possible_matches[unit_col.lower()]]
+                                    unit_assigned = True
+                                else:
+                                    if not unit_info.startswith("[") and not unit_info.endswith("]"):
+                                        df_slim['Result Unit Reported'] = unit_info
+                                        unit_assigned = True
+                                    else:
+                                        df_slim['Result Unit Reported'] = ""
+
                         else:
                             code_mapping = col_props.get("values", {})
                          
                             code_descriptions = set(str(v).upper() for v in code_mapping.values())
                             
-                            if {'YES', 'NO'}.issubset(code_descriptions):
+                            if {'YES', 'NO'}.issubset(code_descriptions) and code_descriptions.issubset(
+                                {'YES', 'NO', 'UNKNOWN', 'NA', "N/A", 'NOT APPLICABLE', 
+                                'NOTAPPLICABLE', 'NOT AVAILABLE', 'NOTAVAILABLE', ''}):
                                 df_slim['Result Unit Reported'] = 'Yes, No, or Unknown Response'
-                            elif {'MALE', 'FEMALE'}.issubset(code_descriptions):
+                            
+                            elif {'MALE', 'FEMALE'}.issubset(code_descriptions) and code_descriptions.issubset(
+                                {'MALE', 'FEMALE', 'NONBINARY', 'NON-BINARY', 
+                                'TRANSGENDER', 'UNKNOWN', 'OTHER', ''}):
                                 df_slim['Result Unit Reported'] = 'Gender'
+
                             elif len(code_descriptions) == 2:
                                 df_slim['Result Unit Reported'] = 'Boolean'
+                            
                             elif code_descriptions:
                                 df_slim['Result Unit Reported'] = 'categorical'
-                            else:
-                                df_slim['Result Unit Reported'] = ''
+                            
 
                         if "User Defined ID" in df_slim.columns:
                             df_slim = df_slim[
@@ -1223,20 +1233,20 @@ def datafileToComponents(datafile, dictionary, table_name_array, components_temp
                             df_slim['Result Unit Reported'] = split_values[1]
                             unit_assigned = True
 
-                        elif unit_info.startswith("[") and unit_info.endswith("]"):
-                            unit_col = unit_info[1:-1]
-
-                            if unit_col in datafile:
-                                df_slim['Result Unit Reported'] = datafile[unit_col]
-                                unit_assigned = True
-
-                            else:
-                                df_slim['Result Unit Reported'] = ""
-
                         else:
-                            df_slim['Result Unit Reported'] = unit_info
-                            unit_assigned = True
+                            unit_col = unit_info.strip("[]").strip()
+                            possible_matches = {c.lower(): c for c in datafile.columns}
 
+                            if unit_col.lower() in possible_matches:
+                                df_slim['Result Unit Reported'] = datafile[possible_matches[unit_col.lower()]]
+                                unit_assigned = True
+                            else:
+                                if not unit_info.startswith("[") and not unit_info.endswith("]"):
+                                    df_slim['Result Unit Reported'] = unit_info
+                                    unit_assigned = True
+                                else:
+                                    df_slim['Result Unit Reported'] = ""
+     
                     if not unit_assigned:
 
                         col_props = dictionary["tables"][table_name]["fields"].get(col, {})
