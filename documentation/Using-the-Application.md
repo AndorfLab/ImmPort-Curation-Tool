@@ -13,28 +13,32 @@ Each of the functional tabs (*ImmPort Files*, *Data Dictionary*, *Study Files*, 
 ## Uploading ImmPort Files
 The *1. ImmPort Files* tab is where the previously completed ImmPort templates should be uploaded. The tool allows the user to either upload each template separately (study_data.txt, planned_visit.txt, and protocol.txt) or to upload them combined within a zip file. 
 
-<img width="492" height="320" alt="image" src="https://github.com/user-attachments/assets/f21c9cfd-0b64-4288-a7c4-e250c2cb82e0" />
 
+<br><br>
+<img width="492" height="320" alt="image" src="https://github.com/user-attachments/assets/f21c9cfd-0b64-4288-a7c4-e250c2cb82e0" />
+<hr>
 <img width="491" height="175" alt="image" src="https://github.com/user-attachments/assets/99f3e25a-5514-4805-89a4-3a122856cde7" />
 
-Please find more information about the required file formats in the [Generating ImmPort Files section](Preparing-and-Preprocessing-Files.md#Generating-ImmPort-Files). 
+Please find more information about the required file formats in the [Generating ImmPort Files](Preparing-and-Preprocessing-Files.md#Generating-ImmPort-Files) section. 
 
 ## Uploading the Data Dictionary
 The middle tab, *2. Data Dictionary*, is where the curated data dictionary should be uploaded. 
 
+First, select the curate data dictionary that aligns with your study files. Once that is selected, deciede if your study file(s) should be inserted into the Lab Test, Assessment, or both templates. Click 'Load Data Dictionary'.
 <br><br>
 <img width="493" height="163" alt="image" src="https://github.com/user-attachments/assets/4a07b2fa-f4a7-49aa-af05-8943a9da281c" />
 <hr>
-
+If the data dictionary successfully loaded, the button will change to 'Dictionary Loaded'.
 <br><br>
 <img width="494" height="163" alt="image" src="https://github.com/user-attachments/assets/b076564f-402f-492f-a556-a96b0e2b9833" />
 <hr>
-
+If the data dictionary did not successfully load, the button will change to 'Load Failed'. Please examine the logs and double check that your data dictionary is in the correct format and contains the required columns before trying to reupload.
+<br>
 <br><br>
 <img width="493" height="157" alt="image" src="https://github.com/user-attachments/assets/3cb7e7e4-10e5-4e6d-acc7-d75fd5b04a1c" />
 <hr>
 
-Please find more information about how to curate the data dictionary in the [Curating the Data Dictionary section](Preparing-and-Preprocessing-Files.md#Curating-the-Data-Dictionary). 
+Please find more information about how to curate the data dictionary in the [Curating the Data Dictionary](Preparing-and-Preprocessing-Files.md#Curating-the-Data-Dictionary) section. 
 
 ## Uploading Study Files
 The next tab, *3. Study Files*, is where the study specific files are uploaded. 
@@ -47,16 +51,16 @@ Once the folder is selected, click 'load study files directory'.
 <br><br>
 <img width="491" height="153" alt="image" src="https://github.com/user-attachments/assets/0bed103d-2745-42b9-9f87-08d00249a08d" />
 <hr>
-A table showing the files in the directory will appear. If the exact file name is also in the study_file.txt, a description will appear here.
-A 'table code' can then be selected. This should be the 'table code' from the data dictionary that matches to the study file.
+A table showing the files in the directory will appear. If the exact file name is also in the ImmPort study file (study_file.txt), a 'Description' will appear here.
+A 'Table Code' can then be selected. This should be the 'Table Code' from the data dictionary that matches to the study file.
 <br><br>
 <img width="491" height="329" alt="image" src="https://github.com/user-attachments/assets/ea66c579-b085-4472-a123-e891646fb5ce" />
 <hr>
-The 'default visit' can then be selected. This should be done if there is no study visit in the study file that is specified in the data dictionary.
+The 'Default Visit' can then be selected. This should be done if there is no study visit in the study file that is specified in the data dictionary.
 <br><br>
 <img width="491" height="322" alt="image" src="https://github.com/user-attachments/assets/aa987156-7d55-4de1-8f2a-439c1d09d4ec" />
 <br><br><br>
-Next, select the 'template'. This should be either "Lab test' or 'Assessment'.
+Next, select the 'Template'. This should be either 'Lab Test' or 'Assessment'.
 <br><br>
 <img width="491" height="184" alt="image" src="https://github.com/user-attachments/assets/ff03cbb7-5fb3-4eee-af40-4b458595dfdf" />
 <br><br><br>
@@ -88,18 +92,20 @@ If 'Assessment' was chosen, a textbox appears. The short description of the stud
 <br><br>
 <img width="491" height="253" alt="image" src="https://github.com/user-attachments/assets/d67424b2-71bc-4aa5-a8e1-fb7f68225a09" />
 <hr>
-
-<br>
+Once this table is filled in with your selections, press the 'Generate Filled Templates' button above the table. The tables will begin generating. Please have patience - this may take a few minutes
+<br><br>
 <img width="488" height="349" alt="image" src="https://github.com/user-attachments/assets/4c996ab8-40b3-4759-9ccc-e60dd7c7c0f6" />
 <hr>
+If all the templates were successfully outputted, the button will say 'Files Generated - Click to Re-Generate'. The created templates will be in the directory the stduy files were in, within a 'Results' folder. 
 
-<br>
+At this point you can now make any edits to the table and reclick the button. If you do this, make sure the template(s) you are recreating are not open in your computer, as this will cause an error. 
+<br><br>
 <img width="492" height="350" alt="image" src="https://github.com/user-attachments/assets/8af85d73-8237-4967-aa99-13eb0bc4beb8" />
 <hr>
-
-<br>
+If there was an error creating one or more templates, the button will say 'Error: Some files failed to generate. Click to retry'. Please examine the logs and double check your inputs across Tabs 1, 2, and 3 to determine why the upload failed and what needs to be fixed prior to trying again.
+<br><br>
 <img width="494" height="352" alt="image" src="https://github.com/user-attachments/assets/91b0666c-2e83-4495-9616-2c6de3b91fe5" />
 <hr>
 
-Please find more information about the study files in the [Gathering Study Files section](Preparing-and-Preprocessing-Files.md#Gathering-Study-Files).
+Please find more information about the study files in the [Gathering Study Files](Preparing-and-Preprocessing-Files.md#Gathering-Study-Files section.
 
