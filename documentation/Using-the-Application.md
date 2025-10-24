@@ -1,5 +1,6 @@
 # Using the Application
-The application runs as a Jupyter Notebook (notebook.ipynb), which can be launched on various platforms. For details on installing the curation tool and setting up the environment to run the notebook, please refer to the installation guide.
+The application runs as a Jupyter Notebook (notebook.ipynb), which can be launched on various platforms. For details on installing the curation tool and setting up the environment to run the notebook, please refer to the [installation guide](Installation.md).
+
 Once the notebook is launched, you’ll see an interface with several tabs that looks like this:
  
 - *Overview*: Provides general information about the tool. Much of this content is also covered in greater detail throughout this user guide.
