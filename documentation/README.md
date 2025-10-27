@@ -1,13 +1,13 @@
 # 📂 Table of Contents
-- [**Installation**](documentation/Installation.md)
-- [**Example Data**](documentation/Example-Files-Overview.md)
-- [**Preparing and Preprocessing Files**](documentation/Preparing-and-Preprocessing-Files.md)
-  - [Generating ImmPort Files](documentation/Preparing-and-Preprocessing-Files.md#Generating-ImmPort-Files)
-  - [Curating the Data Dictionary](documentation/Preparing-and-Preprocessing-Files.md#Curating-the-Data-Dictionary)
-  - [Gathering Study Files](documentation/Preparing-and-Preprocessing-Files.md#Gathering-Study-Files)
-- [**Using the Application**](documentation/Using-the-Application.md)
-  - [Uploading ImmPort Files](documentation/Using-the-Application.md#Uploading-ImmPort-Files)
-  - [Uploading the Data Dictionary](documentation/Using-the-Application.md#Uploading-the-Data-Dictionary)
-  - [Uploading Study Files](documentation/Using-the-Application.md#Uploading-Study-Files)
+- [**Installation**](Installation.md)
+- [**Example Data**](Example-Files-Overview.md)
+- [**Preparing and Preprocessing Files**](Preparing-and-Preprocessing-Files.md)
+  - [Generating ImmPort Files](Preparing-and-Preprocessing-Files.md#Generating-ImmPort-Files)
+  - [Curating the Data Dictionary](Preparing-and-Preprocessing-Files.md#Curating-the-Data-Dictionary)
+  - [Gathering Study Files](Preparing-and-Preprocessing-Files.md#Gathering-Study-Files)
+- [**Using the Application**](Using-the-Application.md)
+  - [Uploading ImmPort Files](Using-the-Application.md#Uploading-ImmPort-Files)
+  - [Uploading the Data Dictionary](Using-the-Application.md#Uploading-the-Data-Dictionary)
+  - [Uploading Study Files](Using-the-Application.md#Uploading-Study-Files)
 - **Common Errors**
 - **FAQ**
