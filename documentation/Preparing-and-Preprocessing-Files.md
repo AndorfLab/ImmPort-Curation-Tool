@@ -1,7 +1,7 @@
 # Preparing and Preprocessing Files
 The curation application requires 3 different types of files:
-1)	ImmPort Files 
-2)	Curated Data Dictionary
+1)	ImmPort files 
+2)	Curated data dictionary
 3)	Study files 
 
 ## Generating ImmPort Files
@@ -9,14 +9,15 @@ Before generating the *Lab Tests* and *Assessments* templates, you must first ga
 
 The ImmPort files should either be in TXT or CSV format. They can be uploaded separately or in a single ZIP file.
 
-If Using a Study Already Published in ImmPort:
+If using a study already published in ImmPort:
 - The file that ends with *_Tab.zip* should be downloaded. That file should already contain the 3 required templates, study_data.txt, planned_visit.txt, and protocol.txt.
 
-If the Study Has Not Yet Been Deposited in ImmPort
+If the study has not yet been deposited in ImmPort:
 - An ImmPort account should be created and a new study registered. The Study Registration Wizard will walk the user through filling basic study information, which will encompass details about the protocol(s), study data, and planned visits.
 - Alternatively, the basic_study_design.txt and protocols.txt can be completed and uploaded into ImmPort. 
 
-Ultimately, both methods will create the required 3 files – study_data.txt, planned_visit.txt, and protocol.txt. Each file can be uploaded into the curation application. Alternatively, all 3 files can be uploaded at once as the *_Tab.zip*. 
+Ultimately, both methods will create the required 3 files – study_data.txt, planned_visit.txt, and protocol.txt. Each file can individually be uploaded into the curation application. Alternatively, all 3 files can be uploaded at once as the *_Tab.zip*.
+
 If any of these files contain incomplete or incorrect information, update them directly in ImmPort before generating the filled *Lab Tests* and *Assessments* templates.
 
 ### Example ImmPort Files
