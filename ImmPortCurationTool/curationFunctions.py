@@ -852,10 +852,17 @@ def datafileToComponents(datafile, dictionary, table_name_array, components_temp
                         if unit_info:
                             if unit_info in valid_columns:
                                 df_slim['Result Unit Reported'] = renamed_datafile[unit_info]
+       
                             elif unit_info.upper().strip("[]") == "SPLIT":
+                                df_slim['Result Value Reported'] = df_slim['Result Value Reported'].astype(str).fillna("")
+                                
                                 split_values = df_slim['Result Value Reported'].str.split(" ", n=1, expand=True)
-                                df_slim['Result Value Reported'] = split_values[0]
-                                df_slim['Result Unit Reported'] = split_values[1]
+
+                                if split_values.shape[1] == 1:
+                                    split_values[1] = "" 
+
+                                df_slim['Result Value Reported'] = split_values[0].str.strip()
+                                df_slim['Result Unit Reported'] = split_values[1].str.strip()
 
                             else:
                                 unit_col = unit_info.strip("[]").strip()
@@ -1228,9 +1235,16 @@ def datafileToComponents(datafile, dictionary, table_name_array, components_temp
                     if unit_info:
 
                         if unit_info.upper().strip("[]") == "SPLIT":
+                            df_slim['Result Value Reported'] = df_slim['Result Value Reported'].astype(str).fillna("")
+                            
                             split_values = df_slim['Result Value Reported'].str.split(" ", n=1, expand=True)
-                            df_slim['Result Value Reported'] = split_values[0]
-                            df_slim['Result Unit Reported'] = split_values[1]
+
+                            if split_values.shape[1] == 1:
+                                split_values[1] = "" 
+
+                            df_slim['Result Value Reported'] = split_values[0].str.strip()
+                            df_slim['Result Unit Reported'] = split_values[1].str.strip()
+                        
                             unit_assigned = True
 
                         else:
