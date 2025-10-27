@@ -1608,7 +1608,6 @@ class GUI(GUI_Object):
             if index in self.study_time_T0_specify_widgets:
                 self.data["file_list_df"].at[index, "Study Time T0 Event Specify"] = self.study_time_T0_specify_widgets[index].value
     
-    
         my_assessments = {}
         my_labtests = {}
 
@@ -1616,8 +1615,10 @@ class GUI(GUI_Object):
 
         study_files_dir = self.objects["filechooser_study_file_directory"].get_filepath()
 
-        parent_dir = os.path.dirname(study_files_dir)
-        parent_dir = os.path.dirname(parent_dir)
+        if os.path.isdir(study_files_dir):
+            parent_dir = os.path.dirname(study_files_dir)
+        else:
+            parent_dir = os.path.dirname(os.path.dirname(study_files_dir))
 
         todays_date = pd.to_datetime('today').strftime('%Y-%m-%d')
         study_id_todays_date = study_id + "-" + todays_date
@@ -2974,11 +2975,13 @@ class File_Chooser(GUI_Object):
         fname = getattr(self.widget, "selected_filename", "")
 
         if path and fname:
-            return os.path.normpath(os.path.join(path, fname))
+            fullpath = os.path.join(path, fname)
         elif path:
-            return os.path.normpath(path)
+            fullpath = path
         else:
             return None
+        
+        return os.path.normpath(os.path.abspath(fullpath))
 
     def get_dir(self):
 
