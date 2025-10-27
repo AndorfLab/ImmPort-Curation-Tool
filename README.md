@@ -24,5 +24,5 @@ The [*Lab Tests*](https://docs.immport.org/datasubmission/templatedocumentation/
   - [Uploading ImmPort Files](documentation/Using-the-Application.md#Uploading-ImmPort-Files)
   - [Uploading the Data Dictionary](documentation/Using-the-Application.md#Uploading-the-Data-Dictionary)
   - [Uploading Study Files](documentation/Using-the-Application.md#Uploading-Study-Files)
-- [**FAQ**](documentation/FAQ.md)
+- [**Frequently Asked Questions (FAQ)**](documentation/FAQ.md)
 
