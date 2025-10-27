@@ -101,7 +101,7 @@ Below is an example of a curated data dictionary populated with mock data to ill
   ![example data dictionary](./images/data-dictionary-example.png)
 
 ## Gathering Study Files
-Finally, the tool requires study files that are specific to each clinical trial. These files should contain participant-level information that was collected during the study. Each file should correspond to a specific domain (e.g., demographics) and typically represent a specific CRF. All study files should contain columns representing variables (e.g., subject ID, visit date, measurement values) that are also represented in the curated data dictionary. Each row should contain the data collected from a single individual for a specific date/visit. 
+Finally, the tool requires study files that are specific to each clinical trial. These files should contain participant-level information that was collected during the study. Each file should correspond to a specific domain (e.g., demographics) and typically represent a specific case report form (CRF). All study files should contain columns representing variables (e.g., subject ID, visit date, measurement values) that are also represented in the curated data dictionary. Each row should contain the data collected from a single individual for a specific date/visit. 
 
 Each study file should either be in TXT or CSV format. All study files should be in a single folder, which will be chosen within the application interface. 
 
@@ -117,13 +117,13 @@ The column used to identify the visit. This column should be specified in the da
 
 If the study file contains information from multiple visits, a visit column is required. If the study file contains information from only a single visit, then a visit column can be used or a default visit for the entire study file can be specified within the curation tool.
 
-#### Study Day or Date Column
-The column used to identify the day or date of the event. This column should be specified in the data dictionary column "Mappings" as "Study Day". 
+#### Study Day Column
+The column used to identify the day of the event. This should be an  integer that is in reference to some day 0 event (e.g., 'day of first visit' or 'day of recruitment'). This column should be specified in the data dictionary column "Mappings" as "Study Day". 
 
 This column is highly recommended, but not required. If a study day column is not included, then the study day in the completed *Lab Tests* or *Assessments* template will be filled in as the minimum start day that corresponds to the specified visit. Specifically, the value from the *MIN_START_DAY* in the planned_visit.txt file is used. 
 
 #### Study Time Column
-The column used to identify the time of the event. This column should be specified in the data dictionary column "Mappings" as "Study Time". 
+The column used to identify the time of the event. This column should be specified in the data dictionary column "Mappings" as "Study Time". Study time will only be used to propagate the *Assessments* template, not the *Lab Tests* template.
 
 This column is recommended when pertinent, but not required. 
 
@@ -135,16 +135,16 @@ Below is an example of a study file that aligns with the [example data dictionar
 
 | SUBJ | LOCA     | DATE  | TIME  | VISIT | SEVR | SKIN | ORAL | GIRE | FAM | AGE | PSTR | PSTD | PSTT |
 |------|----------|-------|-------|-------|------|------|------|------|-----|-----|------|------|------|
-| S1   | Clinic A | 1/5   | 10:00 | V1    | 1    | 1    | 1    | 1    | 2   | 2   | 3    | 1/5  | 12:00 |
-| S2   | Clinic A | 1/13  | 11:20 | V1    | 2    | 1    | 1    | 1    | 1   | 5   | 2    | 1/13 | 12:30 |
-| S3   | Clinic A | 1/21  | 11:30 | V1    | 2    | 2    | 2    | 1    | 1   | 3   | 3    | 1/21 | 1:15  |
-| S4   | Clinic B | 2/3   | 9:00  | V1    | 2    | 1    | 2    | 2    | 2   | 4   | 0    | 2/3  | 1:30  |
-| S5   | Clinic B | 1/5   | 10:30 | V1    | 3    | 2    | 1    | 2    | 1   | 6   | 0    | 1/5  | 2:00  |
-| S6   | Clinic B | 2/4   | 10:45 | V1    | 1    | 2    | 1    | 1    | 1   | 4   | 1    | 2/4  | 2:00  |
-| SY   | Clinic A | 1/5   | 1:30  | V1    | 3    | 1    | 2    | 1    | 2   | 7   | 2    | 1/5  | 3:30  |
-| S8   | Clinic A | 1/14  | 15:00 | V1    | 2    | 1    | 1    | 1    | 1   | 9   | 2    | 1/14 | 10:45 |
-| S9   | Clinic A | 1/28  | 10:30 | V1    | 1    | 1    | 1    | 1    | 1   | 2   | 5    | 1/28 | 3:45  |
-| S10  | Clinic B | 1/8   | 11:45 | V1    | 1    | 1    | 2    | 2    | 1   | 5   | 3    | 1/8  | 4:30  |
+| S1   | Clinic A | 5   | 10:00 | V1    | 1    | 1    | 1    | 1    | 2   | 2   | 3    | 1/5  | 12:00 |
+| S2   | Clinic A | 13  | 11:20 | V1    | 2    | 1    | 1    | 1    | 1   | 5   | 2    | 1/13 | 12:30 |
+| S3   | Clinic A | 21  | 11:30 | V1    | 2    | 2    | 2    | 1    | 1   | 3   | 3    | 1/21 | 1:15  |
+| S4   | Clinic B | 3   | 9:00  | V1    | 2    | 1    | 2    | 2    | 2   | 4   | 0    | 2/3  | 1:30  |
+| S5   | Clinic B | 5   | 10:30 | V1    | 3    | 2    | 1    | 2    | 1   | 6   | 0    | 1/5  | 2:00  |
+| S6   | Clinic B | 4   | 10:45 | V1    | 1    | 2    | 1    | 1    | 1   | 4   | 1    | 2/4  | 2:00  |
+| SY   | Clinic A | 5   | 1:30  | V1    | 3    | 1    | 2    | 1    | 2   | 7   | 2    | 1/5  | 3:30  |
+| S8   | Clinic A | 14  | 15:00 | V1    | 2    | 1    | 1    | 1    | 1   | 9   | 2    | 1/14 | 10:45 |
+| S9   | Clinic A | 28  | 10:30 | V1    | 1    | 1    | 1    | 1    | 1   | 2   | 5    | 1/28 | 3:45  |
+| S10  | Clinic B | 8   | 11:45 | V1    | 1    | 1    | 2    | 2    | 1   | 5   | 3    | 1/8  | 4:30  |
 
 
 An additional example of a study file (which is not represented in the example data dictionary) is below:
