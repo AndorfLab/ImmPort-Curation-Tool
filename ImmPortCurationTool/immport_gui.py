@@ -1748,7 +1748,9 @@ class GUI(GUI_Object):
 
                 except Exception as err:
                     errors_occurred = True
+                    tb = traceback.format_exc()
                     self.log(message=f"❌ Error processing {table_code} - {err}", level='error', flush=True)
+                    self.log(tb, level="debug")
    
             if template == "Assessment" and table_code not in ['--Select--', '']:
                 try:
@@ -1780,7 +1782,9 @@ class GUI(GUI_Object):
 
                 except Exception as err:
                     errors_occurred = True
+                    tb = traceback.format_exc()
                     self.log(message=f"❌ Error processing {table_code} - {err}", level='error', flush=True)
+                    self.log(tb, level="debug")
 
                         
             if template == "Lab Test" and table_code not in ['--Select--', '']:
@@ -1814,7 +1818,9 @@ class GUI(GUI_Object):
 
                 except Exception as err:
                     errors_occurred = True
+                    tb = traceback.format_exc()
                     self.log(message=f"❌ Error processing {table_code} - {err}", level='error', flush=True)
+                    self.log(tb, level="debug")
 
         if errors_occurred:
             self.log(message="❌ Some files failed to generate.", level='error', flush=True)
@@ -2967,10 +2973,12 @@ class File_Chooser(GUI_Object):
         path = getattr(self.widget, "selected_path", "")
         fname = getattr(self.widget, "selected_filename", "")
 
-        if not path or not fname:
+        if path and fname:
+            return os.path.normpath(os.path.join(path, fname))
+        elif path:
+            return os.path.normpath(path)
+        else:
             return None
-        
-        return os.path.normpath(os.path.join(path, fname))
 
     def get_dir(self):
 
