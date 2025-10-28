@@ -59,17 +59,17 @@ The first six columns are required and must all be present in the curated data d
 | Field Name            | Specifies the column within that file.                                 | A string that is in the study file.                                                                                                               | BLOPR,<br> HEIG,<br> WEIG                                                             |
 | Field Description     | Provides a human-readable description of the variable.                 | Any string that describes the "Field Name".                                                                                                         | Blood pressure,<br> Height,<br> Weight                                               |
 | Code List Values      | Defines mappings for coded responses. (e.g., 1 = Yes, 2 = No).         | Format is a=A, b=B, c=C, ... where lowercase letters (values on left) represent the coded values present in the data files and uppercase letters (values on right) are the human-readable values they should be translated into. | 1=Normal, 2=High, 3=Low, 4=Unknown                                           |
-| Mappings               | Specifies the variable’s role in the study.                            | 1 of 6 options: User Defined ID, Study Day, Study Time, Visit, Category, or NA.1️⃣                                                      | User Defined ID,<br> Visit,<br> NA.                                                   |
+| Mappings               | Specifies the variable’s role in the study.                            | 1 of 6 options: `User Defined ID`, `Study Day`, `Study Time`, `Visit`, `Category`, or `NA`.1️⃣                                                      | User Defined ID,<br> Visit,<br> NA.                                                   |
 | Unit                  | Defines the unit for the variable.                                     | A string, another "Field Name" that contains the unit, or [SPLIT]2️⃣ if the recorded value contains the unit.                         | Percentage,<br> HEIGHTUNIT,<br> [SPLIT]                                              |
 
 #### Guidelines for Completing the Mappings Column
-1️⃣: The "Mappings" column can be filled in by 1 of 6 options or left empty entirely. User Defined ID should be used to indicate the "Field Name" that contains the participant ID. Visit should be used to indicate the "Field Name" that contains the specific visit information. Study Day should be used to indicate the day, while Study Time should be used to indicate the time. All of these designations should only be used a maximum of 1 time per "Table Name". If there are multiple study days or times represented within a table, "Override Study Day" and "Override Study Time" should be used (see the "Optional Columns" section below).
+1️⃣: The "Mappings" column can be filled in by 1 of 6 options or left empty entirely. `User Defined ID` should be used to indicate the "Field Name" that contains the participant ID. `Visit` should be used to indicate the "Field Name" that contains the specific visit information. `Study Day` should be used to indicate the day, while `Study Time` should be used to indicate the time. All of these designations should only be used a maximum of 1 time per "Table Name". If there are multiple study days or times represented within a table, "Override Study Day" and "Override Study Time" should be used (see the "Optional Columns" section below).
 
-The other options, NA and Category, can be used more than once per "Table Name". NA should be used to indicate that the "Field Name" should be ignored entirely from the completed *Lab Tests* or *Assessments* template. For example, if a "Field Name" is only used for internal record keeping and is meaningless to external researchers, then that "Field Name" should be designated as NA.
+The other options, `NA` and `Category`, can be used more than once per "Table Name". `NA` should be used to indicate that the "Field Name" should be ignored entirely from the completed *Lab Tests* or *Assessments* template. For example, if a "Field Name" is only used for internal record keeping and is meaningless to external researchers, then that "Field Name" should be designated as `NA`.
 
-Category should be used when that "Field Name" does not contain a result per se, but rather a category that adds specificity to the results. That value will then be added to all of the "Field Descriptions" for that "Table Code" instead of being listed as a result in the final template. For example, consider a "Field Name" that is SKPT with a "Field Description" of skin prick test result and with values in the study file containing those result measurements (e.g., 1, 3, 0, 4). Consider another "Field Name" for that table is ALLER with a "Field Description" of allergens, containing different types of allergens in the study file (e.g., peanut, pollen, milk). The ALLER field might be better designated as Category. That would then make the "Field Description" of SKPT peanut skin prick test result, pollen skin prick test result, milk skin prick test, etc. 
+`Category` should be used when that "Field Name" does not contain a result per se, but rather a category that adds specificity to the results. That value will then be added to all of the "Field Descriptions" for that "Table Code" instead of being listed as a result in the final template. For example, consider a "Field Name" that is SKPT with a "Field Description" of skin prick test result and with values in the study file containing those result measurements (e.g., 1, 3, 0, 4). Consider another "Field Name" for that table is ALLER with a "Field Description" of allergens, containing different types of allergens in the study file (e.g., peanut, pollen, milk). The ALLER field might be better designated as `Category`. That would then make the "Field Description" of SKPT peanut skin prick test result, pollen skin prick test result, milk skin prick test, etc. 
 
-User Defined ID, Study Day, Visit, Category, and NA are all used to propagate both the *Lab Tests* and *Assessments* templates. Study Time is only used within the *Assessments* template.
+`User Defined ID`, `Study Day`, `Visit`, `Category`, and `NA` are all used to propagate both the *Lab Tests* and *Assessments* templates. `Study Time` is only used within the *Assessments* template.
 
 #### Designating SPLIT in the Unit Column 
 2️⃣: [SPLIT] or SPLIT can be designated in the "Unit" column if the recorded value contains the unit. Designating SPLIT will split at the first space, placing everything before the space as the value and everything after as the unit. For example, ‘6 feet’ will designate the unit as ‘feet’, while ‘6feet’ will result in no unit designation.  
@@ -91,9 +91,9 @@ The remaining five columns – "Verbatim Question", "Who is Assessed", "Age at O
 
 3️⃣: If the visit value from the study file does not exactly match a visit name in the planned visits file, you can provide a mapping using a JSON dictionary format. The format is: `{"[Study_file_visit_value]": "[Planned_visit_file_value]"}`.
 
-4️⃣: This takes precedence over assigning the study day as the "Field Name" that was designated as Study Day in the "Mappings" column. For example, if there was a medical history form with two related questions: *What was the severity of your last latex reaction?* and *What was the date of the latex reaction?* — the second could be specified in the "Override Study Day" column in the same row as the first question's field.
+4️⃣: This takes precedence over assigning the study day as the "Field Name" that was designated as `Study Day` in the "Mappings" column. For example, if there was a medical history form with two related questions: *What was the severity of your last latex reaction?* and *What was the date of the latex reaction?* — the second could be specified in the "Override Study Day" column in the same row as the first question's field.
 
-5️⃣: This works in the same manner as "Override Study Day", only with study time. Specifically, it takes precedence over assigning the study time as the "Field Name" that was designated as Study Time in the "Mappings" column.
+5️⃣: This works in the same manner as "Override Study Day", only with study time. Specifically, it takes precedence over assigning the study time as the "Field Name" that was designated as `Study Time` in the "Mappings" column.
 
 ### Example Data Dictionary
 Below is an example of a curated data dictionary populated with mock data to illustrate the required formatting.
@@ -110,22 +110,22 @@ Each study file should either be in TXT or CSV format. All study files should be
 ### Study File Columns
 
 #### Subject Identifier Column
-The column used to identify the subject. This column should be specified in the data dictionary column "Mappings" as "User Defined ID". 
+The column used to identify the subject. This column should be specified in the data dictionary column "Mappings" as `User Defined ID`. 
 
 A subject identifier column is required. 
 
 #### Visit Column
-The column used to identify the visit. This column should be specified in the data dictionary column "Mappings" as "Visit". 
+The column used to identify the visit. This column should be specified in the data dictionary column "Mappings" as `Visit`. 
 
 If the study file contains information from multiple visits, a visit column is required. If the study file contains information from only a single visit, then a visit column can be used or a default visit for the entire study file can be specified within the curation tool.
 
 #### Study Day Column
-The column used to identify the day of the event. This should be an  integer that is in reference to some day 0 event (e.g., 'day of first visit' or 'day of recruitment'). This column should be specified in the data dictionary column "Mappings" as "Study Day". 
+The column used to identify the day of the event. This should be an  integer that is in reference to some day 0 event (e.g., 'day of first visit' or 'day of recruitment'). This column should be specified in the data dictionary column "Mappings" as `Study Day`. 
 
 This column is highly recommended, but not required. If a study day column is not included, then the study day in the completed *Lab Tests* or *Assessments* template will be filled in as the minimum start day that corresponds to the specified visit. Specifically, the value from the *MIN_START_DAY* in the planned_visit.txt file is used. 
 
 #### Study Time Column
-The column used to identify the time of the event. This column should be specified in the data dictionary column "Mappings" as "Study Time". Study time will only be used to propagate the *Assessments* template, not the *Lab Tests* template.
+The column used to identify the time of the event. This column should be specified in the data dictionary column "Mappings" as `Study Time`. Study time will only be used to propagate the *Assessments* template, not the *Lab Tests* template.
 
 This column is recommended when pertinent, but not required. 
 
