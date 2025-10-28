@@ -18,12 +18,12 @@ The *1. ImmPort Files* tab is where the previously completed ImmPort templates s
 
 If you choose to 'Upload individual ImmPort files', then 3 separate file upload boxes will appear. Upload the planned visit file in the top box, the study data file in the middle box, and the protocol file in the bottom box. If uploaded correctly, the interface will not display any confirmation message.
 <br><br>
-<img width="824" height="449" alt="image" src="https://github.com/user-attachments/assets/0792de03-6142-4f39-8476-c086b1b5374d" />
+<img width="493" height="380" alt="image" src="https://github.com/user-attachments/assets/03fc437a-5348-4f7a-82cf-b60c57d8ee6b" />
 <hr>
 
 If there was an issue with the upload, a warning message telling the user to select a different file will appear. Please review the logs and ensure your file is in a valid format (TXT or CSV), has standard encoding, and contains all required column names. 
 <br><br>
-<img width="740" height="226" alt="image" src="https://github.com/user-attachments/assets/bd3a332a-5351-4a8f-be4a-e621d8b48f13" />
+<img width="495" height="146" alt="image" src="https://github.com/user-attachments/assets/d19a6bbe-ad91-4229-8109-ec32c5dd36df" />
 <hr>
 Alternatively, you can choose the 'Upload ImmPort Tab ZIP file' option. Select the ZIP file that contains the planned visit, study data, and protocol files. If uploaded correctly, the interface will not display any confirmation message.
 <br><br>
