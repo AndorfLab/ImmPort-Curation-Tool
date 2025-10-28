@@ -21,7 +21,7 @@ Ultimately, both methods will create the required 3 files – study_data.txt, pl
 If any of these files contain incomplete or incorrect information, update them directly in ImmPort before generating the filled *Lab Tests* and *Assessments* templates.
 
 ### Example ImmPort Files
-Below are examples of the ImmPort files that are required by the Curation tool. The templates are populated with mock data to showcase the required formatting.
+Below are examples of the ImmPort files that are required by the curation tool. The templates are populated with mock data to showcase the required formatting.
 
 #### *study_data.txt*
 | **STUDY_FILE_ACCESSION** | **DESCRIPTION**     | **FILE_NAME**        | **STUDY_ACCESSION** | **STUDY_FILE_TYPE** | **WORKSPACE_ID** |
