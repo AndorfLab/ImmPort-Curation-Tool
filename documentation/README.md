@@ -9,5 +9,4 @@
   - [Uploading ImmPort Files](Using-the-Application.md#Uploading-ImmPort-Files)
   - [Uploading the Data Dictionary](Using-the-Application.md#Uploading-the-Data-Dictionary)
   - [Uploading Study Files](Using-the-Application.md#Uploading-Study-Files)
-- **Common Errors**
-- **FAQ**
+- [**Frequently Asked Questions (FAQ)**](FAQ.md)
