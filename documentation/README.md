@@ -1,1 +1,12 @@
-To do
+# 📂 Table of Contents
+- [**Installation**](Installation.md)
+- [**Example Data**](Example-Files-Overview.md)
+- [**Preparing and Preprocessing Files**](Preparing-and-Preprocessing-Files.md)
+  - [Generating ImmPort Files](Preparing-and-Preprocessing-Files.md#Generating-ImmPort-Files)
+  - [Curating the Data Dictionary](Preparing-and-Preprocessing-Files.md#Curating-the-Data-Dictionary)
+  - [Gathering Study Files](Preparing-and-Preprocessing-Files.md#Gathering-Study-Files)
+- [**Using the Application**](Using-the-Application.md)
+  - [Uploading ImmPort Files](Using-the-Application.md#Uploading-ImmPort-Files)
+  - [Uploading the Data Dictionary](Using-the-Application.md#Uploading-the-Data-Dictionary)
+  - [Uploading Study Files](Using-the-Application.md#Uploading-Study-Files)
+- [**Frequently Asked Questions (FAQ)**](FAQ.md)
