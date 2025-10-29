@@ -173,31 +173,24 @@ def check_data_type(value, key_properties, key):
             
     return value
 
-def check_data_length(value, maxLength, truncate=False, key=None):
+def check_data_length(value, maxLength, truncate=True, key=None):
 
-    if value is None or pd.isna(value):  
+    if value is None or pd.isna(value):
         return None
     
-    if isinstance(value, (int, float, np.number)):
-        return None
-        
-    try:
-        if len(str(value)) <= maxLength:
-            return None
-    except:
-        return None
-    
-    ig.main_logger.write(message=f"Value of {key} exceeds max length of {maxLength}: {str(value)[0:40]}...", level='critical')
+    if not isinstance(value, str):
+        return value
 
-    if truncate and isinstance(value, str):
-        ig.main_logger.write(message=f"\tTruncated value from {len(value)} characters to {maxLength} characters", level='critical')
-        try:
-            value = "[TRUNCATED]"+value
-            return value[0:maxLength]
-        except Exception as e:
-            ig.main_logger.write(message=f"\tTruncation failed: {e}", level='critical')
+    if len(value) <= maxLength:
+        return value
 
-    raise ValueError(f"Value exceeds max length of {maxLength} for field {key}: {str(value)[0:25]}...")
+    if truncate:
+        trunc_tag = "[TRUNCATED]"
+        cutoff = maxLength - len(trunc_tag)
+        return value[:cutoff] + trunc_tag
+
+    raise ValueError(f"Value exceeds max length of {maxLength} for field {key}: {value[:25]}...")
+
 
 def load_data_fields(validator_name):
 
@@ -263,22 +256,51 @@ class ImmPort_Data:
 
     def set_data_value(self, key, value):
 
-        key_properties = self.get_data_key_properties(key)
+        try:
+            key_properties = self.get_data_key_properties(key)
+        except Exception as e:
+            ig.main_logger.write(level="critical", message=f"[ERROR] get_data_key_properties failed for {key}: {e}", flush=True)
+            return
 
         if "type" not in key_properties:
-            raise AttributeError("{key} has no 'type' property in the schema")
-        
-        value = check_data_type(value, key_properties, key)
+            ig.main_logger.write(level="warn", message=f"{key} has no 'type' property in schema; skipping.", flush=True)
+            return
+
+        try:
+            value_checked = check_data_type(value, key_properties, key)
+        except Exception as e:
+            ig.main_logger.write(level="critical", message=f"[ERROR] check_data_type failed for {key}: {e}", flush=True)
+            value_checked = value
 
         if "maxLength" in key_properties:
-            truncated_value = check_data_length(value, key_properties["maxLength"], truncate=type(self).truncate_long_fields, key=key)
-      
-            if truncated_value is not None:
-                self.set_data(key, truncated_value)
+            try:
+                truncated_or_none = check_data_length(
+                    value_checked,
+                    key_properties["maxLength"],
+                    truncate=True,  
+                    key=key
+                )
 
+                if truncated_or_none is not None:
+                    self.set_data(key, truncated_or_none)
+                    return
+            except Exception as e:
+                ig.main_logger.write(level="critical", message=f"[ERROR] check_data_length unexpected error for {key}: {e}", flush=True)
+                try:
+                    safe_val = str(value_checked)[:key_properties.get("maxLength", 250)]
+                    self.set_data(key, safe_val)
+                except Exception:
+                    self.set_data(key, "[ERROR_TRUNC]")
                 return
 
-        self.set_data(key,value)
+        try:
+            self.set_data(key, value_checked)
+        except Exception as e:
+            ig.main_logger.write(level="critical", message=f"[ERROR] set_data failed for {key}: {e}", flush=True)
+            try:
+                self.data[key] = str(value_checked)
+            except Exception:
+                pass
 
     def get_data_key_properties(self, key):
 
@@ -644,25 +666,143 @@ class Assessment_MetaData(ImmPort_Data):
 
 class Assessment_ResultData(ImmPort_Data):
 
-    schemaFile = "assessments.ResultData.json"
-    validator = "assessments.ResultData"
-    data_fields = load_data_fields(validator)
+    iterable_counter = 0
     truncate_long_fields = True
+    validator = "assessments.ResultData"
 
-    iterable_counters = {}
+    data_fields = load_data_fields(validator)
 
-    def __init__(self, subjectId=None, plannedVisitId=None, nameReported=None,
-                 studyDay=None, timeOfDay=None, studyId=None, crfFileNames=None, **kwargs):
+    result_unit_reported_synonyms = {
+        "Arbitrary Fluorescence Units": "AFU",
+        "Antibody Index": "AI",
+        "Antibody concentration": "Antibody titer",
+        "Antibody level": "Antibody titer",
+        "BPM": "Beats per Minute",
+        "Heart rate": "Beats per Minute",
+        "BMI": "Body Mass Index Finding",
+        "cms": "cm",
+        "centimeter": "cm",
+        "centimeters": "cm",
+        "Frequency": "Count",
+        "Number": "Count",
+        "d": "Day",
+        "days": "Day",
+        "Fragments Per Kilobase Million": "FPKM",
+        "grams per deciliter": "g/dl",
+        "grams per liter": "g/l",
+        "g": "gm",
+        "gram": "gm",
+        "grams": "gm",
+        "hr": "Hour",
+        "h": "Hour",
+        "Hours": "Hour",
+        "hours": "Hour",
+        "inch": "in",
+        "inches": "in",
+        "International Units": "IU",
+        "kilogram": "kg",
+        "kilograms": "kg",
+        "kgs": "kg",
+        "kg/m²": "kg/m2",
+        "liter": "l",
+        "liters": "l",
+        "liters per second": "L/sec",
+        "milligram": "mg",
+        "milligrams": "mg",
+        "milligrams per deciliter": "mg/dl",
+        "milligrams per deciliters": "mg/dl",
+        "milligrams per liter": "mg/l",
+        "milligrams per liters": "mg/l",
+        "milligrams per milliliter": "mg/ml",
+        "milligrams per milliliters": "mg/ml",
+        "milli-international units per milliliter": "miu/ml",
+        "milliliter": "ml",
+        "milliliters": "ml",
+        "cc": "ml",
+        "ml/min": "mL/min",
+        "milliliters per minute": "mL/min",
+        "milliliters per minutes": "mL/min",
+        "months": "Month",
+        "mo": "Month",
+        "nanogram": "ng",
+        "nanograms": "ng",
+        "nanograms per deciliter": "ng/dl",
+        "nanograms per deciliters": "ng/dl",
+        "nanograms per milliliter": "ng/ml",
+        "nanograms per milliliters": "ng/ml",
+        "nanograms per nanoliter": "ng/nl",
+        "nanograms per nanoliters": "ng/nl",
+        "nanograms per microliter": "ng/ul",
+        "nanograms per microliters": "ng/ul",
+        "nanoliter": "nl",
+        "nanoliters": "nl",
+        "nanomolar": "nM",
+        "nanomolars": "nM",
+        "Normalized Protein Expression": "NPX",
+        "%": "percentage",
+        "proportion": "percentage",
+        "picogram": "pg",
+        "picograms": "pg",
+        "picograms per milliliter": "pg/ml",
+        "picograms per milliliters": "pg/ml",
+        "picograms per nanoliter": "pg/nl",
+        "picograms per nanoliters": "pg/nl",
+        "picograms per microliter": "pg/ul",
+        "picograms per microliters": "pg/ul",
+        "picoliter": "pl",
+        "picoliters": "pl",
+        "picomolar": "pM",
+        "picomolars": "pM",
+        "Reads Per Kilobase Million": "RPKM",
+        "Transcripts Per Million": "TPM",
+        "mcg": "ug",
+        "microgram": "ug",
+        "micrograms": "ug",
+        "micrograms per deciliter": "ug/dl",
+        "micrograms per deciliters": "ug/dl",
+        "micrograms per kilogram": "ug/kg",
+        "micrograms per kilograms": "ug/kg",
+        "micrograms per liter": "ug/l",
+        "micrograms per liters": "ug/l",
+        "micrograms per milliliter": "ug/ml",
+        "micrograms per milliliters": "ug/ml",
+        "micrograms per microliter": "ug/ul",
+        "micrograms per microliters": "ug/ul",
+        "micro-international units per milliliter": "uiu/ml",
+        "microliter": "ul",
+        "microliters": "ul",
+        "micromolar": "uM",
+        "micromolars": "uM",
+        "micromoles per liter": "umol/l",
+        "Units per milliliter": "units/ml",
+        "units per milliliters": "units/ml",
+        "wk": "Week",
+        "weeks": "Week",
+        "year": "Year",
+        "years": "Year",
+        "yr": "Year",
+        "Celsius": "C",
+        "Fahrenheit": "F",
+        "Kelvin": "K",
+        "True/False": "Boolean",
+        "T/F": "Boolean",
+        "Yes/No": "Boolean",
+        "Y/N": "Boolean",
+        "0/1": "Boolean"
+    }
+
+    enumFields = dict(filter(lambda x: "enum" in x[1], data_fields.items()))
+
+    def __init__(self, plannedVisitId=None, nameReported=None, studyDay=None, studyId=None, crfFileNames=[], **kwargs):
+        Assessment_ResultData.iterable_counter +=1
 
         if crfFileNames:
-            base_filename = os.path.splitext(crfFileNames[0])[0] 
+            base_filename = os.path.splitext(crfFileNames[0])[0]
         else:
             base_filename = "NoFile"
 
         base_filename = base_filename.replace(" ", "_")
         base_filename = "".join(c for c in base_filename if c.isalnum() or c in "_-")
-
-        self.data = {}
 
         key = (studyId, base_filename)
         count = Assessment_ResultData.iterable_counters.get(key, 0) + 1
@@ -670,19 +810,26 @@ class Assessment_ResultData(ImmPort_Data):
 
         studyId_safe = sanitize_component(studyId)
         base_filename_safe = sanitize_component(base_filename)
-        count_safe = str(count) if count is not None else "0"
+        count_safe = str(count)
 
         new_user_id = f"{studyId_safe}_{base_filename_safe}_ID{count_safe}"
 
-        self.set_data_value("userDefinedId", new_user_id)
+        self.data={}
+
+        self.set_data("userDefinedId", new_user_id)
         self.set_data("plannedVisitId", plannedVisitId)
         self.set_data("nameReported", nameReported)
         self.set_data("studyDay", studyDay if studyDay is not None else 99999)
-        self.set_data("timeOfDay", str(timeOfDay) if timeOfDay else "")
 
-        kwargs.pop("userDefinedId", None)
-
+        del kwargs["userDefinedId"]
+        
         for key_field, value in kwargs.items():
+
+            if key_field == "resultUnitReported":
+                value = self.result_unit_reported_synonyms.get(value, value)
+                self.set_data_value(key_field, value)
+                continue
+
             try:
                 self.set_data_value(key_field, value)
             except Exception as e:
@@ -1157,6 +1304,7 @@ class LabTest_ResultData(ImmPort_Data):
         "grams per liter": "g/l",
         "g": "gm",
         "gram": "gm",
+        "grams": "gm",
         "hr": "Hour",
         "h": "Hour",
         "Hours": "Hour",
@@ -1278,21 +1426,22 @@ class LabTest_ResultData(ImmPort_Data):
         new_user_id = f"{studyId_safe}_{base_filename_safe}_ID{count_safe}"
 
         self.data = {}
-        self.set_data_value("userDefinedId", new_user_id)
+        self.set_data("userDefinedId", new_user_id)
         self.set_data("nameReported", nameReported)
+
+    #    self.set_data("nameReported", nameReported)
 
         kwargs.pop("userDefinedId", None)
 
         for key, value in kwargs.items():
-
-            if key == "resultValueReported":
-                self.set_data(key, str(value) if value is not None else "")
-                continue
 
             if key == "resultUnitReported":
                 value = self.result_unit_reported_synonyms.get(value, value)
                 self.set_data_value(key, value)
                 continue
 
-            if key in self.enumFields and value not in self.enumFields[key]["enum"]:
+            try:
                 self.set_data_value(key, value)
+            except Exception as e:
+                continue
+
