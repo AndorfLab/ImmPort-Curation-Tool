@@ -101,7 +101,6 @@ def validate_data(data, schema_name=None, schema_store=None):
 
     return False
 
-
 def is_same_type(value, field_type):
 
     if value is None or pd.isna(value):
@@ -1428,8 +1427,6 @@ class LabTest_ResultData(ImmPort_Data):
         self.data = {}
         self.set_data("userDefinedId", new_user_id)
         self.set_data("nameReported", nameReported)
-
-    #    self.set_data("nameReported", nameReported)
 
         kwargs.pop("userDefinedId", None)
 
