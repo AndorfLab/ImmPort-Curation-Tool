@@ -183,7 +183,7 @@ def check_data_length(value, maxLength, truncate=True, key=None):
     if len(value) <= maxLength:
         return value
 
-    if maxLength < 40:
+    if maxLength < 35:
          return value[:maxLength ] 
     else:
         if truncate:
