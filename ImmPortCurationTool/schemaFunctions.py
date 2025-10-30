@@ -183,13 +183,15 @@ def check_data_length(value, maxLength, truncate=True, key=None):
     if len(value) <= maxLength:
         return value
 
-    if truncate:
-        trunc_tag = "[TRUNCATED]"
-        cutoff = maxLength - len(trunc_tag)
-        return value[:cutoff] + trunc_tag
+    if maxLength < 40:
+         return value[:maxLength ] 
+    else:
+        if truncate:
+            trunc_tag = "[CUT]"
+            cutoff = maxLength - len(trunc_tag)
+            return value[:cutoff] + trunc_tag
 
     raise ValueError(f"Value exceeds max length of {maxLength} for field {key}: {value[:25]}...")
-
 
 def load_data_fields(validator_name):
 
