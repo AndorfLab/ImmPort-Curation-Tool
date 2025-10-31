@@ -62,6 +62,8 @@ After the curation tool is [installed](Installation.md) and opened, you will see
  
 - Finally, once all the input boxes have been filled in, click the 'Generate Filled Templates' button located above the table. The tool will begin producing the templates, which may take a few minutes to complete.
 
+- The outputted templates will be saved in a newly created *results* folder inside the Example-Data directory. Within *results*, a subfolder named with the current date will contain all templates generated on that day.
+
 
 
 
