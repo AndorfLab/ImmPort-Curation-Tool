@@ -113,3 +113,26 @@ For example, there might be a question "Have you had a headache since your last 
 
 The *Assessment* template also has an additional field that can contain a date —  "Age at Onset Reported". This should reflect the age that corresponds to a field. For instance, suppose the question "Do you have type II diabetes?" corresponds to the field DIABETES. The next field,  DIABETES_DT, contains the question  "At what age did you get type II diabetes?". In this case, you would designate DIABETES_DT in the "Age at Onset Reported" column of the data dictionary. 
 
+## 📂 For the curation tool, where are my outputted files?
+
+If your files were successfully generated, they will be saved in a *results* folder located in the parent directory of the study files directory you loaded in the “3. Study File” tab.
+
+For example, if your study files directory is `documents/vaccine-study/studyfile`, then the results will be located at `documents/vaccine-study/results`.
+
+Inside the 'results' folder, you’ll find a subfolder named with the current date. The generated templates in TXT format will be inside that dated folder.
+
+Note: Recreating a template on the same date overrides previous templates there were generated that day. Templates generated on different dates are stored in separate dated folders and will not override each other. 
+
+## ✂️ For the outputted templates, what does [CUT] mean? 
+
+If you see [CUT] at the end of an entry, it indicates that the text exceeded the maximum character limit defined by ImmPort. The tool automatically truncates the text and appends [CUT] to signal that the original content was longer than allowed.
+
+
+
+
+
+
+
+
+
+
