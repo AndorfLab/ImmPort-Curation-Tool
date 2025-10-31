@@ -41,6 +41,7 @@ After the curation tool is [installed](Installation.md) and opened, you will see
 
 ###  *3. Study Files*
 - Press 'Select' and locate the StudyFiles folder. Press 'Select' again. Click 'Load study files directory'.
+  - Note: The upload box will only display folders, so you will not see the individual study files in the box. Make sure to select the StudyFiles folder itself.
   
 - Once the files have been loaded, you should see a table. Choose the corresponding 'Table Code' for each file.
   - BAS = Basophil-Example.txt
