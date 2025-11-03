@@ -42,7 +42,7 @@
 | **Protocol ID(s)**               | "PROTOCOL_ACCESSION" column from the uploaded ImmPort file (protocol.txt) |
 | **Subject ID**                   | “Mappings” column (specified as `User Defined ID`) in the data dictionary |
 | **Planned Visit ID**             | “Mappings” column (specified as `Visit`) in the data dictionary **AND** uploaded ImmPort file (planned_visit.txt) |
-| **Type**                         | User specified within the curation tool (`Type` column) |
+| **Type**                         | User specified within the curation tool ("Type" column) |
 | **Subtype**                      | User specified when "Type" = "Other" within the curation tool ("Subtype" column) |
 | **Name**                         | NA |
 | **Description**                  | NA |
