@@ -41,6 +41,7 @@ After the curation tool is [installed](Installation.md) and opened, you will see
 
 ###  *3. Study Files*
 - Press 'Select' and locate the StudyFiles folder. Press 'Select' again. Click 'Load study files directory'.
+  - Note: The upload box will only display folders, so you will not see the individual study files in the box. Make sure to select the StudyFiles folder itself.
   
 - Once the files have been loaded, you should see a table. Choose the corresponding 'Table Code' for each file.
   - BAS = Basophil-Example.txt
@@ -60,6 +61,8 @@ After the curation tool is [installed](Installation.md) and opened, you will see
   - If you do not think any of the predefined options for 'Type' or 'Study Time T0 Event' sufficently describes the data, select 'Other' from those dropdowns. This will automatically reveal a 'Subtype' textbox for 'Type' and a 'Study Time T0 Event Specify' textbox for 'Study Time T0 Event', allowing you to manually enter a more specific description.
  
 - Finally, once all the input boxes have been filled in, click the 'Generate Filled Templates' button located above the table. The tool will begin producing the templates, which may take a few minutes to complete.
+
+- The outputted templates will be saved in a newly created *results* folder inside the Example-Data directory. Within *results*, a subfolder named with the current date will contain all templates generated on that day.
 
 
 

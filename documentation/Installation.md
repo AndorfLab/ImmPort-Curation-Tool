@@ -1,6 +1,15 @@
 # Installation Guide
 
-This guide explains how to install and run the ImmPort Curation Tool. The instructions are written for users with minimal coding experience and support Windows, macOS, and Linux.  
+This guide explains how to install and run the ImmPort Curation Tool. The instructions are written for users with minimal coding experience.
+
+## Hardware and Software Requirements
+
+This application can be run on a standard computer. It is recommended that a computer with 16 GB of RAM is used, although the app can still be run with more minimal RAM.
+
+This app should be supported on Windows, Mac, and Linux operating systems. Specifically, the app has been tested on the following systems:
+
+- Windows: Windows 11, 23H2
+- macOS: Sonoma 14.8.1
 
 ## Prerequisites  
 

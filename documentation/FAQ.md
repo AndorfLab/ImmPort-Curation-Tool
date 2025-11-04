@@ -42,7 +42,7 @@
 | **Protocol ID(s)**               | "PROTOCOL_ACCESSION" column from the uploaded ImmPort file (protocol.txt) |
 | **Subject ID**                   | “Mappings” column (specified as `User Defined ID`) in the data dictionary |
 | **Planned Visit ID**             | “Mappings” column (specified as `Visit`) in the data dictionary **AND** uploaded ImmPort file (planned_visit.txt) |
-| **Type**                         | User specified within the curation tool (`Type` column) |
+| **Type**                         | User specified within the curation tool ("Type" column) |
 | **Subtype**                      | User specified when "Type" = "Other" within the curation tool ("Subtype" column) |
 | **Name**                         | NA |
 | **Description**                  | NA |
@@ -112,4 +112,27 @@ In many cases, multiple fields will have the same study day or the entire case r
 For example, there might be a question "Have you had a headache since your last visit?" in the HEADACHE field. This could be accompanied by a follow-up question "What was the date of your last headache?" in the HEADACHE_DT field. This date (in integer form) can be placed in the "Study Day" column of the *Assessments* template by specifying HEADACHE_DT in the "Override Study Day" column of the data dictionary for the HEADACHE field.
 
 The *Assessment* template also has an additional field that can contain a date —  "Age at Onset Reported". This should reflect the age that corresponds to a field. For instance, suppose the question "Do you have type II diabetes?" corresponds to the field DIABETES. The next field,  DIABETES_DT, contains the question  "At what age did you get type II diabetes?". In this case, you would designate DIABETES_DT in the "Age at Onset Reported" column of the data dictionary. 
+
+## 📂 For the curation tool, where are the outputted files?
+
+If the files were successfully generated, they will be saved in a *results* folder located in the parent directory of the study files directory that was loaded in the “3. Study File” tab.
+
+For example, if the study files directory was `documents/vaccine-study/studyfile`, then the results will be located at `documents/vaccine-study/results`.
+
+Inside the 'results' folder, there will be a subfolder named with the current date. The generated templates in TXT format will be inside that dated folder.
+
+Note: Recreating a template on the same date overrides previous templates there were generated that day. Templates generated on different dates are stored in separate dated folders and will not override each other. 
+
+## ✂️ For the outputted templates, what does [CUT] mean? 
+
+If there is a [CUT] at the end of an entry, it indicates that the text exceeded the maximum character limit defined by ImmPort. The tool automatically truncates the text and appends [CUT] to signal that the original content was longer than allowed.
+
+
+
+
+
+
+
+
+
 
