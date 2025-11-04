@@ -1534,6 +1534,7 @@ class GUI(GUI_Object):
             self.objects["bottom_buttons_3"],
             spacer
             ])
+
         
         return self.objects["tab3_layout"] 
     
@@ -1873,19 +1874,87 @@ class GUI(GUI_Object):
 
         if "button_clear_main_logger" not in self.objects:
             self.objects["button_clear_main_logger"] = output_logger.add_clear_button(
-                description="Clear Log",
-                tooltip="Clear the main logger",
+                description="Reset Tab",
+                tooltip="Clear the logs",
                 width="140px"
             )
 
-        spacer = widgets.HTML(value="<div style='height: 10px;'></div>")
+        self.objects["help_button_4"] = widgets.Button(
+            description='Help',
+            tooltip='Click for help',
+            icon='question-circle'
+        )
+        self.objects["help_button_4"].style.button_color = '#F7F6BB'
 
-        if "logging_tab" not in self.objects:
-            self.objects["logging_tab"] = widgets.VBox([
-                output_logger.widget,
-                self.objects["button_clear_main_logger"].widget,
-                spacer
-            ])
+        self.objects["help_text_4"] = widgets.HTML(
+            value=f"""
+            <div style='color: black; font-family: Arial, sans-serif; font-size: 14px;
+                        padding: 5px; border: 1px solid #ccc; background-color: #f9f9f9;
+                        border-radius: 5px;'>
+
+                <h2 style='text-align: center; font-weight: bold; margin: 5px 0;'>Logs</h2>
+
+                <p>Both status updates and error messages appear in the 'Logs' tab.
+                Errors will appear in red, while success or neutral statements will appear in blue.</p>
+                <p>Note: Due to the way logs are rendered, the 'Logs' tab may have to be repeatedly clicked to show all logs.</p>
+
+                <h2 style='text-align: center; font-weight: bold; margin: 5px 0;'>Reset</h2>
+
+                <b>Reset Tab:</b> This button will reset everything in the 'Logs' tab. <br>
+
+            </div>
+            """,
+            layout={'width': '600px', 'height': 'auto'}
+        )
+
+        self.objects["help_text_4_box"] = widgets.VBox([self.objects["help_text_4"]])
+        self.objects["help_text_4_box"].layout.display = 'none'
+
+        def toggle_help_text_4(b):
+
+            if self.objects["help_text_4_box"].layout.display == 'none':
+                self.objects["help_text_4_box"].layout.display = 'block'  
+            else:
+                self.objects["help_text_4_box"].layout.display = 'none'   
+
+        self.objects["help_button_4"].on_click(toggle_help_text_4)
+
+        help_button_box = widgets.VBox([self.objects["help_button_4"]])
+        help_button_box.layout = widgets.Layout(
+            justify_content='flex-start'  
+        )
+
+        help_section = widgets.HBox([
+            help_button_box,
+            self.objects["help_text_4_box"]
+        ])
+        help_section.layout = widgets.Layout(
+            display='flex',
+            flex_flow='row',
+            align_items='flex-start',  
+            gap='10px'
+        )
+     
+        buttons_row = widgets.HBox([
+            self.objects["button_clear_main_logger"].get(),
+            help_section
+        ])
+
+        buttons_row.layout = widgets.Layout(
+            display='flex',
+            flex_flow='row',
+            justify_content='flex-start',
+            align_items='flex-start',
+            gap='15px'
+        )
+
+        spacer = widgets.HTML(value="<div style='height: 10px;'></div>")
+        
+        self.objects["logging_tab"] = widgets.VBox([
+            output_logger.widget,
+            spacer,
+            buttons_row
+        ])
 
         output_logger.replay()
 
@@ -3124,8 +3193,8 @@ class Log_Output(GUI_Object):
         self.buffer = []
 
         self.clear_button = Button(
-            text="Clear Log",
-            tooltip="Clear the main logger",
+            text="Reset Tab",
+            tooltip="Clear the logs",
             callback=self.clear_output,
             style="",
             icon="trash",
