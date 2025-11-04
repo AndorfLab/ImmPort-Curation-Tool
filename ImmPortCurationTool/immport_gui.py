@@ -711,7 +711,7 @@ class GUI(GUI_Object):
             <h2 style='color:black; text-align:left; margin-top: 15px; margin-bottom: 0px; font-size: 24px;'>📄 Documentation Links</h2>
             
             <p style='font-size:18px; color:black; margin-top: 15px; margin-bottom: 0px;'>
-                The following documents provide additional guidance, FAQs, error troubleshooting, and formatting requirements.
+                The following documents provide additional guidance, FAQs, and formatting requirements.
                 Use them as needed to better understand how to prepare and use your data with this tool.
             </p>
         """)
@@ -719,7 +719,7 @@ class GUI(GUI_Object):
         documentation = [
             {"label":"Preparing and Preprocessing Files","text":"Guidance on curating the files required for upload.", "link":"/documentation/Preparing-and-Preprocessing-Files.md"},
             {"label":"Using the Application","text":"Guidance on using the curation tool.", "link":"/documentation/Using-the-Application.md"},
-            {"label":"Common Errors","text":"Common errors and how to solve them", "link":"/documentation/Logging Errors.md"},
+      #      {"label":"Common Errors","text":"Common errors and how to solve them", "link":"/documentation/Logging Errors.md"},
             {"label":"FAQ","text":"Commonly asked questions", "link":"/documentation/FAQ.md"}
         ]
 
@@ -1949,7 +1949,7 @@ class GUI(GUI_Object):
         )
 
         spacer = widgets.HTML(value="<div style='height: 10px;'></div>")
-        
+
         self.objects["logging_tab"] = widgets.VBox([
             output_logger.widget,
             spacer,
