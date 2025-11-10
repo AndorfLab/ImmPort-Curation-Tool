@@ -70,7 +70,7 @@ display(HTML(custom_css))
 
 main_logger=''
 
-documentation_base_url = "https://github.com/AndorfLab/ImmPort-Curation-Tool/blob/Master"
+documentation_base_url = "https://github.com/AndorfLab/ImmPort-Curation-Tool/blob/Main"
 
 class Timer:
 
@@ -656,7 +656,7 @@ class GUI(GUI_Object):
         def download_example_data(url):
             display(Javascript(f'window.open("{url}", "_blank");'))
 
-        example_data_url = "https://github.com/AndorfLab/ImmPort-Curation-Tool/raw/Master/Example-Data.zip" 
+        example_data_url = "https://github.com/AndorfLab/ImmPort-Curation-Tool/raw/Main/Example-Data.zip" 
 
         download_button = widgets.Button(
             description="Download",
@@ -699,7 +699,7 @@ class GUI(GUI_Object):
                     </li>
                 </ul>
                 <br>
-                <a href='https://github.com/AndorfLab/ImmPort-Curation-Tool/blob/Master/documentation/Example-Files-Overview.md' 
+                <a href='https://github.com/AndorfLab/ImmPort-Curation-Tool/blob/Main/documentation/Example-Files-Overview.md' 
                 target='_blank' 
                 style='font-size:18px; color:#0077b6; text-decoration:none; font-weight:bold;'>
                 Click here for a step-by-step walkthrough of how to use the example data.
@@ -723,7 +723,7 @@ class GUI(GUI_Object):
             {"label":"FAQ","text":"Commonly asked questions", "link":"/documentation/FAQ.md"}
         ]
 
-        documentation_base_url = "https://github.com/AndorfLab/ImmPort-Curation-Tool/blob/Master"
+        documentation_base_url = "https://github.com/AndorfLab/ImmPort-Curation-Tool/blob/Main"
 
         doc_links = [
             widgets.HTML(value=f"""
