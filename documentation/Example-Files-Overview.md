@@ -23,7 +23,7 @@ These files (in the StudyFiles folder) represent real-world clinical data and ar
   - SPT-Example.txt
 
 ## Usage
-To test the tool, download the [Example-Data](https://github.com/AndorfLab/ImmPort-Curation-Tool/tree/Master/Example-Data) folder from GitHub. Alternatively, [Example-Data.zip](https://github.com/AndorfLab/ImmPort-Curation-Tool/blob/Master/Example-Data.zip) can be downloaded, but the files must be extracted before uploading them into the application.
+To test the tool, download the [Example-Data](https://github.com/AndorfLab/ImmPort-Curation-Tool/tree/Main/Example-Data) folder from GitHub. Alternatively, [Example-Data.zip](https://github.com/AndorfLab/ImmPort-Curation-Tool/blob/Main/Example-Data.zip) can be downloaded, but the files must be extracted before uploading them into the application.
 
 After the curation tool is [installed](Installation.md) and opened, you will see 5 tabs. The three middle tabs — *1. ImmPort Files*, *2. Data Dictionary* , and *3. Study Files* — are where the example files are uploaded. 
 
