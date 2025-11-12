@@ -137,8 +137,6 @@ def parseDictionaryRow(row, dictionary, formatted_columns):
     elif col_mapping and col_mapping.upper() in ["STUDY DAY", "[STUDY DAY]"]:
         prev = dictionary["tables"][table_name]["mappings"].get("[Study Day]")
 
-        if prev:
-            display(f"[DEBUG processRedCapFiles] Duplicate [Study Day] mapping in table='{table_name}': overwriting '{prev}' with '{field_name}'")
         dictionary["tables"][table_name]["mappings"]["[Study Day]"] = field_name
 
     study_time = (
@@ -162,9 +160,6 @@ def parseDictionaryRow(row, dictionary, formatted_columns):
     elif col_mapping and col_mapping.upper() == "STUDY TIME":
         prev = dictionary["tables"][table_name]["mappings"].get("[Study Time]")
   
-        if prev:
-            display(f"[DEBUG processRedCapFiles] Duplicate [Study Time] mapping in table='{table_name}': overwriting '{prev}' with '{field_name}'")
- 
         dictionary["tables"][table_name]["mappings"]["[Study Time]"] = field_name
 
     if col_mapping:
