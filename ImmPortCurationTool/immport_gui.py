@@ -653,19 +653,40 @@ class GUI(GUI_Object):
             </p>
         """)
 
-        def download_example_data(url):
-            display(Javascript(f'window.open("{url}", "_blank");'))
+        example_data_url = "https://github.com/AndorfLab/ImmPort-Curation-Tool/raw/Main/Example-Data.zip"
 
-        example_data_url = "https://github.com/AndorfLab/ImmPort-Curation-Tool/raw/Main/Example-Data.zip" 
-
-        download_button = widgets.Button(
-            description="Download",
-            tooltip="Download sample data files to test the tool",
-            icon="download",
-            layout=widgets.Layout(width="140px")
+        download_button = widgets.HTML(
+            value=f"""
+            <a href="{example_data_url}" target="_blank" download
+            style="text-decoration:none;">
+            <button style="
+                background-color:#98b3a2;
+                color:black;
+                font-size:14px;
+                font-weight:bold;
+                border:none;
+                border-radius:8px;
+                padding:6px 14px;
+                cursor:pointer;">
+                Download
+            </button>
+            </a>
+            """
         )
 
-        download_button.on_click(lambda b: download_example_data(example_data_url))
+        # def download_example_data(url):
+        #     display(Javascript(f'window.open("{url}", "_blank");'))
+
+        # example_data_url = "https://github.com/AndorfLab/ImmPort-Curation-Tool/raw/Main/Example-Data.zip" 
+
+        # download_button = widgets.Button(
+        #     description="Download",
+        #     tooltip="Download sample data files to test the tool",
+        #     icon="download",
+        #     layout=widgets.Layout(width="140px")
+        # )
+
+        # download_button.on_click(lambda b: download_example_data(example_data_url))
 
         example_header_row = widgets.HBox([
             widgets.HTML("<h2 style='color:black; margin-top: 0px; margin-bottom: 0px; font-size: 24px;'>🔢 Example Data</h2>"),
