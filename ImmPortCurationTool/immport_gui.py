@@ -674,20 +674,6 @@ class GUI(GUI_Object):
             """
         )
 
-        # def download_example_data(url):
-        #     display(Javascript(f'window.open("{url}", "_blank");'))
-
-        # example_data_url = "https://github.com/AndorfLab/ImmPort-Curation-Tool/raw/Main/Example-Data.zip" 
-
-        # download_button = widgets.Button(
-        #     description="Download",
-        #     tooltip="Download sample data files to test the tool",
-        #     icon="download",
-        #     layout=widgets.Layout(width="140px")
-        # )
-
-        # download_button.on_click(lambda b: download_example_data(example_data_url))
-
         example_header_row = widgets.HBox([
             widgets.HTML("<h2 style='color:black; margin-top: 0px; margin-bottom: 0px; font-size: 24px;'>🔢 Example Data</h2>"),
             widgets.Box([download_button], layout=widgets.Layout(margin='0 0 0 20px'))
