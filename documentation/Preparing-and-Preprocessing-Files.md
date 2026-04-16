@@ -103,8 +103,7 @@ Below is an example of a curated data dictionary populated with mock data to ill
 - Grey shaded columns are required
 - Green, blue, and tan cells indicate values that are mapped from entries listed in the "Field Name" column. For example, for the fields “SEVR”, “SKIN”, “ORAL”, and “GIRE”, “Age At Onset Reported” will be filled with values from the “AGE” field.
 
-
-<img width="697" height="533" alt="image" src="https://github.com/user-attachments/assets/a84226ff-9fa1-41a1-8c24-613a7f911b85" />
+<img width="698" height="532" alt="image" src="https://github.com/user-attachments/assets/94260c2a-44d1-447e-98ab-b6f4d5165f9c" />
 
 ## Gathering Study Files
 Finally, the tool requires study files that are specific to each clinical trial. These files should contain participant-level information that was collected during the study. Each file should correspond to a specific domain (e.g., demographics) and typically represent a specific case report form (CRF). All study files should contain columns representing variables (e.g., subject ID, visit date, measurement values) that are also represented in the curated data dictionary. Each row should contain the data collected from a single individual for a specific date/visit. 
