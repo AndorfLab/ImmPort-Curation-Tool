@@ -101,10 +101,10 @@ The remaining five columns – "Verbatim Question", "Who is Assessed", "Age at O
 ### Example Data Dictionary
 Below is an example of a curated data dictionary populated with mock data to illustrate the required formatting.
 - Grey shaded columns are required
-- Peach, teal, and tan cells indicate values that are mapped from entries listed in the "Field Name" column.
+- Green, blue, and tan cells indicate values that are mapped from entries listed in the "Field Name" column. For example, for the fields “SEVR”, “SKIN”, “ORAL”, and “GIRE”, “Age At Onset Reported” will be filled with values from the “AGE” field.
 
-<img width="530" height="403" alt="image" src="https://github.com/user-attachments/assets/4a8b73ae-dad5-41fa-a945-ecd02b907913" />
 
+<img width="697" height="533" alt="image" src="https://github.com/user-attachments/assets/a84226ff-9fa1-41a1-8c24-613a7f911b85" />
 
 ## Gathering Study Files
 Finally, the tool requires study files that are specific to each clinical trial. These files should contain participant-level information that was collected during the study. Each file should correspond to a specific domain (e.g., demographics) and typically represent a specific case report form (CRF). All study files should contain columns representing variables (e.g., subject ID, visit date, measurement values) that are also represented in the curated data dictionary. Each row should contain the data collected from a single individual for a specific date/visit. 
