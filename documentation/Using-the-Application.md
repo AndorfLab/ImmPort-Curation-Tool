@@ -14,7 +14,7 @@ Each of the functional tabs (*ImmPort Files*, *Data Dictionary*, *Study Files*, 
 If you have any difficulties with uploading files or if the outputted template is incorrect, please go to [Issues](https://github.com/AndorfLab/ImmPort-Curation-Tool/issues), select 'New Issue', and write about the problem with as much detail as possible. 
 
 ## Uploading ImmPort Files
-The *1. ImmPort Files* tab is where the previously completed ImmPort templates should be uploaded. The tool allows the user to either upload each template separately (planned_visit.txt, study_data.txt, and protocol.txt) or upload them combined within a zip file. 
+The *1. ImmPort Files* tab is where the previously completed ImmPort templates should be uploaded. The tool allows the user to either upload each template separately (planned_visit.txt, study_file.txt, and protocol.txt) or upload them combined within a zip file. 
 
 If you choose to 'Upload individual ImmPort files', then 3 separate file upload boxes will appear. Upload the planned visit file in the top box, the study data file in the middle box, and the protocol file in the bottom box. If uploaded correctly, the interface will not display any confirmation message.
 <br><br>
