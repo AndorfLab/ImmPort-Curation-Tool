@@ -10,18 +10,24 @@ Before generating the *Lab Tests* and *Assessments* templates, you must first ga
 The ImmPort files should either be in TXT or CSV format. They can be uploaded separately or in a single ZIP file.
 
 If using a study already published in ImmPort:
-- The file that ends with *_Tab.zip* should be downloaded. That file should already contain the 3 required templates, study_data.txt, planned_visit.txt, and protocol.txt.
+- The file that ends with *_Tab.zip* should be downloaded from the public study page. That ZIP should already contain the 3 required templates, study_data.txt, planned_visit.txt, and protocol.txt.
 
+If you are the administrator of a study in ImmPort:
+- [These instructions](https://github.com/AndorfLab/ImmPort-Curation-Tool/blob/Main/documentation/Load_files_from_immport.md) will walk you through downloading the required files.
+- The names of the downloaded files will contain the study ID, followed by _Study_Files.csv, _Planned_Visits.csv, and _Protocols.csv. For example, if the study ID is SDY89765, the protocol file will be called SDY89765_Protocols.csv. 
+  
 If the study has not yet been deposited in ImmPort:
-- An ImmPort account should be created and a new study registered. The Study Registration Wizard will walk the user through filling basic study information, which will encompass details about the protocol(s), study data, and planned visits.
+- Create an ImmPort account and register a new study. The Study Registration Wizard will walk you through filling basic study information, which will encompass details about the protocol(s), study data, and planned visits.
 - Alternatively, the basic_study_design.txt and protocols.txt can be completed and uploaded into ImmPort. 
 
-Ultimately, both methods will create the required 3 files – study_data.txt, planned_visit.txt, and protocol.txt. Each file can individually be uploaded into the curation application. Alternatively, all 3 files can be uploaded at once as the *_Tab.zip*.
+Once the 3 required files are downloaded, they can be uploaded individually into the curation application or together as a ZIP file.
 
 If any of these files contain incomplete or incorrect information, update them directly in ImmPort before generating the filled *Lab Tests* and *Assessments* templates.
 
 ### Example ImmPort Files
 Below are examples of the ImmPort files that are required by the curation tool. The templates are populated with mock data to showcase the required formatting.
+
+Note: File names and formats differ slightly between public downloads and admin exports, but both contain the necessary information for the Curation Tool. The examples below show the public download format.
 
 #### *study_data.txt*
 | **STUDY_FILE_ACCESSION** | **DESCRIPTION**     | **FILE_NAME**        | **STUDY_ACCESSION** | **STUDY_FILE_TYPE** | **WORKSPACE_ID** |
