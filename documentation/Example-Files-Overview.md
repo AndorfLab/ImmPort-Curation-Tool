@@ -4,7 +4,7 @@ To help users explore the tool’s functionality and understand the required dat
 ## 📁 Included Files
 ### ImmPort ZIP Files
 The ZIP archive (Example-ImmPort-Tab.zip) contains 3 completed ImmPort files, representing the minimal required files to use the application. 
-- study_data.txt
+- study_file.txt
 - planned_visit.txt
 - protocol.txt
   
@@ -32,7 +32,7 @@ After the curation tool is [installed](Installation.md) and opened, you will see
 
 - Press 'Select' and locate the Example-ImmPort-Tab.zip file. Press 'Select' again.
 
-- Alternatively, upload study_data.txt, planned_visit.txt, protocol.txt individually with the input type set as 'Upload individual ImmPort files'.
+- Alternatively, upload study_file.txt, planned_visit.txt, protocol.txt individually with the input type set as 'Upload individual ImmPort files'.
 
 ### *2. Data Dictionary* 
 - Press 'Select' and locate the Data-Dictionary-Example.txt file. Press 'Select' again.
