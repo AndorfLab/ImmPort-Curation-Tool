@@ -1,6 +1,7 @@
 # Downloading ImmPort Files
 
 If you are the administrator of a study that has been submitted to ImmPort, you can download the ImmPort-specific files (planned visits, protocols, and study files) following the steps below.
+
 <hr>
 
 First, go to the [ImmPort Studies Search Page](https://immport.niaid.nih.gov/research/study/studysearchmain#!/studysearch). You will need to be logged in. 
@@ -64,4 +65,13 @@ In the upper-right corner of the table, click the downward-facing arrow ▼. Sel
 <img width="805" height="209" alt="image" src="https://github.com/user-attachments/assets/dc0f33de-4a6f-4140-9f7b-415c5441c051" />
 <hr>
 
-All done! These files can now be uploaded to the *1. ImmPort Files* tab of the Curation Tool. For more information about how to do this, please read the [Uploading ImmPort Files](Using-the-Application.md#uploading-immport-files) section of the user manual. 
+## Next Steps
+
+All done! These files can now be uploaded to the *1. ImmPort Files* tab of the Curation Tool. 
+
+The three files should be in CSV format. The file names should include the study ID, followed by _Study_Files.csv, _Planned_Visits.csv, and _Protocols.csv. For example, if the study ID is SDY89765, the protocol file would be named SDY89765_Protocols.csv. These files are functionally equivalent to the study_file.txt, planned_visit.txt, and protocol.txt files that can be publicly downloaded from ImmPort.
+
+Specifically, file names and formats differ slightly between public downloads and administrator exports; however, both contain the necessary information for the Curation Tool. The primary difference is that administrator exports typically do not include a STUDY_ACCESSION column. As a result, the study accession must be entered manually in the “Input the study ID” text box within the application.
+
+For more information about how to upload the files to the tool, please read the [Uploading ImmPort Files](Using-the-Application.md#uploading-immport-files) section of the user manual. 
+
