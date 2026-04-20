@@ -99,3 +99,8 @@ voila forms.ipynb
 This will open a browser window with the application interface. On most machines, Voilà can be exited by pressing Ctrl + C in the terminal where it is running.
 
 The tool can also be run on other platforms like Visual Studio Code (https://code.visualstudio.com/Download). 
+
+
+## Next Steps
+
+Once the application is successfully installed, you can follow the rest of this user guide to learn how to <a href="Preparing-and-Preprocessing-Files.md">prepare the files for upload</a> and <a href="Using-the-Application.md">use the application</a>. You can also test the tool with <a href="Example-Files-Overview.md">example data</a>.
