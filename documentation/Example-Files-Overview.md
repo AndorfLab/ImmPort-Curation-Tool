@@ -30,7 +30,9 @@ After the curation tool is [installed](Installation.md) and opened, you will see
 ### *1. ImmPort Files*
 - Set the initial input type as 'Upload ImmPort Tab ZIP file'.
 
-- Press 'Select' and locate the Example-ImmPort-Tab.zip file. Press 'Select' again.
+- The 'Input the study ID' textbox does not have to be filled because study_file.txt already contains a populated STUDY_ACCESSION column.
+  
+- Below 'Select the ImmPort study Tab ZIP file', press 'Select' and locate the Example-ImmPort-Tab.zip file. Press 'Select' again.
 
 - Alternatively, upload study_file.txt, planned_visit.txt, protocol.txt individually with the input type set as 'Upload individual ImmPort files'.
 
