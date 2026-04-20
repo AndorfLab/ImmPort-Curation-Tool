@@ -170,5 +170,5 @@ An additional example of a study file (which is not represented in the example d
 | SUB000002 | 2     | 1      | 161      | 66       | 0    | 0     | 1      | 1       | 7    |
 
 <hr>
-Once these files are prepared, they are ready for upload into the Curation Tool. Additional details on this process can be found on the [Using the Application](Using-the-Application.md) page.
+Once these files are prepared, they are ready for upload into the Curation Tool. Additional details on this process can be found on the <a href="Using-the-Application.md">Using the Application</a> page.
 
