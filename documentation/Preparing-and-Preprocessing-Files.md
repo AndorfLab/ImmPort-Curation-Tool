@@ -10,7 +10,8 @@ Before generating the *Lab Tests* and *Assessments* templates, you must first ga
 The ImmPort files should either be in TXT or CSV format. They can be uploaded separately or in a single ZIP file.
 
 If using a study already published in ImmPort:
-- The file that ends with *_Tab.zip* should be downloaded from the public study page. That ZIP should already contain the 3 required templates, study_file.txt, planned_visit.txt, and protocol.txt.
+- The file that ends with *_Tab.zip* should be downloaded from the public study page.
+- That ZIP should already contain the 3 required templates, study_file.txt, planned_visit.txt, and protocol.txt.
 
 If you are the administrator of a study in ImmPort:
 - [These instructions](https://github.com/AndorfLab/ImmPort-Curation-Tool/blob/Main/documentation/Load_files_from_immport.md) will walk you through downloading the required files.
@@ -27,7 +28,9 @@ If any of these files contain incomplete or incorrect information, update them d
 ### Example ImmPort Files
 Below are examples of the ImmPort files that are required by the curation tool. The templates are populated with mock data to showcase the required formatting.
 
-Note: File names and formats differ slightly between public downloads and admin exports, but both contain the necessary information for the Curation Tool. The examples below show the public download format.
+Note: File names and formats differ slightly between public downloads and administrator exports, but both contain the necessary information for the Curation Tool. The primary difference is administrator exports typically do not contain a STUDY_ACCESSION column. As a result, the study accession must be filled in manually in the 'Input the study ID' textbox in the application. 
+
+The examples below show the public download format.
 
 #### *study_file.txt*
 | **STUDY_FILE_ACCESSION** | **DESCRIPTION**     | **FILE_NAME**        | **STUDY_ACCESSION** | **STUDY_FILE_TYPE** | **WORKSPACE_ID** |
