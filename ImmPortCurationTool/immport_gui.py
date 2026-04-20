@@ -802,6 +802,11 @@ class GUI(GUI_Object):
 
             self.objects["text_study_id"] = TextField(placeholder="SDY9999", regex=r"SDY\d+", layout=widgets.Layout(width="350px"))
 
+            self.objects["text_study_id"].widget.observe(
+                self.set_study_id_from_textfield,
+                names="value"
+            )
+            
             study_id_section = widgets.VBox([
             self.objects["label_study_id"],
             self.objects["text_study_id"].get()
@@ -883,39 +888,75 @@ class GUI(GUI_Object):
             self.objects["help_text_1"] = widgets.HTML(
                 value=f"""
                 <div style='color: black; font-family: Arial, sans-serif; font-size: 14px;
-                            padding: 5px; border: 1px solid #ccc; background-color: #f9f9f9;
+                            padding: 10px; border: 1px solid #ccc; background-color: #f9f9f9;
                             border-radius: 5px;'>
-                    <h2 style='text-align: center; font-weight: bold; margin: 5px 0;'>File Type</h2>
 
-                    <b>Choose initial input type:</b> Decide if you want to upload the 3 ImmPort files individually or together as a ZIP file. <br>
-      
-                    <h2 style='text-align: center; font-weight: bold; margin: 5px 0;'>File Upload</h2>
+                    <h2 style='text-align: center; font-weight: bold; margin: 12px 0 6px 0;'>File Type</h2>
+                    <p style='margin: 6px 0;'>
+                        <b>Choose initial input type:</b> Decide if you want to upload the 3 ImmPort files individually or together as a ZIP file.
+                    </p>
 
-                    <b>Upload individual ImmPort files:</b> Choose this option if you want to upload the ImmPort planned visit file (planned_visit.txt), 
-                    the ImmPort study file (study_file.txt), and the ImmPort protocol file (protocol.txt) individually. 
-                    After uploading each file, a preview will be shown below the upload area so you can confirm that the correct file was selected. <br>
-              
-                    <h2 style='text-align: center; font-weight: bold; margin: 5px 0;'>ZIP Upload</h2> 
+                    <h2 style='text-align: center; font-weight: bold; margin: 16px 0 6px 0;'>Study ID</h2>
+                    <p style='margin: 6px 0;'>
+                        <b>Enter the study ID.</b> This is only required if there is no 'STUDY_ACCESSION' column in the ImmPort study file or it is not already filled in. 
+                        The study ID should be in the format SDY### (e.g., SDY101).
+                    </p>
 
-                    <b>Upload ImmPort Tab ZIP file:</b> Choose this option if you want to upload a ZIP file that contains the 3 required ImmPort files 
-                    (planned_visit.txt, study_file.txt, and protocol.txt). <br>
+                    <h2 style='text-align: center; font-weight: bold; margin: 16px 0 6px 0;'>File Upload</h2>
+                    <p style='margin: 6px 0;'>
+                        <b>Upload individual ImmPort files:</b> Choose this option if you want to upload the ImmPort planned visit file, 
+                        the ImmPort study file, and the ImmPort protocol file individually. 
+                        After uploading each file, a preview will be shown below so you can confirm the correct file was selected.
+                    </p>
 
-                    <h2 style='text-align: center; font-weight: bold; margin: 5px 0;'>Reset</h2> 
+                    <h2 style='text-align: center; font-weight: bold; margin: 16px 0 6px 0;'>ZIP Upload</h2>
+                    <p style='margin: 6px 0;'>
+                        <b>Upload ImmPort Tab ZIP file:</b> Choose this option if you want to upload a ZIP file that contains the 3 required ImmPort files.
+                    </p>
 
-                    <b>Reset Tab:</b> This button will reset everything in the '1. ImmPort Files' tab. <br>
+                    <h2 style='text-align: center; font-weight: bold; margin: 16px 0 6px 0;'>Reset</h2>
+                    <p style='margin: 6px 0;'>
+                        <b>Reset Tab:</b> This button will reset everything in the '1. ImmPort Files' tab.
+                    </p>
 
-                    <h2 style='text-align: center; font-weight: bold; margin: 5px 0;'>Additional Information</h2>
+                    <h2 style='text-align: center; font-weight: bold; margin: 16px 0 6px 0;'>Additional Information</h2>
+
+                    <p style="margin: 6px 0;">
+                        <b>Publicly downloaded files:</b>
+                        The ImmPort planned visit, study, and protocol files can be accessed from published studies on ImmPort by downloading the file that ends in _Tab.zip.
+                        These TXT files should be included in the ZIP archive and named
+                        planned_visit.txt, study_file.txt, and protocol.txt.
+                    </p>
+
+                    <p style="margin: 12px 0;">
+                        <b>Administrator downloaded files:</b>
+                        Alternatively, if the ImmPort study has not yet been fully published, the planned visit, study, and protocol files can still be accessed for studies in which the user is listed as an administrator.
+                        These CSV files will be named using the study ID, followed by
+                        _Study_Files.csv, _Planned_Visits.csv, and _Protocols.csv.
+                        These files can be downloaded by following
+                        <a href="https://github.com/AndorfLab/ImmPort-Curation-Tool/blob/Main/documentation/Load_files_from_immport.md"
+                        style="text-decoration: none; color: #0077b6;">
+                            <b>these instructions</b>
+                        </a>.
+                    </p>
+
+                    
+                    <p style='margin: 6px 0;'>
                         <a title='Information on ImmPort data files' 
-                            href='{documentation_base_url}/documentation/Preparing-and-Preprocessing-Files.md#generating-immport-files' 
-                            style='font-size: 16px; text-decoration: none; color: #0077b6;'>
+                        href='{documentation_base_url}/documentation/Preparing-and-Preprocessing-Files.md#generating-immport-files' 
+                        style='font-size: 14px; text-decoration: none; color: #0077b6;'>
                             <b>Click for more information on how to download data from ImmPort</b>
-                        </a> <br>
-
-                        <a title='Information on ImmPort data in the app' 
-                            href='{documentation_base_url}/documentation/Using-the-Application.md#uploading-immport-files' 
-                            style='font-size: 16px; text-decoration: none; color: #0077b6;'>
-                            <b>Click for more information on how to upload the ImmPort File</b>
                         </a>
+                    </p>
+
+                    <p style='margin: 6px 0;'>
+                        <a title='Information on ImmPort data in the app' 
+                        href='{documentation_base_url}/documentation/Using-the-Application.md#uploading-immport-files' 
+                        style='font-size: 14px; text-decoration: none; color: #0077b6;'>
+                            <b>Click for more information on how to upload ImmPort files</b>
+                        </a>
+                    </p>
+
                 </div>
                 """,
                 layout={'width': '600px', 'height': 'auto'}
@@ -948,8 +989,9 @@ class GUI(GUI_Object):
                 spacer,
                 self.objects["toggle_current_immport_study"].get(), 
                 spacer,
-                box_immport_study_yes.get(), 
+                study_id_section,
                 spacer,
+                box_immport_study_yes.get(), 
                 box_immport_study_no.get(),
                 box_planned_visits.get(),
                 self.objects["box_study_visit_list"].get(),
@@ -1106,15 +1148,6 @@ class GUI(GUI_Object):
 
             missing_columns = []
 
-            mandatory_column = next(
-                (col for col in ["Study Accession", "STUDY_ACCESSION"]
-                if col in self.data["study_files"].columns),
-                None
-            )
-
-            if not mandatory_column:
-                missing_columns.append("'Study Accession' or 'STUDY_ACCESSION'")
-
             mandatory_column2 = next(
                 (col for col in ["File Name", "FILE_NAME"]
                 if col in self.data["study_files"].columns),
@@ -1210,13 +1243,13 @@ class GUI(GUI_Object):
             missing_columns = []
 
             mandatory_column = next(
-                (col for col in ["PV Accession", "PLANNED_VISIT_ACCESSION"]
+                (col for col in ["PV Accession", "PLANNED_VISIT_ACCESSION", "Planned Visit Accession"]
                 if col in self.data["planned_visit"].columns),
                 None
             )
 
             if not mandatory_column:
-                missing_columns.append("'PV Accession' or 'PLANNED_VISIT_ACCESSION'")
+                missing_columns.append("'PV Accession', 'PLANNED_VISIT_ACCESSION' or 'Planned Visit Accession'")
 
             mandatory_column2 = next(
                 (col for col in ["Name", "NAME"]
@@ -1239,6 +1272,7 @@ class GUI(GUI_Object):
 
             rename_map = {
                 "PV Accession": "PLANNED_VISIT_ACCESSION",
+                "Planned Visit Accession": "PLANNED_VISIT_ACCESSION",
                 "Name": "NAME",
                 "Min Start Day": "MIN_START_DAY",
                 "Max Start Day": "MAX_START_DAY",
@@ -1438,74 +1472,111 @@ class GUI(GUI_Object):
             <div style='color: black; font-family: Arial, sans-serif; font-size: 14px;
                         padding: 10px; border: 1px solid #ccc; background-color: #f9f9f9;
                         border-radius: 5px;'>
-                <h2 style='text-align: center; font-weight: bold; margin: 5px 0;'>Folder Upload</h2>
 
-                <b>Select the study files directory:</b> Choose the directory/folder that contains the study files in TXT or CSV format.
-                In ImmPort, this is the 'StudyFiles' folder. <br>
-             
-                <h2 style='text-align: center; font-weight: bold; margin: 5px 0;'>Table Completion</h2>   
+                <h2 style='text-align: center; font-weight: bold; margin: 12px 0 6px 0;'>Folder Upload</h2>
 
-                <b>Filename:</b> The name of the file in the directory. 
-                The file should be specified in the 'FILE_NAME' field from the ImmPort study_file.txt. <br>
+                <p style='margin: 6px 0;'>
+                    <b>Select the study files directory:</b> Choose the directory/folder that contains the study files in TXT or CSV format.
+                    In ImmPort, this is the 'StudyFiles' folder.
+                </p>
 
-                <b>Description:</b> The corresponding 'DESCRIPTION' from the ImmPort study_file.txt. 
-                If this field is empty, the exact study file name is not in study_file.txt. 
-                This field needs to be filled in to create a template. <br>
+                <h2 style='text-align: center; font-weight: bold; margin: 16px 0 6px 0;'>Table Completion</h2>
 
-                <b>Table Code:</b> Choose the corresponding identifier. This is from the 'Table Name' field of the data dictionary that corresponds to the study file. 
-                This field is mandatory.<br>
+                <p style='margin: 6px 0;'>
+                    <b>Filename:</b> The name of the file in the directory. 
+                    The file should be specified in the 'FILE_NAME' field from the ImmPort study_file.txt.
+                </p>
 
-                <b>Default Visit:</b> Choose the visit type. 
-                This is from the 'NAME' field in the ImmPort planned_visit.txt. 
-                This should be selected if the visit is not specified in the data dictionary or study file. 
-                This field is not mandatory, although it should be used when the study file contains missing planned visits. <br>
+                <p style='margin: 6px 0;'>
+                    <b>Description:</b> The corresponding 'DESCRIPTION' from the ImmPort study_file.txt. 
+                    If this field is empty, the exact study file name is not in study_file.txt. 
+                    This field needs to be filled in to create a template.
+                </p>
 
-                <b>Template:</b> Choose whether the created template should be <i>Lab Test</i> or <i>Assessment</i>. This field is mandatory. <br>
+                <p style='margin: 6px 0;'>
+                    <b>Table Code:</b> Choose the corresponding identifier. This is from the 'Table Name' field of the data dictionary that corresponds to the study file. 
+                    This field is mandatory.
+                </p>
 
-                <b>Assessment Name:</b> If you chose <i>Assessment</i>, specify the name in the textbox. This field is not mandatory, but highly recommended. <br>
+                <p style='margin: 6px 0;'>
+                    <b>Default Visit:</b> Choose the visit type. 
+                    This is from the 'NAME' field in the ImmPort planned_visit.txt. 
+                    This should be selected if the visit is not specified in the data dictionary or study file. 
+                    This field is not mandatory, although it should be used when the study file contains missing planned visits.
+                </p>
 
-                <b>Protocol:</b> If you chose <i>Lab Test</i>,  specify the protocol. 
-                This is from the 'NAME' field in the ImmPort protocol.txt.  
-                This field is mandatory. <br>
+                <p style='margin: 6px 0;'>
+                    <b>Template:</b> Choose whether the created template should be <i>Lab Test</i> or <i>Assessment</i>. This field is mandatory.
+                </p>
 
-                <b>Name Reported:</b> If you chose <i>Lab Test</i>,  specify the name that best describes the study file. This field is mandatory.<br>
+                <p style='margin: 6px 0;'>
+                    <b>Assessment Name:</b> If you chose <i>Assessment</i>, specify the name in the textbox. This field is not mandatory, but highly recommended.
+                </p>
 
-                <b>Type:</b> If you chose <i>Lab Test</i>, specify the sample type that best describes the study file. This field is mandatory. <br>
+                <p style='margin: 6px 0;'>
+                    <b>Protocol:</b> If you chose <i>Lab Test</i>, specify the protocol. 
+                    This is from the 'NAME' field in the ImmPort protocol.txt.  
+                    This field is mandatory.
+                </p>
 
-                <b>Subtype:</b> If the selected Type is 'Other', this textbox can be filled in with a more specific subtype.
-                This field is not mandatory, but recommended when the Type is 'Other'. <br>
+                <p style='margin: 6px 0;'>
+                    <b>Name Reported:</b> If you chose <i>Lab Test</i>, specify the name that best describes the study file. This field is mandatory.
+                </p>
 
-                <b>Study Time T0 Event:</b> If you chose <i>Lab Test</i>, specify the time 0 event — i.e., what the Day 0 event is. This field is mandatory. <br>
+                <p style='margin: 6px 0;'>
+                    <b>Type:</b> If you chose <i>Lab Test</i>, specify the sample type that best describes the study file. This field is mandatory.
+                </p>
 
-                <b>Study Time T0 Event Specify:</b> If the selected Study Time T0 Event is 'Other', this textbox can be filled in with a more specific study time T0 event.
-                This field is not mandatory, but recommended when the Study Time T0 Event is 'Other'.<br>
+                <p style='margin: 6px 0;'>
+                    <b>Subtype:</b> If the selected Type is 'Other', this textbox can be filled in with a more specific subtype.
+                    This field is not mandatory, but recommended when the Type is 'Other'.
+                </p>
 
-                <h2 style='text-align: center; font-weight: bold; margin: 5px 0;'>Template Creation</h2>   
+                <p style='margin: 6px 0;'>
+                    <b>Study Time T0 Event:</b> If you chose <i>Lab Test</i>, specify the time 0 event — i.e., what the Day 0 event is. This field is mandatory.
+                </p>
 
-                <b>Generate Filled Templates:</b> When the table is completed, click this button above the table to create the filled templates.<br>
+                <p style='margin: 6px 0;'>
+                    <b>Study Time T0 Event Specify:</b> If the selected Study Time T0 Event is 'Other', this textbox can be filled in with a more specific study time T0 event.
+                    This field is not mandatory, but recommended when the Study Time T0 Event is 'Other'.
+                </p>
 
-                <h2 style='text-align: center; font-weight: bold; margin: 5px 0;'>Reset</h2>   
+                <h2 style='text-align: center; font-weight: bold; margin: 16px 0 6px 0;'>Template Creation</h2>
 
-                <b>Reset Tab:</b> This button will reset everything in the '3. Study Files' tab. <br>
+                <p style='margin: 6px 0;'>
+                    <b>Generate Filled Templates:</b> When the table is completed, click this button above the table to create the filled templates.
+                </p>
 
-                <h2 style='text-align: center; font-weight: bold; margin: 5px 0;'>Additional Information</h2>
-                        <a title='Information on study files' 
-                            href='{documentation_base_url}/documentation/Preparing-and-Preprocessing-Files.md#gathering-study-files' 
-                            style='font-size: 16px; text-decoration: none; color: #0077b6;'>
-                            <b>Click for more information on how to gather study files</b>
-                        </a> <br>
+                <h2 style='text-align: center; font-weight: bold; margin: 16px 0 6px 0;'>Reset</h2>
 
-                        <a title='Information on study files in the app' 
-                            href='{documentation_base_url}/documentation/Using-the-Application.md#uploading-study-files' 
-                            style='font-size: 16px; text-decoration: none; color: #0077b6;'>
-                            <b>Click for more information on how to upload study files</b>
-                        </a>
+                <p style='margin: 6px 0;'>
+                    <b>Reset Tab:</b> This button will reset everything in the '3. Study Files' tab.
+                </p>
+
+                <h2 style='text-align: center; font-weight: bold; margin: 16px 0 6px 0;'>Additional Information</h2>
+
+                <p style='margin: 6px 0;'>
+                    <a title='Information on study files' 
+                        href='{documentation_base_url}/documentation/Preparing-and-Preprocessing-Files.md#gathering-study-files' 
+                        style='font-size: 16px; text-decoration: none; color: #0077b6;'>
+                        <b>Click for more information on how to gather study files</b>
+                    </a>
+                </p>
+
+                <p style='margin: 6px 0;'>
+                    <a title='Information on study files in the app' 
+                        href='{documentation_base_url}/documentation/Using-the-Application.md#uploading-study-files' 
+                        style='font-size: 16px; text-decoration: none; color: #0077b6;'>
+                        <b>Click for more information on how to upload study files</b>
+                    </a>
+                </p>
 
             </div>
             """,
             layout={'width': '600px', 'height': 'auto'}
         )
 
+      
         self.objects["help_text_3_box"] = widgets.VBox([self.objects["help_text_3"]])
         self.objects["help_text_3_box"].layout.display = 'none' 
 
@@ -1620,6 +1691,17 @@ class GUI(GUI_Object):
         my_labtests = {}
 
         study_id = self.get_study_id()
+
+        if not study_id:
+            self.objects["button_generate_files"].button_change(
+                button=self.objects["button_generate_files"],
+                style='danger',
+                text='Error: Study ID Required. Click to Retry.',
+                tooltip='Enter a Study ID or provide STUDY_ACCESSION in the study file.',
+                disabled=False,
+                icon='warning'
+            )
+            return  
 
         study_files_dir = self.objects["filechooser_study_file_directory"].get_filepath()
 
@@ -1899,15 +1981,22 @@ class GUI(GUI_Object):
                         padding: 5px; border: 1px solid #ccc; background-color: #f9f9f9;
                         border-radius: 5px;'>
 
-                <h2 style='text-align: center; font-weight: bold; margin: 5px 0;'>Logs</h2>
+                <h2 style='text-align: center; font-weight: bold; margin: 12px 0 6px 0;'>Logs</h2>
 
-                <p>Both status updates and error messages appear in the 'Logs' tab.
-                Errors will appear in red, while success or neutral statements will appear in blue.</p>
-                <p>Note: Due to the way logs are rendered, the 'Logs' tab may have to be repeatedly clicked to show all logs.</p>
+                <p style='margin: 6px 0;'>
+                    Both status updates and error messages appear in the 'Logs' tab.
+                    Errors will appear in red, while success or neutral statements will appear in blue.
+                </p>
 
-                <h2 style='text-align: center; font-weight: bold; margin: 5px 0;'>Reset</h2>
+                <p style='margin: 6px 0;'>
+                    Note: Due to the way logs are rendered, the 'Logs' tab may have to be repeatedly clicked to show all logs.
+                </p>
 
-                <b>Reset Tab:</b> This button will reset everything in the 'Logs' tab. <br>
+                <h2 style='text-align: center; font-weight: bold; margin: 16px 0 6px 0;'>Reset</h2>
+
+                <p style='margin: 6px 0;'>
+                    <b>Reset Tab:</b> This button will reset everything in the 'Logs' tab.
+                </p>
 
             </div>
             """,
@@ -2193,8 +2282,43 @@ class GUI(GUI_Object):
         self.data["study"]["STUDY_ACCESSION"]=[study_id]
 
     def get_study_id(self):
+        try:
+            if "study" in self.data:
+                study_id = self.data["study"].get("STUDY_ACCESSION", [None])[0]
+                if study_id and str(study_id).strip():
+                    return study_id.strip()
 
-        return self.data["study_files"]["STUDY_ACCESSION"][0]
+            if "study_files" in self.data:
+                df = self.data["study_files"]
+                if "STUDY_ACCESSION" in df.columns:
+                    value = df["STUDY_ACCESSION"].iloc[0]
+                    if pd.notna(value) and str(value).strip():
+                        return str(value).strip()
+                    
+            self.log(
+                message="Study ID not found.",
+                level="error",
+                flush=True
+            )
+
+            self.log(
+                message=(
+                    "Enter a Study ID in the text box or provide "
+                    "a non-empty STUDY_ACCESSION column in the ImmPort study file."
+                ),
+                level="error",
+                flush=True
+            )
+            return None
+
+        except Exception as e:
+            self.log(
+                message=f"Error determining Study ID: {str(e)}",
+                level="critical",
+                flush=True
+            )
+            self.log(traceback.format_exc(), level="debug")
+            raise
 
     def current_template(self):
 
@@ -2692,33 +2816,46 @@ class GUI(GUI_Object):
             <div style='color: black; font-family: Arial, sans-serif; font-size: 14px;
                         padding: 5px; border: 1px solid #ccc; background-color: #f9f9f9;
                         border-radius: 5px;'>
-                <h2 style='text-align: center; font-weight: bold; margin: 5px 0;'>File Upload</h2>
 
-                <b>Select the curated data dictionary:</b> Upload the data dictionary file, 
-                which contains information about the specific study files (uploaded in '3. Study Files'). 
-                This can be a TXT or CSV file. <br>
+                <h2 style='text-align: center; font-weight: bold; margin: 12px 0 6px 0;'>File Upload</h2>
 
-                <h2 style='text-align: center; font-weight: bold; margin: 5px 0;'>Template Type</h2>
+                <p style='margin: 6px 0;'>
+                    <b>Select the curated data dictionary:</b> Upload the data dictionary file, 
+                    which contains information about the specific study files (uploaded in '3. Study Files'). 
+                    This can be a TXT or CSV file.
+                </p>
 
-                <b>Choose which template(s) to generate from your data: </b> Specify whether you plan to generate <i>Lab Test</i>, <i>Assessment</i>, or both templates from your study files. 
-                Once you've selected the template type, click "Load Data Dictionary" to proceed. <br>
+                <h2 style='text-align: center; font-weight: bold; margin: 16px 0 6px 0;'>Template Type</h2>
 
-                <h2 style='text-align: center; font-weight: bold; margin: 5px 0;'>Reset</h2>
+                <p style='margin: 6px 0;'>
+                    <b>Choose which template(s) to generate from your data: </b> Specify whether you plan to generate <i>Lab Test</i>, <i>Assessment</i>, or both templates from your study files. 
+                    Once you've selected the template type, click "Load Data Dictionary" to proceed.
+                </p>
 
-                <b>Reset Tab:</b> This button will reset everything in the '2. Data Dictionary' tab. <br>
+                <h2 style='text-align: center; font-weight: bold; margin: 16px 0 6px 0;'>Reset</h2>
 
-                <h2 style='text-align: center; font-weight: bold; margin: 5px 0;'>Additional Information</h2>
-                        <a title='Information on the data dictionary' 
-                            href='{documentation_base_url}/documentation/Preparing-and-Preprocessing-Files.md#curating-the-data-dictionary' 
-                            style='font-size: 16px; text-decoration: none; color: #0077b6;'>
-                            <b>Click for more information on how to curate the data dictionary</b>
-                        </a> <br>
+                <p style='margin: 6px 0;'>
+                    <b>Reset Tab:</b> This button will reset everything in the '2. Data Dictionary' tab.
+                </p>
 
-                        <a title='Information on the data dictionary in the app' 
-                            href='{documentation_base_url}/documentation/Using-the-Application.md#uploading-the-data-dictionary' 
-                            style='font-size: 16px; text-decoration: none; color: #0077b6;'>
-                            <b>Click for more information on how to upload the data dictionary</b>
-                        </a>
+                <h2 style='text-align: center; font-weight: bold; margin: 16px 0 6px 0;'>Additional Information</h2>
+
+                <p style='margin: 6px 0;'>
+                    <a title='Information on the data dictionary' 
+                        href='{documentation_base_url}/documentation/Preparing-and-Preprocessing-Files.md#curating-the-data-dictionary' 
+                        style='font-size: 16px; text-decoration: none; color: #0077b6;'>
+                        <b>Click for more information on how to curate the data dictionary</b>
+                    </a>
+                </p>
+
+                <p style='margin: 6px 0;'>
+                    <a title='Information on the data dictionary in the app' 
+                        href='{documentation_base_url}/documentation/Using-the-Application.md#uploading-the-data-dictionary' 
+                        style='font-size: 16px; text-decoration: none; color: #0077b6;'>
+                        <b>Click for more information on how to upload the data dictionary</b>
+                    </a>
+                </p>
+
             </div>
             """,
             layout={'width': '600px', 'height': 'auto'}
@@ -2977,12 +3114,14 @@ class TextField(GUI_Object):
         if "regex" in kwargs:
             self.widget.observe(self.check_value, names='value')
             self.regex = kwargs["regex"]
-            regex_display = self.regex.replace(r"\d", " numbers (0-9)")
+          #  regex_display = self.regex.replace(r"\d", "##### (0-9), e.g. SDY101")
+
+            regex_display = self.regex.replace(r"\d+", "##### (0-9), e.g. SDY101")
 
             self.helper = widgets.Output()
             
             with self.helper:
-                display(widgets.HTML(f"<span style='color:red; font-size: 16px;'>⚠️ Please use a value that matches the format of {regex_display}</span>"))
+                display(widgets.HTML(f"<span style='color:red; font-size: 16px;'>⚠️ Please enter a value that matches the format of {regex_display}</span>"))
 
             self.helper.layout.display = "none"  
 
@@ -3416,4 +3555,3 @@ def get_protocols(self, nameonly=False, returnType=None):
         return names
     
     return self.data["protocol"][["PROTOCOL_ACCESSION","NAME"]]
-
