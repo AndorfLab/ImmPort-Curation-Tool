@@ -14,24 +14,27 @@ Each of the functional tabs (*ImmPort Files*, *Data Dictionary*, *Study Files*, 
 If you have any difficulties with uploading files or if the outputted template is incorrect, please go to [Issues](https://github.com/AndorfLab/ImmPort-Curation-Tool/issues), select 'New Issue', and write about the problem with as much detail as possible. 
 
 ## Uploading ImmPort Files
-The *1. ImmPort Files* tab is where the previously completed ImmPort templates should be uploaded. The tool allows the user to either upload each template separately (planned_visit.txt, study_file.txt, and protocol.txt) or upload them combined within a zip file. 
+The *1. ImmPort Files* tab is where the previously completed ImmPort templates should be uploaded. The tool allows the user to either upload each template separately (planned_visit, study_file, and protocol) or upload them combined within a ZIP file. 
 
-If you choose to 'Upload individual ImmPort files', then 3 separate file upload boxes will appear. Upload the planned visit file in the top box, the study data file in the middle box, and the protocol file in the bottom box. If uploaded correctly, the interface will not display any confirmation message.
+If you choose to 'Upload individual ImmPort files', a Study ID textbox and 3 separate file upload boxes will appear.
+
+The Study ID textbox should contain the study accession if it is not already specified in the study file. 
+
+The 3 ImmPort files should be uploaded in the next boxes. Upload the planned visit file in the top box, the study data file in the middle box, and the protocol file in the bottom box. If uploaded correctly, the interface will not display any confirmation message.
 <br><br>
-<img width="493" height="380" alt="image" src="https://github.com/user-attachments/assets/03fc437a-5348-4f7a-82cf-b60c57d8ee6b" />
+<img width="518" height="357" alt="image" src="https://github.com/user-attachments/assets/bab0609d-11c9-4561-b40b-5e422eef2415" />
 <hr>
-
 If there was an issue with the upload, a warning message telling the user to select a different file will appear. Please review the logs and ensure your file is in a valid format (TXT or CSV), has standard encoding, and contains all required column names. 
 <br><br>
-<img width="495" height="146" alt="image" src="https://github.com/user-attachments/assets/d19a6bbe-ad91-4229-8109-ec32c5dd36df" />
+<img width="523" height="153" alt="image" src="https://github.com/user-attachments/assets/344cc721-63d6-499a-9b4d-d7862e49cbaa" />
 <hr>
 Alternatively, you can choose the 'Upload ImmPort Tab ZIP file' option. Select the ZIP file that contains the planned visit, study data, and protocol files. If uploaded correctly, the interface will not display any confirmation message.
 <br><br>
-<img width="492" height="320" alt="image" src="https://github.com/user-attachments/assets/f21c9cfd-0b64-4288-a7c4-e250c2cb82e0" />
+<img width="518" height="311" alt="image" src="https://github.com/user-attachments/assets/1411d505-6f24-4df1-806b-0dc852c3960f" />
 <hr>
 If there was an issue with the upload, a warning message telling the user to select a different ZIP file will appear.  Please review the logs and ensure the files within the ZIP are each in a valid format (TXT or CSV), have standard encoding, and contain all required column names. 
 <br><br>
-<img width="491" height="175" alt="image" src="https://github.com/user-attachments/assets/99f3e25a-5514-4805-89a4-3a122856cde7" />
+<img width="526" height="182" alt="image" src="https://github.com/user-attachments/assets/abcf3c3a-52e3-42c8-8ea8-cd549633b76f" />
 <hr>
 
 Please find more information about the required file formats in the [Generating ImmPort Files](Preparing-and-Preprocessing-Files.md#Generating-ImmPort-Files) section. 
@@ -66,20 +69,20 @@ Once the folder is selected, click 'Load Study Files Directory'.
 <br><br>
 <img width="491" height="153" alt="image" src="https://github.com/user-attachments/assets/0bed103d-2745-42b9-9f87-08d00249a08d" />
 <hr>
-A table showing the files in the directory will appear. If the exact file name is also in the ImmPort study file (study_file.txt), a 'Description' will appear here.
+A table showing the files in the directory will appear. If the exact file name is also in the ImmPort study_file, a 'Description' will appear here.
 Next, select the 'Table Code' from the data dictionary that matches the study file. 
 <br><br>
 <img width="491" height="329" alt="image" src="https://github.com/user-attachments/assets/ea66c579-b085-4472-a123-e891646fb5ce" />
 <hr>
-Select a 'Default Visit' if there is no study visit in the study file or data dictionary. This box is populated from the planned_visit.txt.
+Select a 'Default Visit' if there is no study visit in the study file or data dictionary. This box is populated from the planned_visit file.
 <br><br>
 <img width="491" height="322" alt="image" src="https://github.com/user-attachments/assets/aa987156-7d55-4de1-8f2a-439c1d09d4ec" />
 <hr>
-Next, select the 'Template'. This should be either *Lab Test* or *Assessment*.
+Next, select the 'Template'. This should be either <em>Lab Test</em> or <em>Assessment</em>.
 <br><br>
 <img width="491" height="184" alt="image" src="https://github.com/user-attachments/assets/ff03cbb7-5fb3-4eee-af40-4b458595dfdf" />
 <hr>
-If *Lab Test* was chosen, additional selection boxes will appear. The first box, 'Protocol', is populated from the protocol.txt file that was uploaded in Tab 1. The protocol that best aligns with the study file should be selected.
+If <em>Lab Test</em> was chosen, additional selection boxes will appear. The first box, 'Protocol', is populated from the protocol file that was uploaded in Tab 1. The protocol that best aligns with the study file should be selected.
 <br><br>
 <img width="492" height="185" alt="image" src="https://github.com/user-attachments/assets/19ea61c2-2dad-4381-886d-62f41806e12d" />
 <hr>
@@ -99,11 +102,11 @@ If the options for 'Type' and/or 'Study Time T0 Event' are not accurate to your 
 <br><br>
 <img width="491" height="191" alt="image" src="https://github.com/user-attachments/assets/b2c8bdff-dd7d-4ee3-a036-b438d4e73245" />
 <hr>
-Alternatively, the *Assessment* template can be selected.
+Alternatively, the <em>Assessment</em> template can be selected.
 <br><br> 
 <img width="491" height="325" alt="image" src="https://github.com/user-attachments/assets/c9022763-df1b-4d4c-a69b-c8abdab1556b" />
 <hr>
-If *Assessment* was chosen, a textbox will appear. A short description of the study file should be inputted into 'Assessment Name'.
+If <em>Assessment</em> was chosen, a textbox will appear. A short description of the study file should be inputted into 'Assessment Name'.
 <br><br>
 <img width="491" height="253" alt="image" src="https://github.com/user-attachments/assets/d67424b2-71bc-4aa5-a8e1-fb7f68225a09" />
 <hr>
